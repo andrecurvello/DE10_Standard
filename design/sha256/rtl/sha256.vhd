@@ -1,5 +1,4 @@
 --------------------------------------------------------------------------------
--- Company: Rhummel
 -- Engineer: bdjafar (donation 1NMufZS3yajzfJwbCMrxVu4LaCWCvQowqE)
 -- 
 -- Create Date: 24/02/15
