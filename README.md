@@ -22,4 +22,4 @@ I have chosen to enhance the bitcoin mining project that I have been working on 
 while.
 
 This sketch illustrate the functional design of the project :
-[[https://github.com/BadissDjafar/DE10_Standard/tree/master/documents/Functional_design_new.jpg|alt=Minning Rig design]]
+![Minning Rig design](https://github.com/BadissDjafar/DE10_Standard/tree/master/documents/Functional_design_new.jpg "Minning Rig design")
