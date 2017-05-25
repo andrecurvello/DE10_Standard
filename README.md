@@ -20,3 +20,6 @@ Finally, the source directory is the place where all C sources shall be kept.
 In order to illustrate the capacities of the brand new kit generously provided by Terasic,
 I have chosen to enhance the bitcoin mining project that I have been working on for quite
 while.
+
+This sketch illustrate the functional design of the project :
+![alt text](documents/Functional_design_new.png "Standalone bitoin minning rig")
