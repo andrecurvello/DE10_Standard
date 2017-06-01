@@ -1,5 +1,5 @@
-Source Code
-============
+Source code organisation
+========================
 
 Source code in here shall be built thanks to a standard make file.
 
@@ -22,4 +22,13 @@ This is almost a project in itself. I intend to use the following features avail
  - 7 segments display -> display the overall performance of the mining rig in MHash/sec (runtime).
  - LCD display  -> display netwaork characteristics and statistics.
  - Buttons  -> LCD display control
+
+__Application code for COM :__ 
+<span style="color:blue">*TBB*</span>
    
+Coding standard/practises
+=========================
+
+<span style="color:red">I consider coding an art.</span>
+
+Therefore, I impose strcit discipline upon myself and those who work with me.
