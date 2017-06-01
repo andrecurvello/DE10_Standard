@@ -12,14 +12,14 @@
 #export PWD := $(shell C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe pwd)
 export PWD := $(shell pwd)
 export ALT_DEVICE_FAMILY = soc_cv_av
-export PRJ_ROOT = C:/Users/BDJ2Bp/workspace/DE10_Standard
+export PRJ_ROOT = C:/Projects/DE10_Standard
 export SOCEDS_DEST_ROOT = C:/intelFPGA_pro/17.0/embedded
 export SOCEDS_ROOT = $(SOCEDS_DEST_ROOT)
 export HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
 
 export HOSTCC = mingw32-
 export CROSS_COMPILE = arm-linux-gnueabihf-
-export IPATH := -I$(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) -I$(HWLIBS_ROOT)/include/
+export IPATH := -I$(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) -I$(HWLIBS_ROOT)/include/ -I$(PRJ_ROOT)/src/include/altera/
 export DFLAGS := $(ALT_DEVICE_FAMILY)
 export CFLAGS = -static -g -Wall -Werror $(addprefix -D,$(DFLAGS))
 
