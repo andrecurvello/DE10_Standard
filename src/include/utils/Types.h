@@ -20,7 +20,7 @@
 
 typedef char byte;           /* 1 byte */
 typedef short dword;         /* 2 bytes unsigned */
-typedef unsigned word;       /* 4 bytes unsigned */
+typedef unsigned int word;       /* 4 bytes unsigned */
 typedef unsigned long qword; /* 8 bytes unsigned */
 
 typedef signed short sdword; /* 2 bytes signed */

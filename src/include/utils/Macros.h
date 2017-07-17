@@ -29,3 +29,5 @@
 
 #define TRUE (1)
 #define FALSE (0)
+
+#define NULL (0x00000000) /* Null pointer definition */
