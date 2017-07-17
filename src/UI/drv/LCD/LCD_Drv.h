@@ -22,17 +22,12 @@
 /* *****************************************************************************
 **                          SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "Types.h"          /*  */
-#include "Macros.h"         /*  */
+#include "Types.h"          /* type definitions */
+#include "Macros.h"         /* macros definitions */
 
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "hwlib.h"          /*  */
-#include "socal/socal.h"    /*  */
-#include "socal/hps.h"      /*  */
-#include "socal/alt_gpio.h" /*  */
-#include "socal/alt_spim.h" /*  */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -71,6 +66,7 @@ typedef struct{
     word BitPerPixel;
     word FrameSize;
     byte *pbyFrame;
+
 }stLCD_DRV_Canvas_t;
 
 typedef byte FONT_BITMAP[LCD_CELL_SIZE_Y][LCD_CELL_SIZE_X];
@@ -84,18 +80,18 @@ typedef struct{
     word CodeEnd;
     word BitPerPixel;
     FONT_BITMAP *pBitmap;
+
 }stLCD_DRV_FontTable_t;
 
 /* *****************************************************************************
 **                                 GLOBALS
 ** ************************************************************************** */
-// hint: unsigned char font_table[ascii_code][lcd_cell_height/8][lcd_cell_width]
+// hint: unsigned char font_table[ascii_code][lcd_cell_he8ight/8][lcd_cell_width]
 extern stLCD_DRV_FontTable_t  stLCD_DRV_FontTable_16x16;
 
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-#if 0
 void LCDHW_Init(void *virtual_base);
 void LCDHW_BackLight(boolean bON);
 void LCDHW_Write8(byte bIsData, byte Data);
@@ -129,4 +125,5 @@ void DRAW_Refresh(stLCD_DRV_Canvas_t *pCanvas);
 
 void DRAW_PrintChar(stLCD_DRV_Canvas_t *pCanvas, word X0, word Y0, byte Text, word Color, stLCD_DRV_FontTable_t *font_table);
 void DRAW_PrintString(stLCD_DRV_Canvas_t *pCanvas, word X0, word Y0, byte *pText, word Color, stLCD_DRV_FontTable_t *font_table);
+
 #endif
