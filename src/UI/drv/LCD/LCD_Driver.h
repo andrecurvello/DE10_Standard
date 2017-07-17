@@ -2,10 +2,10 @@
 **
 **                       Standalone bitcoin miner
 **
-** Project      : DE10 Standard kit review
+** Project      : DE10 Standard mining rig
 ** Module       : LED_Drv.c
 **
-** Description  : Definitiion and implementation of the LCD driver module.
+** Description  : Definition and implementation of the LCD driver module.
 **
 ** ************************************************************************** */
 
@@ -14,6 +14,9 @@
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
 ** 28.05.17     bd      [no issue number] File creation
+** ----------------------------------------------------------------------------
+** 17.07.17     bd      [no issue number] Tidy up. Start implementation of the
+**                                        mining rig
 **
 ** ************************************************************************** */
 #ifndef NT7534_DRIVER_H
@@ -37,12 +40,16 @@ void LCDDrv_Init(void *virtual_base);
 void LCDDrv_BackLight(bool bON);
 
 void LCDDrv_Display(bool bOn);
+void LCDDrv_Debug(boolean bOn);
 void LCDDrv_SetStartLine(byte StartLine);
 void LCDDrv_SetPageAddr(byte PageAddr);
 void LCDDrv_SetColAddr(byte ColAddr);
 void LCDDrv_WriteData(byte Data);
 void LCDDrv_WriteMultiData(byte * Data, dword num);
+void LCDDrv_SetElectricVolume(byte Value);
+void LCDDrv_StaticOn(bool bNormal);
 
+void LCDDrv_EntireOn(bool bEntireOn);
 void LCDDrv_SetADC(bool bNormal);
 void LCDDrv_SetReverse(bool bNormal);
 void LCDDrv_SetBias(bool bEntireOn);

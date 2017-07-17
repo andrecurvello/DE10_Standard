@@ -2,7 +2,7 @@
 **
 **                       Standalone bitcoin miner
 **
-** Project      : DE10 Standard kit review
+** Project      : DE10 Standard mining rig
 ** Module       : LED_Drv.h
 **
 ** Description  : Declarations of the LCD screen module
@@ -14,6 +14,9 @@
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
 ** 28.05.17     bd      [no issue number] File creation
+** ----------------------------------------------------------------------------
+** 17.07.17     bd      [no issue number] Tidy up. Start implementation of the
+**                                        mining rig
 **
 ** ************************************************************************** */
 #ifndef INC_LCD_GRAPHIC_H
