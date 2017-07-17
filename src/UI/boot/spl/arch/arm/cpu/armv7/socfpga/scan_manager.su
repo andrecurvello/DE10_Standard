@@ -1,0 +1,2 @@
+scan_manager.h:135:1:0	0	static
+scan_manager.c:30:1:scan_mgr_io_scan_chain_prg	32	static

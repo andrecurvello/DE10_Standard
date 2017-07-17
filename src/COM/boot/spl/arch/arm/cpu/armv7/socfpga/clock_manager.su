@@ -1,0 +1,3 @@
+clock_manager.c:52:20:cm_wait4fsm	0	static
+clock_manager.c:79:20:0	0	static
+clock_manager.c:129:5:cm_basic_init	16	static

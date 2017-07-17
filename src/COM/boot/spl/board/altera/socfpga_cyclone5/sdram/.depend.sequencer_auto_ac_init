@@ -1,0 +1,2 @@
+/home/bdj2bp/DEMO_BARE_METAL/spl/board/altera/socfpga_cyclone5/sdram/sequencer_auto_ac_init.o: \
+ sequencer_auto_ac_init.c sequencer_defines.h alt_types.h

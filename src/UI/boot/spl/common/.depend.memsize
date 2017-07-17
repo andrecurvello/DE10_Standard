@@ -1,0 +1,13 @@
+/home/bdj2bp/DEMO_BARE_METAL/spl/common/memsize.o: memsize.c \
+ /home/bdj2bp/DEMO_BARE_METAL/include/config.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/config_cmd_defaults.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/config_defaults.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/configs/socfpga_cyclone5.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/asm/arch/socfpga_base_addrs.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/configs/../../board/altera/socfpga_cyclone5/build.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/configs/../../board/altera/socfpga_cyclone5/pinmux_config.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/configs/../../board/altera/socfpga_cyclone5/pll_config.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/config_cmd_default.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/asm/config.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/config_fallbacks.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/config_uncmd_spl.h

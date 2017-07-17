@@ -1,0 +1,7 @@
+/home/bdj2bp/DEMO_BARE_METAL/spl/lib/div64.o: div64.c \
+ /home/bdj2bp/DEMO_BARE_METAL/include/linux/types.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/linux/config.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/linux/posix_types.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/linux/stddef.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/asm/posix_types.h \
+ /home/bdj2bp/DEMO_BARE_METAL/include/asm/types.h

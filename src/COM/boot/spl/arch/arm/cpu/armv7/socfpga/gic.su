@@ -1,0 +1,16 @@
+gic.c:27:13:gic_dic_disable_secure	0	static
+gic.c:32:13:gic_dic_disable_nonsecure	0	static
+gic.c:37:13:gic_dic_enable_secure	0	static
+gic.c:42:13:gic_dic_enable_nonsecure	0	static
+gic.c:47:6:gic_dic_clear_enable_all_intr	0	static
+gic.c:67:6:gic_dic_clear_pending_all_intr	0	static
+gic.c:87:6:gic_dic_set_enable	0	static
+gic.c:94:6:gic_dic_set_target_processor	0	static
+gic.c:107:6:gic_dic_set_config	0	static
+gic.c:119:6:gic_dic_set_pending	0	static
+gic.c:127:6:gic_dic_clear_pending	0	static
+gic.c:135:13:gic_cpu_disable	0	static
+gic.c:140:13:gic_cpu_enable	0	static
+gic.c:145:13:gic_cpu_set_priority_mask	0	static
+gic.c:150:22:gic_cpu_get_pending_intr	0	static
+gic.c:155:13:gic_cpu_end_of_intr	0	static

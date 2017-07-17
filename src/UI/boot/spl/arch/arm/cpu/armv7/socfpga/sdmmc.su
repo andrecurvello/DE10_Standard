@@ -1,0 +1,2 @@
+sdmmc.c:34:6:sdmmc_set_clk_timing	0	static
+sdmmc.c:73:5:sdmmc_use_hold_reg	0	static

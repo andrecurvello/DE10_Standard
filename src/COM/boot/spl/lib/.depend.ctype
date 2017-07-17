@@ -1,0 +1,2 @@
+/home/bdj2bp/DEMO_BARE_METAL/spl/lib/ctype.o: ctype.c \
+ /home/bdj2bp/DEMO_BARE_METAL/include/linux/ctype.h

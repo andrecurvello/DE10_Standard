@@ -1,0 +1,6 @@
+dw_mmc.c:604:12:dw_host_init	16	static
+dw_mmc.c:50:5:dw_poll_cmd_register	16	static
+dw_mmc.c:411:12:dw_request	56	static
+dw_mmc.c:94:5:dw_update_clk_cmd	0	static
+dw_mmc.c:541:13:dw_mmc_set_ios	24	static
+dw_mmc.c:677:5:dw_mmc_init	8	static
