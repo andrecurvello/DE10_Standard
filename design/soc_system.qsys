@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "10";
+         value = "9";
          type = "int";
       }
    }
@@ -29,7 +29,7 @@
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "11";
          type = "int";
       }
    }
@@ -45,7 +45,7 @@
    {
       datum _sortIndex
       {
-         value = "6";
+         value = "5";
          type = "int";
       }
    }
@@ -66,7 +66,7 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "10";
          type = "int";
       }
    }
@@ -114,7 +114,7 @@
    {
       datum _sortIndex
       {
-         value = "8";
+         value = "7";
          type = "int";
       }
    }
@@ -131,32 +131,11 @@
          type = "String";
       }
    }
-   element led_pio
-   {
-      datum _sortIndex
-      {
-         value = "5";
-         type = "int";
-      }
-   }
-   element led_pio.s1
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "65600";
-         type = "String";
-      }
-   }
    element mm_bridge_0
    {
       datum _sortIndex
       {
-         value = "7";
+         value = "6";
          type = "int";
       }
    }
@@ -164,7 +143,7 @@
    {
       datum _sortIndex
       {
-         value = "9";
+         value = "8";
          type = "int";
       }
    }
@@ -216,7 +195,7 @@
  <parameter name="hideFromIPCatalog" value="false" />
  <parameter name="lockedInterfaceDefinition" value="" />
  <parameter name="maxAdditionalLatency" value="1" />
- <parameter name="projectName">DE10_Standard_GHRD.qpf</parameter>
+ <parameter name="projectName">DE10_Standard_Bitcoin.qpf</parameter>
  <parameter name="sopcBorderPoints" value="false" />
  <parameter name="systemHash" value="0" />
  <parameter name="testBenchDutName" value="" />
@@ -255,11 +234,6 @@
    type="reset"
    dir="start" />
  <interface name="hps_0_hps_io" internal="hps_0.hps_io" type="conduit" dir="end" />
- <interface
-   name="led_pio_external_connection"
-   internal="led_pio.external_connection"
-   type="conduit"
-   dir="end" />
  <interface name="memory" internal="hps_0.memory" type="conduit" dir="end" />
  <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <interface
@@ -893,20 +867,6 @@
   <parameter name="writeBufferDepth" value="64" />
   <parameter name="writeIRQThreshold" value="8" />
  </module>
- <module name="led_pio" kind="altera_avalon_pio" version="17.0" enabled="1">
-  <parameter name="bitClearingEdgeCapReg" value="false" />
-  <parameter name="bitModifyingOutReg" value="false" />
-  <parameter name="captureEdge" value="false" />
-  <parameter name="clockRate" value="50000000" />
-  <parameter name="direction" value="Output" />
-  <parameter name="edgeType" value="RISING" />
-  <parameter name="generateIRQ" value="false" />
-  <parameter name="irqType" value="LEVEL" />
-  <parameter name="resetValue" value="0" />
-  <parameter name="simDoTestBenchWiring" value="false" />
-  <parameter name="simDrivenValue" value="0" />
-  <parameter name="width" value="10" />
- </module>
  <module
    name="mm_bridge_0"
    kind="altera_avalon_mm_bridge"
@@ -1018,11 +978,6 @@
   <parameter name="baseAddress" value="0x000100c0" />
   <parameter name="defaultConnection" value="false" />
  </connection>
- <connection kind="avalon" version="17.0" start="mm_bridge_0.m0" end="led_pio.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00010040" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
  <connection
    kind="avalon"
    version="17.0"
@@ -1081,15 +1036,6 @@
    kind="avalon"
    version="17.0"
    start="fpga_only_master.master"
-   end="led_pio.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00010040" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="fpga_only_master.master"
    end="button_pio.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x000100c0" />
@@ -1110,7 +1056,6 @@
    start="clk_0.clk"
    end="hps_only_master.clk" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="sysid_qsys.clk" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="led_pio.clk" />
  <connection
    kind="clock"
    version="17.0"
@@ -1210,11 +1155,6 @@
    version="17.0"
    start="clk_0.clk_reset"
    end="mm_bridge_0.reset" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="led_pio.reset" />
  <connection
    kind="reset"
    version="17.0"
