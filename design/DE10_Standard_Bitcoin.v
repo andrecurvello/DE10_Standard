@@ -129,7 +129,7 @@ module DE10_Standard_bitcoin(
       inout       [7:0]  HPS_USB_DATA,
       input              HPS_USB_DIR,
       input              HPS_USB_NXT,
-      output             HPS_USB_STP,
+      output             HPS_USB_STP
 `endif /*ENABLE_HPS*/
 );
 
@@ -156,7 +156,7 @@ module DE10_Standard_bitcoin(
   wire [27:0] stm_hw_events;
   
   // connection of internal logics
-  assign LEDR[9:1] = fpga_led_internal;
+
   assign stm_hw_events    = {{4{1'b0}}, fpga_debounced_buttons};
   assign fpga_clk_50=CLOCK_50;
   
