@@ -32,10 +32,7 @@
          value = "11";
          type = "int";
       }
-   }
-   element TERASIC_SEG7_0.slave
-   {
-      datum _lockedAddress
+      datum sopceditor_expanded
       {
          value = "1";
          type = "boolean";
@@ -160,6 +157,14 @@
          type = "String";
       }
    }
+   element soc_system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
    element sysid_qsys
    {
       datum _sortIndex
@@ -254,7 +259,7 @@
   <parameter name="ADDR_WIDTH" value="3" />
   <parameter name="DEFAULT_ACTIVE" value="1" />
   <parameter name="LOW_ACTIVE" value="1" />
-  <parameter name="SEG7_NUM" value="6" />
+  <parameter name="SEG7_NUM" value="8" />
  </module>
  <module name="button_pio" kind="altera_avalon_pio" version="17.0" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="true" />
