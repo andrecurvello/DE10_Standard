@@ -35,6 +35,10 @@ com :
 ui :
 	$(foreach UI,$(UI_DIR),cd $(UI) && make ui && cd .. &&) true
 
+refrence :
+	echo "Nothing to do for the time being"
+	# $(foreach FPGA,$(FPDA_DIR),cd $(FPGA) && make fpga && cd .. &&) true
+
 fpga :
 	echo "Nothing to do for the time being"
 	# $(foreach FPGA,$(FPDA_DIR),cd $(FPGA) && make fpga && cd .. &&) true
