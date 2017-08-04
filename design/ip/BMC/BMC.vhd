@@ -14,16 +14,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity sha256 is
+entity BMC is
 port (
   slClkInput    : in  std_logic;
   slResetInput  : in  std_logic;
   slvBlockInput_512 : in  std_logic_vector(511 downto 0) := X"00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380";
   slvDigestOutput_256 : out std_logic_vector(255 downto 0)
 );
-end entity sha256;
+end entity BMC;
 
-architecture Behavioral of sha256 is
+architecture Behavioral of BMC is
 
   -- Type definition and aliases
   alias slv is std_logic_vector;
@@ -208,5 +208,5 @@ begin
       q_g <= g;
       q_h <= h;
     end if;
-    end process;
+  end process;
 end architecture Behavioral;
