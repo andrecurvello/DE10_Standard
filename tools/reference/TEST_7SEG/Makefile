@@ -1,11 +1,13 @@
 ################################################################################
-#                           TEST 7 SEGMENT Makefile                            #
+#                           DE10_STANDARD build file                           #
 ################################################################################
-OBJ-LST = main
 TARGET = TEST_7SEG
+OBJ-LST = main
 
-all: 
-	  
+build: $(TARGET)
+$(TARGET): $(addsuffix .o,$(OBJ-LST)) 
+	$(CC) $(LDFLAGS) $^ -o $@  
+	
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 

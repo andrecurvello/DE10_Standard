@@ -1,17 +1,10 @@
 ################################################################################
 #                           DE10_STANDARD build file                           #
-#                                                                              #
-# ---------------------------------------------------------------------------  #
-#                                                                              #
-#                                                                              #
 ################################################################################
 COM = linux
 UI = lib
 FPGA = design
 
-#export INSTALL_DIR := /usr/targets/current/root/usr/include/
-#export LIB_DIR     := /usr/targets/current/root/usr/lib/
-#export KERNEL_IPATH:= /usr/targets/current/root/usr/src/modules/wycec/linux/include
 export PWD         := $(shell pwd)
 export IPATH       :=
 export DFLAGS      :=
@@ -28,10 +21,14 @@ ifeq ($(VERBOSE),y)
 	DFLAGS += -DVERBOSE
 endif
 
-all :  com ui fpga
+all : com ui fpga
+
+help :
+	@echo "display help here"
 
 com :
 	$(foreach COM,$(COM_DIR),cd $(COM) && make com && cd .. &&) true
+	
 ui :
 	$(foreach UI,$(UI_DIR),cd $(UI) && make ui && cd .. &&) true
 
