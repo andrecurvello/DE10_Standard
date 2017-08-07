@@ -27,7 +27,14 @@
 #define mSetBit_QWORD()
 #endif
 
+#ifndef TRUE
 #define TRUE (1)
-#define FALSE (0)
+#endif
 
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+#ifndef NULL
 #define NULL (0x00000000) /* Null pointer definition */
+#endif

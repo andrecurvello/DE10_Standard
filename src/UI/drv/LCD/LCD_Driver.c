@@ -2,10 +2,10 @@
 **
 **                       Standalone bitcoin miner
 **
-** Project      : DE10 Standard mining rig
+** Project      : DE10 Standard kit review
 ** Module       : LED_Drv.c
 **
-** Description  : Definition and implementation of the LCD driver module.
+** Description  : Definitiion and implementation of the LCD driver module.
 **
 ** ************************************************************************** */
 
@@ -14,9 +14,6 @@
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
 ** 28.05.17     bd      [no issue number] File creation
-** ----------------------------------------------------------------------------
-** 17.07.17     bd      [no issue number] Tidy up. Start implementation of the
-**                                        mining rig
 **
 ** ************************************************************************** */
 
@@ -46,7 +43,7 @@
 /* *****************************************************************************
 **                                 LOCALS
 ** ************************************************************************** */
-static void *lcd_virtual_base = NULL;
+static void *lcd_virtual_base=NULL;
 
 /* *****************************************************************************
 **                                 MACROS
@@ -64,28 +61,28 @@ static void *lcd_virtual_base = NULL;
 ** ************************************************************************** */
 static void PIO_DC_Set(bool bIsData);
 static void PIO_DC_Reset(void);
+#if 0
+static bool SPIM_IsTxFifoEmpty(void);
+#endif
 static void SPIM_WriteTxData(byte Data);
 
 static void Write8(byte Data){
     SPIM_WriteTxData(Data);
 }
 
-static void PIO_DC_Set(bool bIsData)
-{
-    if ( NULL != lcd_virtual_base )
+static void PIO_DC_Set(bool bIsData){
+
+    // ss_n0 = 1, [3:0]
+    alt_setbits_word( ( lcd_virtual_base + ( ( uint32_t )( ALT_SPIM0_SER_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), ALT_SPIM_SER_SER_SET( 1 ) );
+
+    /* Keep reset high */
+    alt_setbits_word( ( lcd_virtual_base + ( ( uint32_t )( ALT_GPIO1_SWPORTA_DR_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), HPS_LCM_RESETn_BIT_GPIObit44_GPIOreg1 );
+
+    // D_C = "H": Data
+    // D_C = "L": CMD
+    if (bIsData) // A0 = "H": Data
     {
-        // ss_n0 = 1, [3:0]
-        alt_setbits_word( ( lcd_virtual_base + ( ( uint32_t )( ALT_SPIM0_SER_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), ALT_SPIM_SER_SER_SET( 1 ) );
-
-        /* Keep reset high */
-        alt_setbits_word( ( lcd_virtual_base + ( ( uint32_t )( ALT_GPIO1_SWPORTA_DR_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), HPS_LCM_RESETn_BIT_GPIObit44_GPIOreg1 );
-
-        // D_C = "H": Data
-        // D_C = "L": CMD
-        if (bIsData) // A0 = "H": Data
-        {
-            alt_setbits_word( ( lcd_virtual_base + ( ( uint32_t )( ALT_GPIO1_SWPORTA_DR_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), HPS_LCM_D_C_BIT_GPIObit41_GPIOreg1 );
-        }
+        alt_setbits_word( ( lcd_virtual_base + ( ( uint32_t )( ALT_GPIO1_SWPORTA_DR_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), HPS_LCM_D_C_BIT_GPIObit41_GPIOreg1 );
     }
 }
 
@@ -175,7 +172,9 @@ void LCDDrv_Init(void *virtual_base)
     // ALT_SPIM0_SPIENR_ADDR
     alt_setbits_word( ( virtual_base + ( ( uint32_t )( ALT_SPIM0_SPIENR_ADDR ) & ( uint32_t )( HW_REGS_MASK ) ) ), ALT_SPIM_SPIENR_SPI_EN_SET_MSK );
 
-    return;
+    // step 4: Write data for transmission to the target slave into the transmit FIFO buffer (write DR)
+    //alt_setbits_word( ( virtual_base + ( ( uint32_t )( ALT_SPIM0_DR_ADDR ) & ( uint32_t )( ALT_SPIM1_SPIENR_ADDR ) ) ), data16 );
+
 }
 
 void LCDDrv_Debug(boolean bDebug)

@@ -2,10 +2,10 @@
 **
 **                       Standalone bitcoin miner
 **
-** Project      : DE10 Standard mining rig
+** Project      : DE10 Standard kit review
 ** Module       : LED_Drv.c
 **
-** Description  : Definition and implementation of the LCD driver module.
+** Description  : Definitiion and implementation of the LCD driver module.
 **
 ** ************************************************************************** */
 
@@ -14,9 +14,6 @@
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
 ** 28.05.17     bd      [no issue number] File creation
-** ----------------------------------------------------------------------------
-** 17.07.17     bd      [no issue number] Tidy up. Start implementation of the
-**                                        mining rig
 **
 ** ************************************************************************** */
 #ifndef NT7534_DRIVER_H
