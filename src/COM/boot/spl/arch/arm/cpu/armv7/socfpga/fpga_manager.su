@@ -1,4 +1,0 @@
-fpga_manager.c:73:13:fpgamgr_set_cd_ratio	0	static
-fpga_manager.c:92:12:fpgamgr_dclkcnt_set	0	static
-fpga_manager.c:54:5:is_fpgamgr_fpga_ready	0	static
-fpga_manager.c:117:5:fpgamgr_program_fpga	16	static

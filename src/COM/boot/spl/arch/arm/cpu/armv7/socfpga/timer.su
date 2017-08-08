@@ -1,8 +1,0 @@
-timer.c:29:5:timer_init	0	static
-timer.c:45:6:__udelay	8	static
-timer.c:79:7:get_timer_masked	8	static
-timer.c:70:7:get_timer	8	static
-timer.c:99:6:reset_timer	8	static
-timer.c:112:7:get_timer_count_masked	0	static
-timer.c:130:7:get_timer_count	8	static
-timer.c:138:6:reset_timer_count	0	static

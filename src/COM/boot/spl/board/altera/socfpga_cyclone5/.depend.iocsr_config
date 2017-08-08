@@ -1,3 +1,0 @@
-/home/bdj2bp/DEMO_BARE_METAL/spl/board/altera/socfpga_cyclone5/iocsr_config.o: \
- iocsr_config.c \
- /home/bdj2bp/DEMO_BARE_METAL/board/altera/socfpga_cyclone5/iocsr_config.h

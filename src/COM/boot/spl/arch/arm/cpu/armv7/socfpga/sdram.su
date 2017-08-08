@@ -1,6 +1,0 @@
-sdram.c:40:5:dram_init	8	static
-sdram.c:46:6:irq_handler_ecc_sdram	0	static
-sdram.c:63:10:sdram_write_register_field	0	static
-sdram.c:72:10:sdram_write_verify	0	static
-sdram.c:99:10:sdram_mmr_init_full	0	static
-sdram.c:1010:10:sdram_calibration_full	0	static
