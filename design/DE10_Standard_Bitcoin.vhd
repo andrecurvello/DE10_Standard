@@ -248,24 +248,9 @@ pulse_out => (hps_debug_reset)
 -- *****************************************************************************
 --                              CLOCK PROCESSING                              **
 -- ************************************************************************** */
---    process(CLOCK_50)
---    	reg [25:0] counter; 
---		always @(posedge fpga_clk_50 or negedge hps_fpga_reset_n)
---		begin
---		if(~hps_fpga_reset_n)
---		begin
---		                counter<=0;
---		end
---		
---		// That is approximatively 500ms
---		else if(counter==24999999)
---		        begin
---		                counter<=0;
---		        end
---		else
---		                counter<=counter+1'b1;
---		end
---    begin
+    process(CLOCK_50)
+    -- Nothing to do for the time being
+    begin
     
 -- *****************************************************************************
 --                          SNAKE on SEG7                                     **
