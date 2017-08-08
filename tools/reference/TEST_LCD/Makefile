@@ -3,7 +3,7 @@
 ################################################################################
 TARGET = TEST_LCD
 
-LCD-LOC = $(PRJ_ROOT)\src\UI\drv\LCD
+LCD-LOC = $(PRJ_ROOT)\src\drv\LCD
 LDPATH += -L$(LCD-LOC)
 
 TERA-LOC = $(PRJ_ROOT)\src\common\terasic
