@@ -93,6 +93,9 @@ int main(void)
     /* Register signal handler */
     signal(SIGINT,handle_int);
 
+    /* Initialise FPGA */
+    FPGA_Drv_Setup();
+
     /* Get access to memory */
     fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) );
 	if( -1  != fd )

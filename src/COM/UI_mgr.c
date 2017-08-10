@@ -33,6 +33,12 @@
 #include "LCD_Graphic.h" /* Graphics management library of the LCD */
 #include "LCD_Driver.h"  /* LCD hardware management */
 
+#include "hwlib.h"          /* General ALTERA HW definitions */
+#include "socal/socal.h"    /* ALTERA Socal defns */
+#include "socal/hps.h"      /* Hardware processing system (controller)  defns */
+#include "socal/alt_gpio.h" /* ALTERA GPIO defns */
+#include "hps_0.h"          /* FPGA interface defns */
+
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
@@ -73,7 +79,17 @@ static void handle_int(int iSignal)
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-int main(void)
+dword UI_Setup(void)
+{
+    dword retVal;
+
+    /* Initialise locals pessimisticaly */
+    retVal = 0;
+
+    return retVal;
+}
+
+int UI_Bkgnd(void)
 {
 	void *virtual_base;
 	word fd;

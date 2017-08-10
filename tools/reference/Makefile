@@ -1,7 +1,7 @@
 ################################################################################
 #                           GENERAL TEST Makefile                              #
 ################################################################################
-DIRS = 7SEG LCD
+DIRS = 7SEG LCD JSON
 TARGETS = $(addprefix TEST_,$(DIRS))
 
 ################################################################################
@@ -31,6 +31,11 @@ default : usage
 all : $(TARGETS)
 	@echo -e "\033[1;32m[Compiling $@]\033[0m"
 	$(foreach DIR,$(TARGETS),cd $(DIR) && make $(DIR) && cd .. &&) true
+	@echo -e  "\033[1;32m[Finished $@]\033[0m"
+
+json : 
+	@echo -e "\033[1;32m[Compiling $@]\033[0m"
+	$(MAKE) -C TEST_JSON
 	@echo -e  "\033[1;32m[Finished $@]\033[0m"
 
 7seg : 

@@ -1,11 +1,11 @@
 /* *****************************************************************************
 **
-**                       LCD Demonstration sub project
+**                       DE10 Standard project
 **
-** Project      : LCD show case
-** Module       : LED_Drv.c
+** Project      : DE10 standard project
+** Module       : FPGA_Drv
 **
-** Description  : main application that uses LCD.
+** Description  : Provide access to the FPGA fabric.
 **
 ** ************************************************************************** */
 
@@ -13,9 +13,11 @@
 **  REVISION HISTORY
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
-** 28.05.17     bd      [no issue number] File creation
+** 08.08.17     bd      [no issue number] File creation
 **
 ** ************************************************************************** */
+#ifndef FPGA_DRV_H
+#define FPGA_DRV_H
 
 /* *****************************************************************************
 **                          SYSTEM INCLUDE FILES
@@ -23,36 +25,28 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
-#include <signal.h> /* signal handling */
-
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "terasic_os_includes.h" /* terasic lib */
-
-#include "LCD_Graphic.h" /* Graphics management library of the LCD */
-#include "LCD_Driver.h"  /* LCD hardware management */
-
-/* *****************************************************************************
-**                          ENUM & MACRO DEFINITIONS
-** ************************************************************************** */
-#define HW_REGS_BASE ( ALT_STM_OFST )         /*  */
-#define HW_REGS_SPAN ( 0x04000000 )           /*  */
-#define HW_REGS_MASK ( HW_REGS_SPAN - 1 )     /*  */
-#define FRAME_SIZE ((LCD_WIDTH*LCD_HEIGHT)/8) /*  */
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
 ** ************************************************************************** */
+typedef struct
+{
+    void *pvVirtBase;
+
+} FPGA_Drv_Result_t;
 
 /* *****************************************************************************
-**                                 GLOBALS
+**                               PUBLIC INTFC
 ** ************************************************************************** */
+FPGA_Drv_Result_t *pstFPGA_Drv_Results;
 
 /* *****************************************************************************
-**                                 LOCALS
+**                                  API
 ** ************************************************************************** */
+dword FPGA_Drv_Setup(void);
+dword FPGA_Drv_Init(void);
 
-/* *****************************************************************************
-**                              LOCALS ROUTINES
-** ************************************************************************** */
+#endif
