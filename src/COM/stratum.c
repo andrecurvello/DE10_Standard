@@ -23,7 +23,7 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
-#include <jansson.h> /* JSON serialization */
+#include <jansson.h>  /* JSON serialization */
 
 #include <stdio.h>    /* Standard IO defns */
 #include <stdlib.h>   /* Standard lib C defns */
@@ -144,7 +144,6 @@ typedef struct {
     bool stratum_active;
     bool stratum_init;
     bool stratum_notify;
-    struct stratum_work swork;
     pthread_t stratum_sthread;
     pthread_t stratum_rthread;
     pthread_mutex_t stratum_lock;
@@ -200,6 +199,8 @@ typedef struct {
     byte *abyJsonUserPass;
     byte *abyJsonUserUser;
     byte *abyJsonPass;
+
+    STRATUM_work_t stSwork;
 
 } STRATUM_Pool_t;
 

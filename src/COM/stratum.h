@@ -19,6 +19,15 @@
 #ifndef STRATUM_PRCL_HEADER_H
 #define STRATUM_PRCL_HEADER_H
 
-bool STRATUM_Ptcl_Init(struct pool *pool);
+/* *****************************************************************************
+**                          NON-SYSTEM INCLUDE FILES
+** ************************************************************************** */
+
+/* *****************************************************************************
+**                                  API
+** ************************************************************************** */
+void STRATUM_Ptcl_Setup(void);             /* Will probably need a setup */
+void STRATUM_Ptcl_Init(struct pool *pool); /*  */
+void STRATUM_Ptcl_Bkgnd(void);             /*  */
 
 #endif
