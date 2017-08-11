@@ -9,20 +9,20 @@ LDPATH += -L$(LCD-LOC)
 TERA-LOC = $(PRJ_ROOT)\src\common\terasic
 LDPATH += -L$(TERA-LOC)
 
+FPGA-LOC = $(PRJ_ROOT)\src\drv\FPGA
+LDPATH += -L$(FPGA-LOC)
+
 #7SEG-LOC = $(PRJ_ROOT)\src\drv\7SEG
 #LDPATH += -L$(7SEGLOC)
 
 #BUTTON-LOC = $(PRJ_ROOT)\src\drv\BUTTON
 #LDPATH += -L$(BUTTON-LOC)
 
-FPGA-LOC = $(PRJ_ROOT)\src\drv\FPGA
-LDPATH += -L$(FPGA-LOC)
-
-OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main 
+OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr
 
 build: $(TARGET)
 $(TARGET): $(addsuffix .o,$(OBJ-LST)) 
-	$(CC) $(LDFLAGS) $^ -o $@  
+	$(CC) $(LDFLAGS) -lpthread $^ -o $@  
 
 terasic_lib.o : 
 	$(CC) $(CFLAGS) -c $(TERA-LOC)\terasic_lib.c -o $@

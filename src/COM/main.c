@@ -1,11 +1,13 @@
 /* *****************************************************************************
 **
-**                       LCD Demonstration sub project
+**                       DE10 Standard project
 **
-** Project      : LCD show case
-** Module       : LED_Drv.c
+** Project      : DE10 standard project miner
+** Module       : main
 **
-** Description  : main application that uses LCD.
+** Description  : This is the miner application. The main purpose here is to feed
+**                the FPGA with blocks coming from whatever pool using
+**                TCP socket and JSON. Also the user interface is dealt with here
 **
 ** ************************************************************************** */
 
@@ -13,7 +15,7 @@
 **  REVISION HISTORY
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
-** 28.05.17     bd      [no issue number] File creation
+** 08.08.17     bd      [no issue number] File creation
 **
 ** ************************************************************************** */
 
@@ -24,6 +26,7 @@
 #include "Types.h"  /* Legacy types definitions */
 
 #include <signal.h> /* signal handling */
+#include <stdio.h>  /* standard IOs */
 
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
@@ -35,7 +38,9 @@
 
 /* FPGA and user interface */
 #include "FPGA_Drv.h" /* FPGA driver */
+#if 0
 #include "UI_Mgr.h"   /* LCD hardware management */
+#endif
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -79,17 +84,17 @@ int main(void)
     /* Register signal handler */
     signal(SIGINT,handle_int);
 
-    /* Initialise FPGA */
+    /* Initialize FPGA */
     FPGA_Drv_Setup();
 
 #if 0
     /* Initialise UI */
     UI_Mgr_Setup();
+#endif
 
     /* Initialise COM and protocol stack */
     COM_Mgr_Setup();
     COM_Mgr_Init();
-#endif
 
     /* Launch background task */
     TASK_Bkgnd();
@@ -104,10 +109,9 @@ static void TASK_Bkgnd(void)
 {
     for(;bEnd==FALSE;)
     {
-#if 0
         /* Process COMs */
         COM_Mgr_Bkgnd();
-
+#if 0
         /* Process user interface */
         UI_Mgr_Bkgnd();
 #endif

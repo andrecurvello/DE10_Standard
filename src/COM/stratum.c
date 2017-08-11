@@ -23,6 +23,21 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
+#include <jansson.h> /* JSON serialization */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
+#include <math.h>
+#include <stdarg.h>
+#include <assert.h>
+#include <limits.h>
+
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */

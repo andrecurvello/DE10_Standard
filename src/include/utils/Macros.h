@@ -38,3 +38,6 @@
 #ifndef NULL
 #define NULL (0x00000000) /* Null pointer definition */
 #endif
+
+/* Array macros */
+#define mArraySize(Array) (sizeof(Array)/sizeof(Array[0]))
