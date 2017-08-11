@@ -32,7 +32,9 @@
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-dword COM_Mgr_Setup(void);
-dword COM_Mgr_Init(void);
+dword COM_Mgr_Setup(void); /* Protocol config and so on. Callable once */
+dword COM_Mgr_Init(void);  /* Protocol config and so on. Callable more than once */
+
+dword COM_Mgr_Bkgnd(void); /* Background task */
 
 #endif

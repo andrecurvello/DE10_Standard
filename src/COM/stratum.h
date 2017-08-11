@@ -1,3 +1,24 @@
+/* *****************************************************************************
+**
+**                       Standalone bitcoin miner
+**
+** Project      : User Interface manager
+** Module       : stratum.c
+**
+** Description  : stratum protocol specific module
+**
+** ************************************************************************** */
+
+/* *****************************************************************************
+**  REVISION HISTORY
+** Date         Inits   Description
+** ----------------------------------------------------------------------------
+** 28.05.17     bd      [no issue number] File creation
+**
+** ************************************************************************** */
+#ifndef STRATUM_PRCL_HEADER_H
+#define STRATUM_PRCL_HEADER_H
+
 struct stratum_work {
     char *job_id;
     unsigned char **merkle_bin;
@@ -152,7 +173,6 @@ struct pool {
     struct timeval tv_lastwork;
 };
 
-bool stratum_send(struct pool *pool, char *s, ssize_t len);
-bool auth_stratum(struct pool *pool);
-bool restart_stratum(struct pool *pool);
 bool STRATUM_Ptcl_Init(struct pool *pool);
+
+#endif

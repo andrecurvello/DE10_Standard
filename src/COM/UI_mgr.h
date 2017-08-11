@@ -1,11 +1,11 @@
 /* *****************************************************************************
 **
-**                       LCD Demonstration sub project
+**                       Standalone bitcoin miner
 **
-** Project      : LCD show case
-** Module       : LED_Drv.c
+** Project      : User Interface manager
+** Module       : UI_Mgr.c
 **
-** Description  : main application that uses LCD.
+** Description  : Modules that deal with buttons, 7sg display and LCD.
 **
 ** ************************************************************************** */
 
@@ -16,6 +16,8 @@
 ** 28.05.17     bd      [no issue number] File creation
 **
 ** ************************************************************************** */
+#ifndef UI_MANAGER_H
+#define UI_MANAGER_H
 
 /* *****************************************************************************
 **                          SYSTEM INCLUDE FILES
@@ -23,36 +25,16 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
-#include <signal.h> /* signal handling */
-
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "terasic_os_includes.h" /* terasic lib */
-
-#include "LCD_Graphic.h" /* Graphics management library of the LCD */
-#include "LCD_Driver.h"  /* LCD hardware management */
 
 /* *****************************************************************************
-**                          ENUM & MACRO DEFINITIONS
+**                                  API
 ** ************************************************************************** */
-#define HW_REGS_BASE ( ALT_STM_OFST )         /*  */
-#define HW_REGS_SPAN ( 0x04000000 )           /*  */
-#define HW_REGS_MASK ( HW_REGS_SPAN - 1 )     /*  */
-#define FRAME_SIZE ((LCD_WIDTH*LCD_HEIGHT)/8) /*  */
+void UI_Mgr_Setup(void);
+void UI_Mgr_Init(void);
 
-/* *****************************************************************************
-**                              TYPE DEFINITIONS
-** ************************************************************************** */
+void UI_Mgr_Bkgnd(void); /* user interface backgrounf task */
 
-/* *****************************************************************************
-**                                 GLOBALS
-** ************************************************************************** */
-
-/* *****************************************************************************
-**                                 LOCALS
-** ************************************************************************** */
-
-/* *****************************************************************************
-**                              LOCALS ROUTINES
-** ************************************************************************** */
+#endif
