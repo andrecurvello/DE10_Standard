@@ -49,4 +49,6 @@ FPGA_Drv_Result_t *pstFPGA_Drv_Results;
 dword FPGA_Drv_Setup(void);
 dword FPGA_Drv_Init(void);
 
+void FPGA_Drv_Shutdown(void); /* Avoid segfault and wrong access to phy memory */
+
 #endif

@@ -23,12 +23,19 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
-#include <signal.h> /* signal handling */
+#include <signal.h>   /* signal handling */
+#include <stdio.h>    /*  */
+#include <unistd.h>   /*  */
+#include <fcntl.h>    /*  */
+#include <sys/mman.h> /*  */
+#include <math.h>     /*  */
+#include <stdlib.h>   /*  */
+#include <string.h>   /*  */
 
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "FPGA_Driver.h"    /* Module's header */
+#include "FPGA_Drv.h"       /* Module's header */
 
 #include "hwlib.h"          /* General ALTERA HW definitions */
 #include "socal/socal.h"    /* ALTERA Socal defns */
@@ -53,12 +60,14 @@ typedef struct
 
 } FPGA_Drv_Data_t;
 
+#if 0
 typedef struct
 {
     word wFileDesc;
     void *pvVirtBase;
 
 } FPGA_Drv_Result_t;
+#endif
 
 /* *****************************************************************************
 **                                 GLOBALS
@@ -68,7 +77,9 @@ typedef struct
 **                                 LOCALS
 ** ************************************************************************** */
 static FPGA_Drv_Data_t stLocalData;
+#if 0
 static FPGA_Drv_Result_t stLocalResults;
+#endif
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
@@ -88,8 +99,10 @@ dword FPGA_Drv_Setup(void) /* That should go under the FPGA module actually */
     /* reset internal data */
     ResetData();
 
+#if 0
     /* Publish data */
     pstFPGA_Drv_Results = &stLocalResults;
+#endif
 
     /* Get access to memory */
     stLocalData.wFileDesc = open( "/dev/mem", ( O_RDWR | O_SYNC ) );
@@ -100,7 +113,7 @@ dword FPGA_Drv_Setup(void) /* That should go under the FPGA module actually */
         ** interact with them. we'll actually map in the entire CSR span of the
         ** HPS since we want to access various registers within that span
         */
-        stLocalData.pvVirtBase = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE );
+        stLocalData.pvVirtBase = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, stLocalData.wFileDesc, HW_REGS_BASE );
         if( MAP_FAILED != stLocalData.pvVirtBase )
         {
             /* Update return value */
@@ -128,12 +141,26 @@ dword FPGA_Drv_Init(void)
     return dwRetVal;
 }
 
+void FPGA_Drv_Shutdown(void)
+{
+    /* clean up our memory mapping and exit */
+    if( 0 != munmap( stLocalData.pvVirtBase, HW_REGS_SPAN ) )
+    {
+        printf( "ERROR: munmap() failed...\n" );
+    }
+
+    /* Release access to memory */
+    close( stLocalData.wFileDesc );
+
+    return;
+}
+
 /* *****************************************************************************
 **                            LOCALS ROUTINES Defn
 ** ************************************************************************** */
 static void ResetData(void)
 {
-    memset(&stLocalData,sizeof(FPGA_Drv_data_t),0x00);
+    memset(&stLocalData,sizeof(FPGA_Drv_Data_t),0x00);
 
     stLocalData.wFileDesc = -1;
     stLocalData.pvVirtBase = NULL;

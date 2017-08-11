@@ -82,15 +82,20 @@ int main(void)
     /* Initialise FPGA */
     FPGA_Drv_Setup();
 
+#if 0
     /* Initialise UI */
     UI_Mgr_Setup();
 
     /* Initialise COM and protocol stack */
     COM_Mgr_Setup();
     COM_Mgr_Init();
+#endif
 
     /* Launch background task */
     TASK_Bkgnd();
+
+    /* Shutdown FPGA communication channels */
+    FPGA_Drv_Shutdown();
 
 	return 0;
 }
@@ -99,11 +104,13 @@ static void TASK_Bkgnd(void)
 {
     for(;bEnd==FALSE;)
     {
+#if 0
         /* Process COMs */
         COM_Mgr_Bkgnd();
 
         /* Process user interface */
         UI_Mgr_Bkgnd();
+#endif
     };
 
     return;
