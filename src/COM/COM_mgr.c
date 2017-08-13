@@ -30,6 +30,12 @@
 #include <string.h>   /* String defns */
 #include <unistd.h>   /* Types defns */
 
+/* Now here for testing purposes */
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <netdb.h>
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
@@ -43,6 +49,8 @@
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
 #define NUM_COM_CLIENT (1) /* number of running client simultaneously */
+#define RBUFSIZE 8192
+#define RECVSIZE (RBUFSIZE - 4)
 
 typedef enum
 {
@@ -232,6 +240,133 @@ static void ResetData(void)
 
 static void* CnxClient(void* pvData)
 {
-    printf("Connection test");
+    printf("Connection test\n");
+	struct addrinfo *servinfo;
+	struct addrinfo hints;
+	struct addrinfo *p;
+	char *sockaddr_url, *sockaddr_port;
+	int sockd;
+	int swork_id;
+	ssize_t ssent = 0;
+	char s[RBUFSIZE];
+	int reqsize;
+
+	swork_id=1;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	sockaddr_url = "eu.stratum.slushpool.com";
+	sockaddr_port = "3333";
+
+	if (getaddrinfo(sockaddr_url, sockaddr_port, &hints, &servinfo) != 0)
+	{
+		printf("\nTEST FAIL 0\n");
+	}
+
+	for (p = servinfo; p != NULL; p = p->ai_next) {
+		sockd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		if (sockd == -1) {
+			printf("TEST FAIL 1\n");
+			continue;
+		}
+
+		/* Iterate non blocking over entries returned by getaddrinfo
+		 * to cope with round robin DNS entries, finding the first one
+		 * we can connect to quickly. */
+#if 0
+		noblock_socket(sockd);
+#endif
+		if (connect(sockd, p->ai_addr, p->ai_addrlen) == -1) {
+			printf("Failed sock connect\n");
+#if 0
+			struct timeval tv_timeout = {1, 0};
+			int selret;
+			fd_set rw;
+			if (!sock_connecting()) {
+				CLOSESOCKET(sockd);
+				continue;
+			}
+
+			while(selret < 0 && interrupted())
+   		    {
+				FD_ZERO(&rw);
+				FD_SET(sockd, &rw);
+				selret = select(sockd + 1, NULL, &rw, NULL, &tv_timeout);
+				if  (selret > 0 && FD_ISSET(sockd, &rw)) {
+					socklen_t len;
+					int err, n;
+
+					len = sizeof(err);
+					n = getsockopt(sockd, SOL_SOCKET, SO_ERROR, (void *)&err, &len);
+					if (!n && !err) {
+						printf("Succeeded delayed connect\n");
+						block_socket(sockd);
+						break;
+					}
+				}
+			}
+
+			close(sockd);
+			printf("Select timeout/failed connect\n");
+			continue;
+#endif
+		}
+		printf("Succeeded immediate connect\n");
+#if 0
+		block_socket(sockd);
+#endif
+
+		sprintf(s, "{\"id\": %d, \"method\": \"mining.subscribe\", \"params\": []}", swork_id++);
+		strcat(s, "\n");
+		reqsize = strlen(s);
+
+		while ( reqsize > 0 ) {
+			struct timeval timeout = {1, 0};
+			ssize_t sent;
+			fd_set wd;
+
+			FD_ZERO(&wd);
+			FD_SET(sockd, &wd);
+			if (select(sockd + 1, NULL, &wd, NULL, &timeout) < 1) {
+				printf("Send select failed\n");
+			}
+			else
+			{
+				printf("Select send success\n");
+			}
+
+			sent = send(sockd, s + ssent, reqsize, MSG_NOSIGNAL);
+
+			if (sent < 0) {
+				sent = 0;
+			}
+			ssent += sent;
+			reqsize -= sent;
+		}
+
+
+		/* Now receive */
+		do {
+			char srec[RBUFSIZE];
+			ssize_t n;
+			memset(srec, 0, RBUFSIZE);
+			n = recv(sockd, srec, RECVSIZE, 0);
+			if (!n) {
+				printf("Socket closed waiting in recv_line\n");
+			}
+
+			printf("recv_line : %s\n",srec);
+
+			if(!strstr(srec, "\n"))
+			{
+				break;
+			}
+		} while (1);
+
+		break;
+	}
+
     pthread_exit(NULL);
 }
