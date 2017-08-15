@@ -27,7 +27,13 @@
 **                                  API
 ** ************************************************************************** */
 void STRATUM_Ptcl_Setup(void);             /* Will probably need a setup */
-void STRATUM_Ptcl_Init(struct pool *pool); /*  */
+void STRATUM_Ptcl_Init(void);              /*  */
 void STRATUM_Ptcl_Bkgnd(void);             /*  */
+
+/*  */
+void STRATUM_Ptcl_Monitor(void);           /* Used to monitor connection and get
+                                           ** network related data */
+
+void STRATUM_Ptcl_Publish(void);           /* Publish demands */
 
 #endif

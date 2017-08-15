@@ -30,11 +30,24 @@
 ** ************************************************************************** */
 
 /* *****************************************************************************
+**                          ENUM & MACRO DEFINITIONS
+** ************************************************************************** */
+/* Status enum for interaction with COMs. The idea here is to stay general */
+typedef enum
+{
+    eCOM_MGR_SUCCESS=0,
+    eCOM_MGR_PENDING,
+    eCOM_MGR_TIMEOUT,
+    eCOM_MGR_FAIL
+
+}eCOM_Mgr_Status_t;
+
+/* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-dword COM_Mgr_Setup(void); /* Protocol config and so on. Callable once */
-dword COM_Mgr_Init(void);  /* Protocol config and so on. Callable more than once */
+eCOM_Mgr_Status_t COM_Mgr_Setup(void); /* Protocol config and so on. Callable once */
+eCOM_Mgr_Status_t COM_Mgr_Init(void);  /* Protocol config and so on. Callable more than once */
 
-dword COM_Mgr_Bkgnd(void); /* Background task */
+void COM_Mgr_Bkgnd(void); /* Background task */
 
 #endif

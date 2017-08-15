@@ -1,7 +1,7 @@
 ################################################################################
 #                           GENERAL TEST Makefile                              #
 ################################################################################
-DIRS = 7SEG LCD JSON
+DIRS = 7SEG LCD JSON COM
 TARGETS = $(addprefix TEST_,$(DIRS))
 
 ################################################################################
@@ -36,6 +36,11 @@ all : $(TARGETS)
 json : 
 	@echo -e "\033[1;32m[Compiling $@]\033[0m"
 	$(MAKE) -C TEST_JSON
+	@echo -e  "\033[1;32m[Finished $@]\033[0m"
+
+com : 
+	@echo -e "\033[1;32m[Compiling $@]\033[0m"
+	$(MAKE) -C TEST_COM
 	@echo -e  "\033[1;32m[Finished $@]\033[0m"
 
 7seg : 

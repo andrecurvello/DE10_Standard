@@ -36,21 +36,19 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
 #include "COM_mgr.h" /* Dealing with threads, client and server */
 
 /* Protocol definitions */
-#if 0
-#include "stratum.h" /* Dealing with the protocol layer, TCP, sockets */
-#endif
+#include "STRATUM.h" /* Dealing with the protocol layer, TCP, sockets */
+
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
 #define NUM_COM_CLIENT (1) /* number of running client simultaneously */
-#define RBUFSIZE 8192
-#define RECVSIZE (RBUFSIZE - 4)
 
 typedef enum
 {
@@ -67,6 +65,10 @@ typedef struct
     /* Empty for now */
 } COM_Mgr_Result_t;
 
+/* Pointer to connection client */
+typedef byte (*pfnCnxClient_Setup_t)(void);
+typedef byte (*pfnCnxClient_Init_t)(void);
+
 /* Need perhaps a connection descriptor something where we can register connection related data */
 typedef struct
 {
@@ -74,6 +76,8 @@ typedef struct
     pthread_attr_t *astAttr;
     const dword dwNumClients;
     const eCOM_Mgr_PrtcType_t ePrclType;
+    const pfnCnxClient_Setup_t pfnCnxClient_Setup;
+    const pfnCnxClient_Init_t pfnCnxClient_Init;
 
 } COM_Mgr_Cnx_t;
 
@@ -92,6 +96,7 @@ typedef struct
     dword dwErrCnt;
     dword dwThStatus;
     dword dwAttrStatus;
+    dword dwNumRetry;
 
 } COM_Mgr_Data_t;
 
@@ -112,8 +117,20 @@ static COM_Mgr_Cnx_t astCOM_Mgr_Cnx[] =
         &astThIdStrtm[0],
         &astAttrStrtm[0],
         NUM_COM_CLIENT,
-        eCOM_MGR_PRCL_STRATUM
+        eCOM_MGR_PRCL_STRATUM,
+        &STRATUM_Ptcl_Setup,
+        &STRATUM_Ptcl_Init
     }
+#if 0 /* That is how an additional connection would look like */
+    ,{
+        &astThIdStrtm[0],
+        &astAttrStrtm[0],
+        NUM_COM_CLIENT,
+        eCOM_MGR_PRCL_STRATUM,
+        &STRATUM_Ptcl_Setup,
+        &STRATUM_Ptcl_Init
+    }
+#endif
 };
 
 static COM_Mgr_Desc_t stLocalDesc =
@@ -128,19 +145,18 @@ static COM_Mgr_Data_t stLocalData;
 **                              LOCALS ROUTINES
 ** ************************************************************************** */
 static void ResetData(void);
-static void* CnxClient(void* pvData); /* That is the client thread. That will move */
 
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-dword COM_Mgr_Setup(void)
+eCOM_Mgr_Status_t COM_Mgr_Setup(void)
 {
-    dword dwRetVal;
+    eCOM_Mgr_Status_t eRetVal;
     word byIndex;
     word byIndexTh;
 
     /* Initialise local variables */
-    dwRetVal = 0;
+    eRetVal = 0;
 
     /* Reset modules private data */
     ResetData();
@@ -151,12 +167,12 @@ dword COM_Mgr_Setup(void)
     for( byIndex=0; byIndex < mArraySize(astCOM_Mgr_Cnx); byIndex++ )
     {
         memset( (void*)&astCOM_Mgr_Cnx[byIndex].astAttr[0],
-                (sizeof(pthread_t)*astCOM_Mgr_Cnx[byIndex].dwNumClients),
-                0x00 );
+                0x00,
+                (sizeof(pthread_t)*astCOM_Mgr_Cnx[byIndex].dwNumClients) );
 
         memset( (void*)&astCOM_Mgr_Cnx[byIndex].astAttr[0],
-                (sizeof(pthread_attr_t)*astCOM_Mgr_Cnx[byIndex].dwNumClients),
-                0x00 );
+                0x00,
+                (sizeof(pthread_attr_t)*astCOM_Mgr_Cnx[byIndex].dwNumClients) );
     }
 
     /* Prepare connection start */
@@ -181,17 +197,17 @@ dword COM_Mgr_Setup(void)
         }
     }
 
-    return dwRetVal;
+    return eRetVal;
 }
 
-dword COM_Mgr_Init(void)
+eCOM_Mgr_Status_t COM_Mgr_Init(void)
 {
-    dword dwRetVal;
+    eCOM_Mgr_Status_t eRetVal;
     word byIndex;
     word byIndexTh;
 
-    /* Initial locals */
-    dwRetVal = 0;
+    /* Initial locals, pessimist hypothesis */
+    eRetVal = 0;
 
     /* Prepare connection start */
     for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
@@ -199,34 +215,38 @@ dword COM_Mgr_Init(void)
         /* Prepare threads */
         for( byIndexTh=0; byIndexTh < stLocalDesc.pstCnx[byIndex].dwNumClients; byIndexTh++ )
         {
-            if ( 0 != pthread_create( &stLocalDesc.pstCnx[byIndex].astThId[byIndexTh],
-                                      NULL,
-                                      CnxClient,
-                                      NULL )
+            if (   ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup )
+                && ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init )
                )
             {
                 /* Update return variable consequently */
-                dwRetVal = 1;
-                printf("ERROR; return code from pthread_create()\n");
+                eRetVal = 1;
+
+                /* Init connections */
+                stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup();
+                stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init();
             }
         }
     }
 
-    return dwRetVal;
+    /* Now check the status of connection. */
+
+    /* If faulty connection is present, retry until timeout. */
+
+
+    return eRetVal;
 }
 
 /* Things to do in the background task */
-dword COM_Mgr_Bkgnd(void)
+void COM_Mgr_Bkgnd(void)
 {
-    dword dwRetVal;
-
-    dwRetVal = 0;
-
     /* Monitor clients and connections */
+
+    /* Maintain connection, make sure it is stable and reliable */
 
     /* Client connection recovery strategy ? */
 
-    return dwRetVal;
+    return;
 }
 
 /* *****************************************************************************
@@ -234,139 +254,6 @@ dword COM_Mgr_Bkgnd(void)
 ** ************************************************************************** */
 static void ResetData(void)
 {
-    memset((void*)&stLocalData,sizeof(COM_Mgr_Data_t),0x00);
+    memset((void*)&stLocalData,0x00,sizeof(COM_Mgr_Data_t));
     return;
-}
-
-static void* CnxClient(void* pvData)
-{
-    printf("Connection test\n");
-	struct addrinfo *servinfo;
-	struct addrinfo hints;
-	struct addrinfo *p;
-	char *sockaddr_url, *sockaddr_port;
-	int sockd;
-	int swork_id;
-	ssize_t ssent = 0;
-	char s[RBUFSIZE];
-	int reqsize;
-
-	swork_id=1;
-
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-
-	sockaddr_url = "eu.stratum.slushpool.com";
-	sockaddr_port = "3333";
-
-	if (getaddrinfo(sockaddr_url, sockaddr_port, &hints, &servinfo) != 0)
-	{
-		printf("\nTEST FAIL 0\n");
-	}
-
-	for (p = servinfo; p != NULL; p = p->ai_next) {
-		sockd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (sockd == -1) {
-			printf("TEST FAIL 1\n");
-			continue;
-		}
-
-		/* Iterate non blocking over entries returned by getaddrinfo
-		 * to cope with round robin DNS entries, finding the first one
-		 * we can connect to quickly. */
-#if 0
-		noblock_socket(sockd);
-#endif
-		if (connect(sockd, p->ai_addr, p->ai_addrlen) == -1) {
-			printf("Failed sock connect\n");
-#if 0
-			struct timeval tv_timeout = {1, 0};
-			int selret;
-			fd_set rw;
-			if (!sock_connecting()) {
-				CLOSESOCKET(sockd);
-				continue;
-			}
-
-			while(selret < 0 && interrupted())
-   		    {
-				FD_ZERO(&rw);
-				FD_SET(sockd, &rw);
-				selret = select(sockd + 1, NULL, &rw, NULL, &tv_timeout);
-				if  (selret > 0 && FD_ISSET(sockd, &rw)) {
-					socklen_t len;
-					int err, n;
-
-					len = sizeof(err);
-					n = getsockopt(sockd, SOL_SOCKET, SO_ERROR, (void *)&err, &len);
-					if (!n && !err) {
-						printf("Succeeded delayed connect\n");
-						block_socket(sockd);
-						break;
-					}
-				}
-			}
-
-			close(sockd);
-			printf("Select timeout/failed connect\n");
-			continue;
-#endif
-		}
-		printf("Succeeded immediate connect\n");
-#if 0
-		block_socket(sockd);
-#endif
-
-		sprintf(s, "{\"id\": %d, \"method\": \"mining.subscribe\", \"params\": []}", swork_id++);
-		strcat(s, "\n");
-		reqsize = strlen(s);
-
-		while ( reqsize > 0 ) {
-			struct timeval timeout = {1, 0};
-			ssize_t sent;
-			fd_set wd;
-
-			FD_ZERO(&wd);
-			FD_SET(sockd, &wd);
-			if (select(sockd + 1, NULL, &wd, NULL, &timeout) < 1) {
-				printf("Send select failed\n");
-			}
-			else
-			{
-				printf("Select send success\n");
-			}
-
-			sent = send(sockd, s + ssent, reqsize, MSG_NOSIGNAL);
-
-			if (sent < 0) {
-				sent = 0;
-			}
-			ssent += sent;
-			reqsize -= sent;
-		}
-
-
-		/* Now receive */
-		do {
-			char srec[RBUFSIZE];
-			ssize_t n;
-			memset(srec, 0, RBUFSIZE);
-			n = recv(sockd, srec, RECVSIZE, 0);
-			if (!n) {
-				printf("Socket closed waiting in recv_line\n");
-			}
-
-			printf("recv_line : %s\n",srec);
-
-			if(!strstr(srec, "\n"))
-			{
-				break;
-			}
-		} while (1);
-
-		break;
-	}
-
-    pthread_exit(NULL);
 }
