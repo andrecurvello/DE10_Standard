@@ -24,7 +24,6 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
-#include <pthread.h>  /* posix thread defns */
 #include <stdio.h>    /* Standard IO defns */
 #include <stdlib.h>   /* Standard lib C defns */
 #include <string.h>   /* String defns */
@@ -41,8 +40,6 @@
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
-#define NUM_COM_CLIENT (1) /* number of running client simultaneously */
-
 typedef enum
 {
     eCOM_MGR_PRCL_GETWORK=0,
@@ -61,16 +58,15 @@ typedef struct
 /* Pointer to connection client */
 typedef eCOM_Mgr_Status_t (*pfnCnxClient_Setup_t)(void);
 typedef eCOM_Mgr_Status_t (*pfnCnxClient_Init_t)(void);
+typedef eCOM_Mgr_Status_t (*pfnCnxClient_Bkgnd_t)(void);
 
 /* Need perhaps a connection descriptor something where we can register connection related data */
 typedef struct
 {
-    pthread_t *astThId;
-    pthread_attr_t *astAttr;
-    const dword dwNumClients;
     const eCOM_Mgr_PrtcType_t ePrclType;
     const pfnCnxClient_Setup_t pfnCnxClient_Setup;
     const pfnCnxClient_Init_t pfnCnxClient_Init;
+    const pfnCnxClient_Bkgnd_t pfnCnxClient_Bkgnd;
 
 } COM_Mgr_Cnx_t;
 
@@ -101,27 +97,20 @@ typedef struct
 **                                 LOCALS
 ** ************************************************************************** */
 /* Stratum connection declaration */
-static pthread_t astThIdStrtm[NUM_COM_CLIENT];
-static pthread_attr_t astAttrStrtm[NUM_COM_CLIENT];
-
 static COM_Mgr_Cnx_t astCOM_Mgr_Cnx[] =
 {
     {
-        &astThIdStrtm[0],
-        &astAttrStrtm[0],
-        NUM_COM_CLIENT,
         eCOM_MGR_PRCL_STRATUM,
         &STRATUM_Ptcl_Setup,
-        &STRATUM_Ptcl_Init
+        &STRATUM_Ptcl_Init,
+        NULL
     }
 #if 0 /* That is how an additional connection would look like */
     ,{
-        &astThIdStrtm[0],
-        &astAttrStrtm[0],
-        NUM_COM_CLIENT,
         eCOM_MGR_PRCL_STRATUM,
         &STRATUM_Ptcl_Setup,
-        &STRATUM_Ptcl_Init
+        &STRATUM_Ptcl_Init,
+        NULL
     }
 #endif
 };
@@ -146,7 +135,6 @@ eCOM_Mgr_Status_t COM_Mgr_Setup(void)
 {
     eCOM_Mgr_Status_t eRetVal;
     word byIndex;
-    word byIndexTh;
 
     /* Initialise local variables */
     eRetVal = 0;
@@ -157,36 +145,23 @@ eCOM_Mgr_Status_t COM_Mgr_Setup(void)
     /* Shall we clean up the result here ? */
 
     /* Visit connection list */
-    for( byIndex=0; byIndex < mArraySize(astCOM_Mgr_Cnx); byIndex++ )
-    {
-        memset( (void*)&astCOM_Mgr_Cnx[byIndex].astAttr[0],
-                0x00,
-                (sizeof(pthread_t)*astCOM_Mgr_Cnx[byIndex].dwNumClients) );
-
-        memset( (void*)&astCOM_Mgr_Cnx[byIndex].astAttr[0],
-                0x00,
-                (sizeof(pthread_attr_t)*astCOM_Mgr_Cnx[byIndex].dwNumClients) );
-    }
-
-    /* Prepare connection start */
     for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
     {
+        if ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup )
+        {
+            /* Setup connections */
+            stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup();
+        }
+
         if( eCOM_MGR_PRCL_STRATUM == stLocalDesc.pstCnx[byIndex].ePrclType )
         {
-            /* Start init the stratum prot */
+            /* Protocol specific */
         }
 
         /* old getwork protocol support */
         if( eCOM_MGR_PRCL_GETWORK == stLocalDesc.pstCnx[byIndex].ePrclType )
         {
-            /* Start init the getwork prot */
-        }
-
-        /* Prepare threads */
-        for( byIndexTh=0; byIndexTh < stLocalDesc.pstCnx[byIndex].dwNumClients; byIndexTh++ )
-        {
-            pthread_attr_init(&stLocalDesc.pstCnx[byIndex].astAttr[byIndexTh]);
-            pthread_attr_setdetachstate(&stLocalDesc.pstCnx[byIndex].astAttr[byIndexTh], PTHREAD_CREATE_JOINABLE);
+            /* Protocol specific */
         }
     }
 
@@ -197,7 +172,6 @@ eCOM_Mgr_Status_t COM_Mgr_Init(void)
 {
     eCOM_Mgr_Status_t eRetVal;
     word byIndex;
-    word byIndexTh;
 
     /* Initial locals, pessimist hypothesis */
     eRetVal = 0;
@@ -206,19 +180,13 @@ eCOM_Mgr_Status_t COM_Mgr_Init(void)
     for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
     {
         /* Prepare threads */
-        for( byIndexTh=0; byIndexTh < stLocalDesc.pstCnx[byIndex].dwNumClients; byIndexTh++ )
+        if ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init )
         {
-            if (   ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup )
-                && ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init )
-               )
-            {
-                /* Update return variable consequently */
-                eRetVal = 1;
+            /* Update return variable consequently */
+            eRetVal = 1;
 
-                /* Init connections */
-                stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup();
-                stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init();
-            }
+            /* Init connections */
+            stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init();
         }
     }
 
@@ -226,14 +194,23 @@ eCOM_Mgr_Status_t COM_Mgr_Init(void)
 
     /* If faulty connection is present, retry until timeout. */
 
-
     return eRetVal;
 }
 
 /* Things to do in the background task */
 void COM_Mgr_Bkgnd(void)
 {
-    /* Monitor clients and connections */
+    word byIndex;
+
+    /* Prepare connection start */
+    for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
+    {
+        /* Prepare threads */
+        if ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Bkgnd )
+        {
+            stLocalDesc.pstCnx[byIndex].pfnCnxClient_Bkgnd();
+        }
+    }
 
     /* Maintain connection, make sure it is stable and reliable */
 

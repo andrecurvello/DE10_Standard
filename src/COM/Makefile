@@ -18,7 +18,7 @@ LDPATH += -L$(FPGA-LOC)
 #BUTTON-LOC = $(PRJ_ROOT)\src\drv\BUTTON
 #LDPATH += -L$(BUTTON-LOC)
 
-OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr STRATUM
+OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr STRATUM JSON
 
 build: $(TARGET)
 $(TARGET): $(addsuffix .o,$(OBJ-LST)) 
