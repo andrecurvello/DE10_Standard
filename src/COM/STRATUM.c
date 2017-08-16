@@ -118,10 +118,10 @@ typedef struct {
     struct addrinfo *pstServInfo;
     struct addrinfo stServHints;
 
-    /* -- Rx stuff */
+    /* -- Rx stuff -- */
     byte abyRecvBuf[RBUFSIZE];
 
-    /* -- Tx stuff */
+    /* -- Tx stuff -- */
     word wTxReqLen;
     byte abyTxBuf[RBUFSIZE];
 
