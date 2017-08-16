@@ -30,13 +30,6 @@
 #include <string.h>   /* String defns */
 #include <unistd.h>   /* Types defns */
 
-/* Now here for testing purposes */
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <netdb.h>
-
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
@@ -66,8 +59,8 @@ typedef struct
 } COM_Mgr_Result_t;
 
 /* Pointer to connection client */
-typedef byte (*pfnCnxClient_Setup_t)(void);
-typedef byte (*pfnCnxClient_Init_t)(void);
+typedef eCOM_Mgr_Status_t (*pfnCnxClient_Setup_t)(void);
+typedef eCOM_Mgr_Status_t (*pfnCnxClient_Init_t)(void);
 
 /* Need perhaps a connection descriptor something where we can register connection related data */
 typedef struct

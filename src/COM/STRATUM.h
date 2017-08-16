@@ -26,9 +26,9 @@
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-void STRATUM_Ptcl_Setup(void);             /* Will probably need a setup */
-void STRATUM_Ptcl_Init(void);              /*  */
-void STRATUM_Ptcl_Bkgnd(void);             /*  */
+eCOM_Mgr_Status_t STRATUM_Ptcl_Setup(void); /* Will probably need a setup */
+eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void);  /*  */
+void STRATUM_Ptcl_Bkgnd(void);              /*  */
 
 /*  */
 void STRATUM_Ptcl_Monitor(void);           /* Used to monitor connection and get
