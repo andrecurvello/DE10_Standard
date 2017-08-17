@@ -16,8 +16,8 @@
 ** 16.08.17     bd      [no issue number] File creation
 **
 ** ************************************************************************** */
-#ifndef STRATUM_JSON_H
-#define STRATUM_JSON_H
+#ifndef JSON_SER_H
+#define JSON_SER_H
 
 /* *****************************************************************************
 **                          SYSTEM INCLUDE FILES
@@ -28,6 +28,12 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
+typedef enum
+{
+    eJSON_SUCCESS=0,
+    eJSON_ERR
+
+}eJSON_Status_t;
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -36,16 +42,16 @@
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-byte* JSON_Ser_PoolConnect(void);   /* Protocol config and so on. Callable once */
-byte* JSON_Deser_PoolConnect(void); /* Protocol config and so on. Callable once */
+eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest);
+eJSON_Status_t JSON_Deser_ResConnect(void);
 
-byte* JSON_Ser_PoolAuth(void);    /* Protocol config and so on. Callable once */
-byte* JSON_Deser_PoolAuth(void);  /* Protocol config and so on. Callable once */
+eJSON_Status_t JSON_Ser_ReqAuth(const byte * abyUser, const byte * abyPass, const word wWorkId, byte * const pbyRequest);
+eJSON_Status_t JSON_Deser_ResAuth(void);
 
-byte* JSON_Deser_PoolJob(void);  /* Protocol config and so on. Callable once */
+eJSON_Status_t JSON_Deser_ResJob(void);
 
-byte* JSON_Deser_PoolDifficulty(void);  /* Protocol config and so on. Callable once */
+eJSON_Status_t JSON_Deser_ResDifficulty(void);
 
-byte* JSON_Ser_PoolShare(void);  /* Protocol config and so on. Callable once */
+eJSON_Status_t JSON_Ser_ReqShare(void);
 
 #endif

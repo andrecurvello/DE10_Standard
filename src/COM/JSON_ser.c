@@ -23,23 +23,14 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
-#if 0 /* Not needed for the time being */
-#include <jansson.h>  /* JSON serialization */
-#endif
-
 #include <stdio.h>    /* Standard IO defns */
-#include <stdlib.h>   /* Standard lib C defns */
 #include <string.h>   /* String defns */
-#include <stdint.h>   /* Integer defns */
-#include <unistd.h>   /* Types defns */
-#include <sys/time.h> /* Time defns */
-#include <time.h>     /* More time defns */
-#include <math.h>     /* Math defns for stats */
 
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "JSON.h" /* module definitions */
+#include "JSON_ser.h"  /* JSON serialization */
+#include "json.h"      /* JSON serialization */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -64,21 +55,35 @@
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-byte* JSON_Ser_PoolConnect(void)
+eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest)
 {
-#if 0
-    /* Formulate request to stratum server */
-    sprintf((char*)astSTRATUM_Pools[dwIndex].abyTxBuf, "{\"id\": %d, \"method\": \"mining.subscribe\", \"params\": []}", swork_id++);
+    eJSON_Status_t eRetVal;
 
-    /* Important ! */
-    strcat((char*)astSTRATUM_Pools[dwIndex].abyTxBuf, "\n");
-#endif
+    /* Init locals */
+    eRetVal = eJSON_ERR;
 
-    return NULL;
+    if( NULL != pbyRequest )
+    {
+        /* Formulate request to stratum server */
+        sprintf((char*)pbyRequest, "{\"id\": %d, \"method\": \"mining.subscribe\", \"params\": []}", wWorkId);
+
+        /* Important ! */
+        strcat((char*)pbyRequest, "\n");
+
+        /* Update return value */
+        eRetVal = eJSON_SUCCESS;
+    }
+
+    return eRetVal;
 }
 
-byte* JSON_Deser_PoolConnect(void)
+eJSON_Status_t JSON_Deser_ResConnect(void)
 {
+    eJSON_Status_t eRetVal;
+
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+
 #if 0
     val = JSON_LOADS(sret, &err);
     free(sret);
@@ -125,21 +130,40 @@ byte* JSON_Deser_PoolConnect(void)
     }
 #endif
 
-    return NULL;
+    return eRetVal;
 }
 
-byte* JSON_Ser_PoolAuth(void)
+eJSON_Status_t JSON_Ser_ReqAuth(const byte * abyUser, const byte * abyPass, const word wWorkId, byte * const pbyRequest)
 {
-#if 0
-    sprintf(s, "{\"id\": %d, \"method\": \"mining.authorize\", \"params\": [\"%s\", \"%s\"]}",
-        swork_id++, pool->rpc_user, pool->rpc_pass);
-#endif
+    eJSON_Status_t eRetVal;
 
-    return NULL;
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+
+    if( NULL != pbyRequest )
+    {
+        /* Prepare JSON request */
+        sprintf( (char*)pbyRequest,
+                 "{\"id\": %d, \"method\": \"mining.authorize\", \"params\": [\"%s\", \"%s\"]}",
+                 wWorkId,
+                 (char*)abyUser,
+                 (char*)abyPass );
+        strcat((char*)pbyRequest, "\n"); /* Do not forget to add \n */
+
+        /* Update return value */
+        eRetVal = eJSON_SUCCESS;
+   }
+
+    return eRetVal;
 }
 
-byte* JSON_Deser_PoolAuth(void)
+eJSON_Status_t JSON_Deser_ResAuth(void)
 {
+    eJSON_Status_t eRetVal;
+
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+
 #if 0
     val = JSON_LOADS(sret, &err);
     free(sret);
@@ -173,11 +197,16 @@ byte* JSON_Deser_PoolAuth(void)
     }
 #endif
 
-    return NULL;
+    return eRetVal;
 }
 
-byte* JSON_Deser_PoolJob(void)
+eJSON_Status_t JSON_Deser_ResJob(void)
 {
+    eJSON_Status_t eRetVal;
+
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+
 #if 0
     val = JSON_LOADS(s, &err);
     if (!val) {
@@ -247,19 +276,27 @@ out:
 
 #endif
 
-    return NULL;
+    return eRetVal;
 }
 
-byte* JSON_Deser_PoolDifficulty(void)
+eJSON_Status_t JSON_Deser_ResDifficulty(void)
 {
-    /* Nothing to do for the time being */
-    return NULL;
+    eJSON_Status_t eRetVal;
+
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+
+    return eRetVal;
 }
 
-byte* JSON_Ser_PoolShare(void)
+eJSON_Status_t JSON_Ser_ReqShare(void)
 {
-    /* Nothing to do for the time being */
-    return NULL;
+    eJSON_Status_t eRetVal;
+
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+
+    return eRetVal;
 }
 
 /* *****************************************************************************

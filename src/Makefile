@@ -16,7 +16,7 @@ export SOCEDS_DEST_ROOT = C:\intelFPGA_pro\17.0\embedded
 export SOCEDS_ROOT = $(SOCEDS_DEST_ROOT)
 export HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
 export CROSS_COMPILE = arm-linux-gnueabihf-
-export IPATH = $(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) $(HWLIBS_ROOT)/include/ $(PRJ_ROOT)/src/include/utils $(PRJ_ROOT)/src/include/terasic
+export IPATH = $(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) $(HWLIBS_ROOT)/include/ $(PRJ_ROOT)/src/include/utils $(PRJ_ROOT)/src/include/terasic $(PRJ_ROOT)/src/include/json
 export DFLAGS = $(ALT_DEVICE_FAMILY)
 export CFLAGS = -static -g -Wall $(addprefix -D,$(DFLAGS)) $(addprefix -I,$(IPATH)) 
 
