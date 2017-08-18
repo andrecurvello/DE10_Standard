@@ -16,7 +16,7 @@ JSON-LOC = $(PRJ_ROOT)\src\lib
 LDPATH += -L$(JSON-LOC)
 
 #7SEG-LOC = $(PRJ_ROOT)\src\drv\7SEG
-#LDPATH += -L$(7SEGLOC)
+#LDPATH += -L$(7SEG-LOC)
 
 #BUTTON-LOC = $(PRJ_ROOT)\src\drv\BUTTON
 #LDPATH += -L$(BUTTON-LOC)
@@ -25,7 +25,7 @@ OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr STRATUM JSON_
 
 build: $(TARGET)
 $(TARGET): $(addsuffix .o,$(OBJ-LST)) 
-	$(CC) $(LDPATH) -lpthread -ljson-c $^ -o $@  
+	$(CC) $(LDPATH) $^ -o $@ -lpthread -ljson-c
 
 terasic_lib.o : 
 	$(CC) $(CFLAGS) -c $(TERA-LOC)\terasic_lib.c -o $@
@@ -38,9 +38,9 @@ LCD_Graphic.o:
 
 FPGA_Drv.o: 
 	$(CC) $(CFLAGS) -c $(FPGA-LOC)\FPGA_Drv.c -o $@
-	
+
 %.o : %.c
-	$(CC) $(CFLAGS) -I$(LCD-LOC) -I$(TERA-LOC) -I$(FPGA-LOC) -c $< -o $@
+	$(CC) $(CFLAGS) -I$(LCD-LOC) -I$(TERA-LOC) -I$(FPGA-LOC) -c $< -o  $@
 
 .PHONY: clean
 clean:

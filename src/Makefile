@@ -24,6 +24,7 @@ export CFLAGS = -static -g -Wall $(addprefix -D,$(DFLAGS)) $(addprefix -I,$(IPAT
 #                           ARCH AND CROSS-COMPILATION                         #
 ################################################################################
 export CC = $(CROSS_COMPILE)gcc
+export LD = $(CROSS_COMPILE)ld
 export ARCH= arm
 
 ################################################################################

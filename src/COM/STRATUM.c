@@ -88,16 +88,8 @@ typedef struct
 
 } stSTRATUM_Urls_t;
 
-typedef struct  {
-    byte *pbyJobId;
-    byte **pabyMerkleBin;
-    boolean bClean;
-    dword dwDiff;
-
-} stSTRATUM_work_t;
-
 typedef struct {
-    struct timeval stTimeLastwork;
+    /* JSON land */
     byte abyJsonReq[RBUFSIZE];
     dword dwJsonReqLen;
     byte abyJsonRes[RBUFSIZE];
@@ -105,38 +97,30 @@ typedef struct {
     byte *abyJsonUser;
     byte *abyJsonPass;
 
-    stSTRATUM_work_t stSwork;
+    /* Pool management */
     byte byPoolIdx;
     byte byPoolPrio;
-
-    /* - Stratum variables, No proxy for the time being - */
-    byte *abyStratumUrl;  /* The pool URL */
-    byte *abyStratumPort; /* String version of the port */
-    dword dwStratumPort;  /* Integer version of the port */
-    SOCKTYPE sSocket;
-    size_t SockBufSize;
-    byte *abySockBuf;
-    byte *abySessionId;
-    byte abyPrevBlock[32]; /* The last block this particular pool knows about */
-    struct addrinfo *pstServInfo;
-    struct addrinfo stServHints;
-
-    /* - For debugging purpose - */
-    byte abyRecvBuf[RBUFSIZE];
-
-    /* -  Mining variables - */
-    byte *abyNonce1;
-    byte *abyNonce1bin;
-    qword qwNonce2;
-    word wN2size;
     boolean bHasStratum;
     boolean bStratumActive;
     boolean bStratumInit;
     boolean bstratumNotify;
+    struct timeval stTimeLastwork;
+
+    /* TCP-land : stratum variables, no proxy for the time being */
+    byte *abyStratumUrl;  /* The pool URL */
+    byte *abyStratumPort; /* String version of the port */
+    dword dwStratumPort;  /* Integer version of the port */
+    SOCKTYPE sSocket;
+    byte *abySockBuf;
+    byte *abySessionId;
+    struct addrinfo *pstServInfo;
+    struct addrinfo stServHints;
 
 } stSTRATUM_Pool_t;
 
 typedef struct  {
+    stJSON_Job_Result_t stJob;
+    stJSON_Connect_Result_t stConnection;
 
 } stSTRATUM_Data_t;
 
@@ -162,12 +146,10 @@ static const stSTRATUM_Urls_t astSTRATUM_Urls[NUM_POOLS]=
 };
 
 static stSTRATUM_Pool_t astSTRATUM_Pools[NUM_POOLS];
+static stSTRATUM_Data_t astSTRATUM_Data[NUM_POOLS];
 
 static pthread_t astSTRATUM_Th_Id[NUM_POOLS];
 static pthread_attr_t astSTRATUM_Th_Attr[NUM_POOLS];
-
-/* Local data */
-static stSTRATUM_Data_t stLocalData;
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
@@ -214,10 +196,6 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Setup(void)
     /* Setup pools */
     for( dwIndex = 0; dwIndex < NUM_POOLS; dwIndex++ )
     {
-        memset( (void*)&astSTRATUM_Pools[dwIndex],
-                0x00,
-                sizeof(stSTRATUM_Pool_t) );
-
         /* Server infos */
         astSTRATUM_Pools[dwIndex].abyStratumUrl = (byte*)astSTRATUM_Urls[dwIndex].abyUrl;
         astSTRATUM_Pools[dwIndex].abyStratumPort = (byte*)astSTRATUM_Urls[dwIndex].abyPort;
@@ -303,16 +281,17 @@ static void * CnxClient(void * pbyId)
     struct timeval timeout = {1, 0};
     ssize_t sent;
     fd_set stFd;
+    int swork_id;
+    byte byId;
+    eSTRATUM_Status_t eRetVal;
 #if 0
     ssize_t n;
 #endif
-    int swork_id;
-    byte byId;
-
-    swork_id=1;
 
     /* Get thread index, that is the pool idx */
     byId=*((byte*)pbyId);
+    swork_id=1;
+    eRetVal=eSTRATUM_CNX_FAIL;
 
     /* Set thread priority. Consider pool mngmt strategy and so one ... */
 
@@ -363,30 +342,30 @@ static void * CnxClient(void * pbyId)
                         if (sent < 0)
                         {
                             sent = 0;
+                            eRetVal = eSTRATUM_CNX_SUCCESS;
                         }
                         ssent += sent;
                         astSTRATUM_Pools[byId].dwJsonReqLen -= sent;
                     }
 
-                    /* Start authentification */
-#if 0
-                    do {
-                        n = recv(astSTRATUM_Pools[byId].sSocket, astSTRATUM_Pools[byId].abyRecvBuf, RECVSIZE, 0);
+                    /* Trigger stratum connect answer */
+                    eRetVal = eSTRATUM_MSG_PENDING;
 
-                        if (!n)
+                    /* Get answer from the server. Get extra nonce 1 and ext nonce 2 size */
+                    while( eSTRATUM_MSG_SUCCESS != eRetVal )
+                    {
+                        eRetVal = RxPool( (byte*)&astSTRATUM_Pools[byId].abyJsonRes,
+                                          astSTRATUM_Pools[byId].dwJsonResLen,
+                                          &astSTRATUM_Pools[byId] );
+
+                        if ( eJSON_SUCCESS == JSON_Deser_ResConnect( &astSTRATUM_Data[byId].stConnection,
+                                                                     (byte*const)&astSTRATUM_Pools[byId].abyJsonRes )
+                           )
                         {
-                            printf("Socket closed waiting in recv_line\n");
-                        }
-
-                        printf("recv_line : %s\n",astSTRATUM_Pools[byId].abyRecvBuf);
-
-                        if(!strstr((char*)astSTRATUM_Pools[byId].abyRecvBuf, "\n"))
-                        {
+                            /* Start to get mining jobs now */
                             break;
                         }
-
-                    } while (TRUE);
-#endif
+                    }
                 }
             }
         }
@@ -403,15 +382,18 @@ static void * CnxClient(void * pbyId)
 /* Authentication */
 static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool)
 {
-    int swork_id;
     eSTRATUM_Status_t eRetVal;
+    stJSON_Auth_Demand_t stJSON_Auth_Demand;
 
     /* Init locals */
     eRetVal = eSTRATUM_CNX_FAIL;
-    swork_id=1;
 
     /* Prepare JSON request */
-    JSON_Ser_ReqAuth(pstPool->abyJsonUser,pstPool->abyJsonPass,swork_id,&pstPool->abyJsonReq[0]);
+    stJSON_Auth_Demand.abyPass = pstPool->abyJsonPass;
+    stJSON_Auth_Demand.abyUser = pstPool->abyJsonUser;
+    stJSON_Auth_Demand.wWorkId = 1;
+
+    JSON_Ser_ReqAuth(&stJSON_Auth_Demand,&pstPool->abyJsonReq[0]);
 
     /* Send request */
     if ( eSTRATUM_MSG_SUCCESS == TxPool(pstPool->abyJsonReq,strlen((char*)pstPool->abyJsonReq),pstPool) )
@@ -429,14 +411,11 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool)
                 break;
             }
 
-            /* Deserialize */
-            if ( eSTRATUM_MSG_SUCCESS == eRetVal )
+            /* Deserialize, check if authentication is indeed successful */
+            if (   ( eSTRATUM_MSG_SUCCESS == eRetVal )
+                && ( eJSON_SUCCESS == JSON_Deser_ResAuth(&pstPool->abyJsonRes[0]) )
+               )
             {
-#if 0
-                pstPool->abyRecvBuf = JSON_Deser_ResAuth(pstPool->abyJsonRes);
-#else
-                memcpy(pstPool->abyRecvBuf,pstPool->abyJsonRes,pstPool->dwJsonResLen);
-#endif
                 eRetVal = eSTRATUM_CNX_SUCCESS;
                 break;
             }
@@ -450,8 +429,8 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool)
 
 /* Transmit routine */
 static eSTRATUM_Status_t TxPool( const byte* const abyData,
-                             const dword dwLength,
-                             stSTRATUM_Pool_t * const pstPool )
+                                 const dword dwLength,
+                                 stSTRATUM_Pool_t * const pstPool )
 {
     ssize_t ssent;
     struct timeval timeout = {1, 0};
@@ -496,8 +475,8 @@ static eSTRATUM_Status_t TxPool( const byte* const abyData,
 
 /* Receive routine */
 static eSTRATUM_Status_t RxPool( byte* const abyData,
-                             dword dwLength,
-                             stSTRATUM_Pool_t * const pstPool )
+                                 dword dwLength,
+                                 stSTRATUM_Pool_t * const pstPool )
 {
     char *tok, *sret = NULL;
     ssize_t len, buflen;
@@ -612,6 +591,21 @@ static boolean IsErrnoHappy(void)
 
 static void ResetData(void)
 {
-    memset((void*)&stLocalData,0x00,sizeof(stSTRATUM_Data_t));
+    dword dwIndex;
+
+    /* Setup pools */
+    for( dwIndex = 0; dwIndex < NUM_POOLS; dwIndex++ )
+    {
+        /* Reset data */
+        memset( (void*)&astSTRATUM_Data[dwIndex],
+                0x00,
+                sizeof(stSTRATUM_Data_t) );
+
+        /* Reset pools */
+        memset( (void*)&astSTRATUM_Pools[dwIndex],
+                0x00,
+                sizeof(stSTRATUM_Pool_t) );
+    }
+
     return;
 }

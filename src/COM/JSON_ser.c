@@ -29,8 +29,8 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "JSON_ser.h"  /* JSON serialization */
-#include "json.h"      /* JSON serialization */
+#include "JSON_ser.h"     /* JSON serialization */
+#include "json.h"         /* lib defs */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -77,12 +77,33 @@ eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest)
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResConnect(void)
+eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult, byte * const pbyResponse )
 {
     eJSON_Status_t eRetVal;
+    json_object *my_string;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
+
+    if(   ( NULL != pbyResponse )
+       && ( NULL != pstResult )
+      )
+    {
+#if 0
+        pstResult->abyNonce1 = /* Need JSONs :( */ ;
+
+        pstResult->wN2size = /* Need JSONs :( */;
+#endif
+        my_string = json_object_new_string("\t");
+
+        if(NULL==my_string)
+        {
+            /* Update return value */
+            eRetVal = eJSON_SUCCESS;
+
+        }
+
+    }
 
 #if 0
     val = JSON_LOADS(sret, &err);
@@ -133,21 +154,23 @@ eJSON_Status_t JSON_Deser_ResConnect(void)
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Ser_ReqAuth(const byte * abyUser, const byte * abyPass, const word wWorkId, byte * const pbyRequest)
+eJSON_Status_t JSON_Ser_ReqAuth(const stJSON_Auth_Demand_t * const pstDemand, byte * const pbyRequest)
 {
     eJSON_Status_t eRetVal;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
 
-    if( NULL != pbyRequest )
+    if(   ( NULL != pbyRequest )
+       && ( NULL != pstDemand )
+      )
     {
         /* Prepare JSON request */
         sprintf( (char*)pbyRequest,
                  "{\"id\": %d, \"method\": \"mining.authorize\", \"params\": [\"%s\", \"%s\"]}",
-                 wWorkId,
-                 (char*)abyUser,
-                 (char*)abyPass );
+                 pstDemand->wWorkId,
+                 (char*)pstDemand->abyUser,
+                 (char*)pstDemand->abyPass );
         strcat((char*)pbyRequest, "\n"); /* Do not forget to add \n */
 
         /* Update return value */
@@ -157,12 +180,18 @@ eJSON_Status_t JSON_Ser_ReqAuth(const byte * abyUser, const byte * abyPass, cons
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResAuth(void)
+eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
+
+    if( NULL != pbyResponse )
+    {
+        /* Always check error,id and result anyway */
+        eRetVal = eJSON_SUCCESS;
+    }
 
 #if 0
     val = JSON_LOADS(sret, &err);
@@ -200,12 +229,22 @@ eJSON_Status_t JSON_Deser_ResAuth(void)
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResJob(void)
+eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
+
+    /* Init locals */
+     eRetVal = eJSON_ERR;
+
+     if(   ( NULL != pbyResponse )
+        && ( NULL != pstResult )
+       )
+     {
+         eRetVal=eJSON_SUCCESS;
+     }
 
 #if 0
     val = JSON_LOADS(s, &err);
@@ -279,7 +318,7 @@ out:
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResDifficulty(void)
+eJSON_Status_t JSON_Deser_ResDifficulty(byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
 
@@ -289,7 +328,7 @@ eJSON_Status_t JSON_Deser_ResDifficulty(void)
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Ser_ReqShare(void)
+eJSON_Status_t JSON_Ser_ReqShare(byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
 

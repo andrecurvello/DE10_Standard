@@ -25,13 +25,20 @@
 #include "COM_mgr.h" /* Include COM defs */
 
 /* *****************************************************************************
+**                          ENUM & MACRO DEFINITIONS
+** ************************************************************************** */
+
+/* *****************************************************************************
+**                              TYPEDEFs
+** ************************************************************************** */
+
+/* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
 eCOM_Mgr_Status_t STRATUM_Ptcl_Setup(void); /* Will probably need a setup */
 eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void);  /*  */
 void STRATUM_Ptcl_Bkgnd(void);              /*  */
 
-/*  */
 void STRATUM_Ptcl_Monitor(void);           /* Used to monitor connection and get
                                            ** network related data */
 
