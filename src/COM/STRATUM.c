@@ -284,9 +284,6 @@ static void * CnxClient(void * pbyId)
     int swork_id;
     byte byId;
     eSTRATUM_Status_t eRetVal;
-#if 0
-    ssize_t n;
-#endif
 
     /* Get thread index, that is the pool idx */
     byId=*((byte*)pbyId);
