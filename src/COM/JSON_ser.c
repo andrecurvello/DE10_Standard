@@ -80,7 +80,9 @@ eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest)
 eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult, byte * const pbyResponse )
 {
     eJSON_Status_t eRetVal;
-    json_object *my_string;
+    json_object *stJsonObj;
+    json_object *stJsonErr;
+    json_object *stJsonRes;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
@@ -89,67 +91,31 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
        && ( NULL != pstResult )
       )
     {
-#if 0
-        pstResult->abyNonce1 = /* Need JSONs :( */ ;
+        stJsonObj = json_tokener_parse((const char*)pbyResponse);
 
-        pstResult->wN2size = /* Need JSONs :( */;
-#endif
-        my_string = json_object_new_string("\t");
+        /* Get value of each object */
+        json_object_object_get_ex(stJsonObj, "result",&stJsonRes);
+        json_object_object_get_ex(stJsonObj, "error",&stJsonErr);
 
-        if(NULL==my_string)
+        /* Is the answer sound ? */
+        if( 0 == json_object_get_int(stJsonErr) )
         {
             /* Update return value */
             eRetVal = eJSON_SUCCESS;
 
+            /* Deserialise nonce 1, that is the "session Id" */
+            stJsonObj = json_object_array_get_idx(stJsonRes,3);
+            pstResult->abyNonce1 = (byte*)json_object_get_string(stJsonObj);
+
+            /* Deserialise nonce 2 size */
+            stJsonObj = json_object_array_get_idx(stJsonRes,4);
+            pstResult->wN2size = json_object_get_int(stJsonObj);
+
+            /* Ignore the 2-tuples for the time being */
+
+            /* do we need to free some memory ? */
         }
-
     }
-
-#if 0
-    val = JSON_LOADS(sret, &err);
-    free(sret);
-    if (!val) {
-        applog(LOG_INFO, "JSON decode failed(%d): %s", err.line, err.text);
-        goto out;
-    }
-
-    res_val = json_object_get(val, "result");
-    err_val = json_object_get(val, "error");
-
-    if (!res_val || json_is_null(res_val) ||
-        (err_val && !json_is_null(err_val))) {
-        char *ss;
-
-        if (err_val)
-            ss = json_dumps(err_val, JSON_INDENT(3));
-        else
-            ss = strdup("(unknown reason)");
-
-        applog(LOG_INFO, "JSON-RPC decode failed: %s", ss);
-
-        free(ss);
-
-        goto out;
-    }
-
-    sessionid = get_sessionid(res_val);
-    if (!sessionid)
-        applog(LOG_DEBUG, "Failed to get sessionid in initiate_stratum");
-    nonce1 = json_array_string(res_val, 1);
-    if (!valid_hex(nonce1)) {
-        applog(LOG_INFO, "Failed to get valid nonce1 in initiate_stratum");
-        free(sessionid);
-        free(nonce1);
-        goto out;
-    }
-    n2size = json_integer_value(json_array_get(res_val, 2));
-    if (n2size < 2 || n2size > 16) {
-        applog(LOG_INFO, "Failed to get valid n2size in initiate_stratum");
-        free(sessionid);
-        free(nonce1);
-        goto out;
-    }
-#endif
 
     return eRetVal;
 }
