@@ -104,11 +104,11 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
             eRetVal = eJSON_SUCCESS;
 
             /* Deserialise nonce 1, that is the "session Id" */
-            stJsonObj = json_object_array_get_idx(stJsonRes,3);
+            stJsonObj = json_object_array_get_idx(stJsonRes,1);
             pstResult->abyNonce1 = (byte*)json_object_get_string(stJsonObj);
 
             /* Deserialise nonce 2 size */
-            stJsonObj = json_object_array_get_idx(stJsonRes,4);
+            stJsonObj = json_object_array_get_idx(stJsonRes,2);
             pstResult->wN2size = json_object_get_int(stJsonObj);
 
             /* Ignore the 2-tuples for the time being */
@@ -213,15 +213,15 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
 
         /* Deserialise block version */
         stJsonObj = json_object_array_get_idx(stJsonArr,5);
-        pstResult->wBlckVer = (word)*(json_object_get_string(stJsonObj));
+        pstResult->abyBlckVer = (byte*)(json_object_get_string(stJsonObj));
 
         /* Deserialise nbits, network difficulty */
         stJsonObj = json_object_array_get_idx(stJsonArr,6);
-        pstResult->wNbits = (word)*(json_object_get_string(stJsonObj));
+        pstResult->abyNbits = (byte*)(json_object_get_string(stJsonObj));
 
         /* Deserialise time, crypto-system clock */
         stJsonObj = json_object_array_get_idx(stJsonArr,7);
-        pstResult->wNbits = (word)*(json_object_get_string(stJsonObj));
+        pstResult->abyNtime = (byte*)(json_object_get_string(stJsonObj));
 
         /* Deserialise clean, is it still relevent to share for that block ?*/
         stJsonObj = json_object_array_get_idx(stJsonArr,8);

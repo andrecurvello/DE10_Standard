@@ -55,7 +55,7 @@
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
-#define NUM_POOLS (6)           /* number of pool used */
+#define NUM_POOLS (1)           /* number of pool used */
 #define RBUFSIZE (8192)         /* receive buffer size */
 #define RECVSIZE (RBUFSIZE - 4) /* receive buffer size minor header */
 #define DEFAULT_SOCKWAIT 60     /* default timeout */
@@ -134,14 +134,16 @@ typedef struct  {
 /* Pool informations */
 static const stSTRATUM_Urls_t astSTRATUM_Urls[NUM_POOLS]=
 {
+#if 0
     /* Europe and North America */
-    { "us-east.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "password" },
-    { "eu.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "password" },
+    { "us-east.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
+    { "eu.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
     /* Asia */
     { "stratum.f2pool.com", "3333", NULL, NULL }, /* Not subscribed yet */
-    { "cn.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "password" },
-    { "cn.stratum.slushpool.com", "443", "badiss_djafar.worker1", "password" },
-    { "sg.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "password" }
+    { "cn.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
+    { "cn.stratum.slushpool.com", "443", "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
+#endif
+    { "sg.stratum.slushpool.com", "3333", "badiss_djafar.worker1", "qekWUE8Kwc34Q?" }
 
 };
 
@@ -161,8 +163,8 @@ static eSTRATUM_Status_t RxPool( byte* const abyData,dword dwLength, stSTRATUM_P
 static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool);
 
 /* For socket management */
-static boolean IsErrnoHappy(void);
 #if 0
+static boolean IsErrnoHappy(void);
 static boolean IsSockFull(const SOCKTYPE sSock);
 #endif
 
@@ -277,7 +279,6 @@ void STRATUM_Ptcl_Bkgnd(void)
 static void * CnxClient(void * pbyId)
 {
     struct addrinfo *pstAddrInfo;
-    ssize_t ssent = 0;
     struct timeval timeout = {1, 0};
     ssize_t sent;
     fd_set stFd;
@@ -288,6 +289,7 @@ static void * CnxClient(void * pbyId)
     /* Get thread index, that is the pool idx */
     byId=*((byte*)pbyId);
     swork_id=1;
+    sent=0;
     eRetVal=eSTRATUM_CNX_FAIL;
 
     /* Set thread priority. Consider pool mngmt strategy and so one ... */
@@ -318,10 +320,11 @@ static void * CnxClient(void * pbyId)
                     JSON_Ser_ReqConnect(swork_id,&astSTRATUM_Pools[byId].abyJsonReq[0]);
                     astSTRATUM_Pools[byId].dwJsonReqLen = strlen((char*)astSTRATUM_Pools[byId].abyJsonReq);
 
-                    while ( 0 < astSTRATUM_Pools[byId].dwJsonReqLen  )
+                    while ( sent != astSTRATUM_Pools[byId].dwJsonReqLen  )
                     {
                         FD_ZERO(&stFd);
                         FD_SET(astSTRATUM_Pools[byId].sSocket, &stFd);
+
                         if (select((astSTRATUM_Pools[byId].sSocket + 1), NULL, &stFd, NULL, &timeout) < 1)
                         {
                             printf("Send select failed\n");
@@ -331,18 +334,12 @@ static void * CnxClient(void * pbyId)
                             printf("Select send success\n");
                         }
 
-                        sent = send( astSTRATUM_Pools[byId].sSocket,
-                                     (astSTRATUM_Pools[byId].abyJsonReq + astSTRATUM_Pools[byId].dwJsonReqLen),
-                                     astSTRATUM_Pools[byId].dwJsonReqLen,
-                                     MSG_NOSIGNAL );
+                        sent += send( astSTRATUM_Pools[byId].sSocket,
+                                      (&astSTRATUM_Pools[byId].abyJsonReq + sent),
+                                      astSTRATUM_Pools[byId].dwJsonReqLen,
+                                      MSG_NOSIGNAL );
 
-                        if (sent < 0)
-                        {
-                            sent = 0;
-                            eRetVal = eSTRATUM_CNX_SUCCESS;
-                        }
-                        ssent += sent;
-                        astSTRATUM_Pools[byId].dwJsonReqLen -= sent;
+
                     }
 
                     /* Trigger stratum connect answer */
@@ -351,7 +348,7 @@ static void * CnxClient(void * pbyId)
                     /* Get answer from the server. Get extra nonce 1 and ext nonce 2 size */
                     while( eSTRATUM_MSG_SUCCESS != eRetVal )
                     {
-                        eRetVal = RxPool( (byte*)&astSTRATUM_Pools[byId].abyJsonRes,
+                        eRetVal = RxPool( (byte*)astSTRATUM_Pools[byId].abyJsonRes,
                                           astSTRATUM_Pools[byId].dwJsonResLen,
                                           &astSTRATUM_Pools[byId] );
 
@@ -360,7 +357,10 @@ static void * CnxClient(void * pbyId)
                            )
                         {
                             /* Start to get mining jobs now */
-                            break;
+
+                        	/* Do something better here */
+
+                        	break;
                         }
                     }
                 }
@@ -368,10 +368,43 @@ static void * CnxClient(void * pbyId)
         }
     }
 
-    /* Need to obtain session Id now ... */
+    /* Need to login */
     Authenticate(&astSTRATUM_Pools[byId]);
 
-    /* Fill out pool structure accordingly */
+    /* Start receiving jobs, Fill out pool structure accordingly */
+    /* Get answer from the server. Get extra nonce 1 and ext nonce 2 size */
+	while( TRUE )
+	{
+		eRetVal = RxPool( (byte*)astSTRATUM_Pools[byId].abyJsonRes,
+						  astSTRATUM_Pools[byId].dwJsonResLen,
+						  &astSTRATUM_Pools[byId] );
+
+		if ( eRetVal != eSTRATUM_MSG_SUCCESS )
+		{
+			printf("Ouch!\n");
+		}
+
+
+		if ( eJSON_SUCCESS == JSON_Deser_ResJob( &astSTRATUM_Data[byId].stJob,
+												 (byte*const)&astSTRATUM_Pools[byId].abyJsonRes )
+		   )
+		{
+	    	printf("%s\n",astSTRATUM_Pools[byId].abyJsonRes);
+
+			/* Start to get mining jobs now */
+			/* Do something better here */
+	    	printf("abyJobId %s\n",astSTRATUM_Data[byId].stJob.abyJobId);
+	    	printf("abyPrevHash %s\n",astSTRATUM_Data[byId].stJob.abyPrevHash);
+	    	printf("abyCoinBase1 %s\n",astSTRATUM_Data[byId].stJob.abyCoinBase1);
+	    	printf("abyCoinBase2 %s\n",astSTRATUM_Data[byId].stJob.abyCoinBase2);
+	    	printf("abyMerkleBranch %s\n",astSTRATUM_Data[byId].stJob.abyMerkleBranch);
+	    	printf("wBlckVer %s\n",astSTRATUM_Data[byId].stJob.abyBlckVer);
+	    	printf("wNbits %s\n",astSTRATUM_Data[byId].stJob.abyNbits);
+	    	printf("wNtime %s\n",astSTRATUM_Data[byId].stJob.abyNtime);
+	    	printf("bCleanJobs %d\n",astSTRATUM_Data[byId].stJob.bCleanJobs);
+		}
+	}
+
 
     pthread_exit(NULL);
 }
@@ -399,6 +432,8 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool)
         while (TRUE)
         {
             eRetVal = RxPool(pstPool->abyJsonRes,pstPool->dwJsonResLen,pstPool);
+
+        	printf("RX %d %s\n",pstPool->dwJsonResLen,(char*)&pstPool->abyJsonRes[0]);
 
             if (   ( eSTRATUM_MSG_ERR == eRetVal )
                 || ( eSTRATUM_MSG_TIMEOUT == eRetVal )
@@ -475,76 +510,43 @@ static eSTRATUM_Status_t RxPool( byte* const abyData,
                                  dword dwLength,
                                  stSTRATUM_Pool_t * const pstPool )
 {
-    char *tok, *sret = NULL;
-    ssize_t len, buflen;
-    int waited = 0;
-    char s[RBUFSIZE];
-    size_t slen;
-    ssize_t n;
+    byte *pbyData;
     eSTRATUM_Status_t eRetVal;
 
     /* Init locals,  Reset receive buffer */
     eRetVal = eSTRATUM_MSG_ERR;
     memset((char*)abyData, 0x00, RBUFSIZE); /* Risky */
+    dwLength=0;
+    pbyData=abyData;
 
-    if (!strstr((char*)abyData, "\n"))
+    if (NULL == strstr((char*)abyData, "\n"))
     {
         do {
-            n = recv(pstPool->sSocket, s, RECVSIZE, 0);
-            if (!n)
+        	dwLength += recv(pstPool->sSocket, (char*)(abyData), RECVSIZE, 0);
+
+            if (dwLength < 0)
             {
-                /* Stratum not active anymore, close socket and try reinit */
                 close(pstPool->sSocket);
+                printf("receive error %d, errno %d\n",dwLength,errno);
                 pstPool->bStratumActive=FALSE;
                 break;
             }
 
-            if (n < 0)
+            if(   (NULL != strstr((char*)abyData, "\n"))
+               || (0 == dwLength)
+              )
             {
-                if (   ( FALSE == IsErrnoHappy() )
-/*                    || ( FALSE == IsSockFull(pstPool->sSocket, DEFAULT_SOCKWAIT - waited) ) */
-                   )
-                {
-                    close(pstPool->sSocket);
-                    pstPool->bStratumActive=FALSE;
-                    break;
-                }
+            	/* Update return value */
+                eRetVal = eSTRATUM_MSG_SUCCESS;
             }
-            else
-            {
-                slen = strlen(s);
-                strcat((char*)(abyData + slen), s);
-            }
+
+            /* Update data pointer */
+            pbyData+=dwLength;
         }
-        while (    ( waited < DEFAULT_SOCKWAIT )
+        while (    ( dwLength < RECVSIZE )
                 && ( !strstr((char*)abyData, "\n") )
               );
     }
-
-    buflen = strlen((char*)abyData);
-    tok = strtok((char*)abyData, "\n");
-
-    sret = strdup(tok);
-    len = strlen(sret);
-
-    /* Copy what's left in the buffer after the \n, including the
-     * terminating \0 */
-    if (buflen > len + 1)
-    {
-        memmove( (char*)abyData,
-                 (char*)(abyData + len + 1),
-                 (buflen - len + 1) );
-    }
-    else
-    {
-        strcpy((char*)abyData, "");
-    }
-
-#if 0
-    pool->cgminer_pool_stats.times_received++;
-    pool->cgminer_pool_stats.bytes_received += len;
-    pool->cgminer_pool_stats.net_bytes_received += len;
-#endif
 
     return eRetVal;
 }
@@ -566,7 +568,6 @@ static bool IsSockFull(struct pool *pool, int wait)
         return true;
     return false;
 }
-#endif
 
 static boolean IsErrnoHappy(void)
 {
@@ -585,6 +586,7 @@ static boolean IsErrnoHappy(void)
 
     return bRetVal;
 }
+#endif
 
 static void ResetData(void)
 {

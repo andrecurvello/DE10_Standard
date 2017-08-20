@@ -82,9 +82,9 @@ typedef struct
     byte *abyCoinBase1;
     byte *abyCoinBase2;
     byte *abyMerkleBranch;
-    word wBlckVer;
-    word wNbits;
-    word wNtime;
+    byte *abyBlckVer;
+    byte *abyNbits;
+    byte *abyNtime;
     boolean bCleanJobs;
 
 } stJSON_Job_Result_t;
