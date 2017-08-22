@@ -74,6 +74,8 @@ typedef struct
 **                 jobs don't have a sense and such shares will be rejected.
 **                 When this flag is set, miner should also drop all previous jobs,
 **                 so job_ids can be eventually rotated.
+** dificulty     - This can be received when getting fresh job. Need to keep track of
+**                 it in order to update the pool difficulty.
 */
 typedef struct
 {
@@ -81,11 +83,12 @@ typedef struct
     byte *abyPrevHash;
     byte *abyCoinBase1;
     byte *abyCoinBase2;
-    byte *abyMerkleBranch;
+    byte **abyMerkleBranch;
     byte *abyBlckVer;
     byte *abyNbits;
     byte *abyNtime;
     boolean bCleanJobs;
+    dword dwLiveDifficulty;
 
 } stJSON_Job_Result_t;
 
@@ -104,7 +107,7 @@ eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse); /* If return is suc
 
 eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * const pbyResponse);
 
-eJSON_Status_t JSON_Deser_ResDifficulty(byte * const pbyResponse);
+eJSON_Status_t JSON_Deser_ResDifficulty(dword dwDifficulty,byte * const pbyResponse);
 
 eJSON_Status_t JSON_Ser_ReqShare(byte * const pbyResponse);
 

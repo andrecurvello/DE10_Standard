@@ -166,6 +166,7 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool);
 #if 0
 static boolean IsErrnoHappy(void);
 static boolean IsSockFull(const SOCKTYPE sSock);
+static void Publish(void);
 #endif
 
 /* For data management */
@@ -271,6 +272,7 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
 void STRATUM_Ptcl_Bkgnd(void)
 {
     /* Nothing to do for the time being */
+    /* Dispatch work if data is valid and coherent */
 }
 
 /* *****************************************************************************
@@ -384,7 +386,6 @@ static void * CnxClient(void * pbyId)
 			printf("Ouch!\n");
 		}
 
-
 		if ( eJSON_SUCCESS == JSON_Deser_ResJob( &astSTRATUM_Data[byId].stJob,
 												 (byte*const)&astSTRATUM_Pools[byId].abyJsonRes )
 		   )
@@ -397,7 +398,7 @@ static void * CnxClient(void * pbyId)
 	    	printf("abyPrevHash %s\n",astSTRATUM_Data[byId].stJob.abyPrevHash);
 	    	printf("abyCoinBase1 %s\n",astSTRATUM_Data[byId].stJob.abyCoinBase1);
 	    	printf("abyCoinBase2 %s\n",astSTRATUM_Data[byId].stJob.abyCoinBase2);
-	    	printf("abyMerkleBranch %s\n",astSTRATUM_Data[byId].stJob.abyMerkleBranch);
+	    	printf("abyMerkleBranch %s\n",*(astSTRATUM_Data[byId].stJob.abyMerkleBranch));
 	    	printf("wBlckVer %s\n",astSTRATUM_Data[byId].stJob.abyBlckVer);
 	    	printf("wNbits %s\n",astSTRATUM_Data[byId].stJob.abyNbits);
 	    	printf("wNtime %s\n",astSTRATUM_Data[byId].stJob.abyNtime);
@@ -405,6 +406,10 @@ static void * CnxClient(void * pbyId)
 		}
 	}
 
+	/* Now feed up the FPGA. On to the Scheduler */
+#if 0
+	Publish(void);
+#endif
 
     pthread_exit(NULL);
 }
@@ -527,7 +532,7 @@ static eSTRATUM_Status_t RxPool( byte* const abyData,
             if (dwLength < 0)
             {
                 close(pstPool->sSocket);
-                printf("receive error %d, errno %d\n",dwLength,errno);
+                printf("socket error %d, errno %d\n",dwLength,errno);
                 pstPool->bStratumActive=FALSE;
                 break;
             }

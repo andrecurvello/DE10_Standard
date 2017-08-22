@@ -180,8 +180,92 @@ eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse)
 eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
+    json_object *pstJsonObj;
+    json_object *pstJsonArr;
+    json_object *pstJsonMeth;
+    char * pbyData;
+    dword dwMerkleBLen;
+    dword dwIndex;
+
+    /* Init locals */
+    eRetVal = eJSON_ERR;
+    pbyData = NULL;
+
+    if( NULL != pbyResponse )
+    {
+        pstJsonObj = json_tokener_parse((const char*)pbyResponse);
+
+        /* Get value of each object */
+        json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
+        json_object_object_get_ex(pstJsonObj, "method", &pstJsonMeth);
+
+        if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
+        {
+            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->dwLiveDifficulty,
+                                                            (byte*const)pbyResponse )
+               )
+            {
+                /* Slice up these two JSON request */
+                pbyData = strchr((char*)pbyResponse, '{');
+                pstJsonObj = json_tokener_parse((const char*)pbyData);
+
+                json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
+                eRetVal = eJSON_SUCCESS;
+            }
+        }
+
+        /* Deserialise Job Id */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,0);
+        pstResult->abyJobId = (byte*)json_object_get_string(pstJsonObj);
+
+        /* Deserialise previous hash */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,1);
+        pstResult->abyPrevHash = (byte*)json_object_get_string(pstJsonObj);
+
+        /* Deserialise Coinbase 1 */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,2);
+        pstResult->abyCoinBase1 = (byte*)json_object_get_string(pstJsonObj);
+
+        /* Deserialise Coinbase 2 */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,3);
+        pstResult->abyCoinBase2 = (byte*)json_object_get_string(pstJsonObj);
+
+        /* Merkle branches  */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,4);
+        dwMerkleBLen = json_object_array_length(pstJsonObj);
+        for( dwIndex=0 ; dwIndex < dwMerkleBLen ; dwIndex++ )
+        {
+            *(pstResult->abyMerkleBranch + dwIndex) = (byte*)(json_object_array_get_idx(pstJsonObj,dwIndex));
+        }
+
+        /* Deserialise block version */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,5);
+        pstResult->abyBlckVer = (byte*)(json_object_get_string(pstJsonObj));
+
+        /* Deserialise nbits, network difficulty */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,6);
+        pstResult->abyNbits = (byte*)(json_object_get_string(pstJsonObj));
+
+        /* Deserialise time, crypto-system clock */
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,7);
+        pstResult->abyNtime = (byte*)(json_object_get_string(pstJsonObj));
+
+        /* Deserialise clean, is it still relevent to share for that block ?*/
+        pstJsonObj = json_object_array_get_idx(pstJsonArr,8);
+        pstResult->bCleanJobs = (boolean)json_object_get_boolean(pstJsonObj);
+
+        eRetVal = eJSON_SUCCESS;
+    }
+
+    return eRetVal;
+}
+
+eJSON_Status_t JSON_Deser_ResDifficulty(dword dwLiveDifficulty, byte * const pbyResponse)
+{
+    eJSON_Status_t eRetVal;
     json_object *stJsonObj;
-    json_object *stJsonArr;
+    json_object *stJsonErr;
+    json_object *stJsonRes;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
@@ -191,55 +275,18 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
         stJsonObj = json_tokener_parse((const char*)pbyResponse);
 
         /* Get value of each object */
-        json_object_object_get_ex(stJsonObj, "params", &stJsonArr);
+        json_object_object_get_ex(stJsonObj, "result",&stJsonRes);
+        json_object_object_get_ex(stJsonObj, "error",&stJsonErr);
 
-        /* Deserialise Job Id */
-        stJsonObj = json_object_array_get_idx(stJsonArr,0);
-        pstResult->abyJobId = (byte*)json_object_get_string(stJsonObj);
-
-        /* Deserialise previous hash */
-        stJsonObj = json_object_array_get_idx(stJsonArr,1);
-        pstResult->abyPrevHash = (byte*)json_object_get_string(stJsonObj);
-
-        /* Deserialise Coinbase 1 */
-        stJsonObj = json_object_array_get_idx(stJsonArr,2);
-        pstResult->abyCoinBase1 = (byte*)json_object_get_string(stJsonObj);
-
-        /* Deserialise Coinbase 2 */
-        stJsonObj = json_object_array_get_idx(stJsonArr,3);
-        pstResult->abyCoinBase2 = (byte*)json_object_get_string(stJsonObj);
-
-        /* What about merkle branches ????? */
-
-        /* Deserialise block version */
-        stJsonObj = json_object_array_get_idx(stJsonArr,5);
-        pstResult->abyBlckVer = (byte*)(json_object_get_string(stJsonObj));
-
-        /* Deserialise nbits, network difficulty */
-        stJsonObj = json_object_array_get_idx(stJsonArr,6);
-        pstResult->abyNbits = (byte*)(json_object_get_string(stJsonObj));
-
-        /* Deserialise time, crypto-system clock */
-        stJsonObj = json_object_array_get_idx(stJsonArr,7);
-        pstResult->abyNtime = (byte*)(json_object_get_string(stJsonObj));
-
-        /* Deserialise clean, is it still relevent to share for that block ?*/
-        stJsonObj = json_object_array_get_idx(stJsonArr,8);
-        pstResult->bCleanJobs = (boolean)json_object_get_boolean(stJsonObj);
-
-        /* Answer is sound, update return value */
-        eRetVal = eJSON_SUCCESS;
+        /* Is the answer sound ? */
+        if(   ( 0 == json_object_get_int(stJsonErr) )
+           && ( 1 == json_object_get_boolean(stJsonRes) )
+          )
+        {
+            /* Answer is sound, update return value */
+            eRetVal = eJSON_SUCCESS;
+        }
     }
-
-    return eRetVal;
-}
-
-eJSON_Status_t JSON_Deser_ResDifficulty(byte * const pbyResponse)
-{
-    eJSON_Status_t eRetVal;
-
-    /* Init locals */
-    eRetVal = eJSON_ERR;
 
     return eRetVal;
 }
