@@ -96,6 +96,10 @@ int main(void)
     COM_Mgr_Setup();
     COM_Mgr_Init();
 
+    /* Initialise the scheduler */
+    SCHEDULER_Setup();
+    SCHEDULER_Init();
+
     /* Launch background task */
     TASK_Bkgnd();
 
@@ -111,7 +115,14 @@ static void TASK_Bkgnd(void)
     {
         /* Process COMs */
         COM_Mgr_Bkgnd();
+
+        /* Process scheduler */
+        SCHEDULER_Bkgnd();
+
 #if 0
+        /* Process FPGA task */
+        FPGA_Bkgnd();
+
         /* Process user interface */
         UI_Mgr_Bkgnd();
 #endif

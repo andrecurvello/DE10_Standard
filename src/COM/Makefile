@@ -21,7 +21,7 @@ LDPATH += -L$(JSON-LOC)
 #BUTTON-LOC = $(PRJ_ROOT)\src\drv\BUTTON
 #LDPATH += -L$(BUTTON-LOC)
 
-OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr STRATUM JSON_ser
+OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr STRATUM JSON_ser SCHEDULER
 
 build: $(TARGET)
 $(TARGET): $(addsuffix .o,$(OBJ-LST)) 

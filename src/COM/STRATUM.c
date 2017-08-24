@@ -49,8 +49,9 @@
 ** ************************************************************************** */
 #include "STRATUM.h" /* Module specific defns */
 
-#include "COM_Mgr.h" /* Manager defns */
-#include "JSON_ser.h"    /* JSON serialization */
+#include "COM_Mgr.h"   /* Manager defns */
+#include "JSON_ser.h"  /* JSON serialization */
+#include "SCHEDULER.h" /* Scheduler work definitions */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -104,6 +105,7 @@ typedef struct {
     boolean bStratumActive;
     boolean bStratumInit;
     boolean bstratumNotify;
+    boolean bWorkReady;
     struct timeval stTimeLastwork;
 
     /* TCP-land : stratum variables, no proxy for the time being */
@@ -119,8 +121,12 @@ typedef struct {
 } stSTRATUM_Pool_t;
 
 typedef struct  {
+    /* JSON */
     stJSON_Job_Result_t stJob;
     stJSON_Connect_Result_t stConnection;
+
+    /* Scheduler */
+    stSCHEDULER_Work_t stCurretWork;
 
 } stSTRATUM_Data_t;
 
@@ -166,8 +172,8 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Pool_t * const pstPool);
 #if 0
 static boolean IsErrnoHappy(void);
 static boolean IsSockFull(const SOCKTYPE sSock);
-static void Publish(void);
 #endif
+static void Publish(stSTRATUM_Pool_t * const pstPool);
 
 /* For data management */
 static void ResetData(void);
@@ -273,6 +279,20 @@ void STRATUM_Ptcl_Bkgnd(void)
 {
     /* Nothing to do for the time being */
     /* Dispatch work if data is valid and coherent */
+    dword dwIndex;
+
+    for( dwIndex = 0; dwIndex < NUM_POOLS; dwIndex++ )
+    {
+        /* is work ready on a pool ? */
+        if( TRUE == astSTRATUM_Pools[dwIndex].bWorkReady )
+        {
+            /* Push work to the scheduler */
+            SCHEDULER_PushWork(&astSTRATUM_Data[dwIndex].stJob);
+
+            /* Reset work status for reuse */
+            astSTRATUM_Pools[dwIndex].bWorkReady = FALSE;
+        }
+    }
 }
 
 /* *****************************************************************************
@@ -407,9 +427,7 @@ static void * CnxClient(void * pbyId)
 	}
 
 	/* Now feed up the FPGA. On to the Scheduler */
-#if 0
-	Publish(void);
-#endif
+	Publish(&astSTRATUM_Pools[byId]);
 
     pthread_exit(NULL);
 }
@@ -609,6 +627,31 @@ static void ResetData(void)
         memset( (void*)&astSTRATUM_Pools[dwIndex],
                 0x00,
                 sizeof(stSTRATUM_Pool_t) );
+    }
+
+    return;
+}
+
+static void Publish(stSTRATUM_Pool_t * const pstPool)
+{
+    if ( FALSE == pstPool->bWorkReady )
+    {
+        /* Do the copy to safe results structure */
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNonce1 = astSTRATUM_Data.stConnection.abyNonce1;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.wN2size = astSTRATUM_Data.stConnection.wN2size;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyBlckVer = astSTRATUM_Data.stJob.abyBlckVer;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyCoinBase1 = astSTRATUM_Data.stJob.abyCoinBase1;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyCoinBase2 = astSTRATUM_Data.stJob.abyCoinBase2;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyJobId = astSTRATUM_Data.stJob.abyJobId;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyMerkleBranch = astSTRATUM_Data.stJob.abyMerkleBranch;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNbits = astSTRATUM_Data.stJob.abyNbits;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNtime = astSTRATUM_Data.stJob.abyNtime;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyPrevHash = astSTRATUM_Data.stJob.abyPrevHash;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.byPoolId = pstPool->byPoolIdx;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.doDiff = astSTRATUM_Data.stJob.doLiveDifficulty;
+
+        /* Update pool information consequently */
+        pstPool->bWorkReady = TRUE;
     }
 
     return;

@@ -141,6 +141,46 @@ dword FPGA_Drv_Init(void)
     return dwRetVal;
 }
 
+dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
+{
+    dword dwRetVal;
+    dword dwIndex;
+
+    /* Initialize locals */
+    dwRetVal = 0;
+
+    if( NULL != pstWork )
+    {
+        for ( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
+        {
+            printf("\n--------------------------------------\n");
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
+            printf("--------------------------------------\n");
+        }
+
+        dwRetVal = 1;
+    }
+
+
+    return dwRetVal;
+}
+
+boolean FPGA_Drv_Ready(void)
+{
+    /* always return true for the time being */
+    return TRUE;
+}
+
 void FPGA_Drv_Shutdown(void)
 {
     /* clean up our memory mapping and exit */

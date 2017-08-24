@@ -21,12 +21,6 @@
 #define DWORD_MAX (0xFFFF)
 #define QWORD_MAX (0xFFFFFFFF)
 
-#if 0
-#define mSetBit_BYTE()
-#define mSetBit_DWORD()
-#define mSetBit_QWORD()
-#endif
-
 #ifndef TRUE
 #define TRUE (1)
 #endif
@@ -41,3 +35,13 @@
 
 /* Array macros */
 #define mArraySize(Array) (sizeof(Array)/sizeof(Array[0]))
+
+/* Offset macros */
+#define mBITS_LeftShiftDouble(DblVal,Offs) ((double)(((double)DblVal)<<Offs))
+#define mBITS_RightShiftDouble(DblVal,Offs) ((double)(((double)DblVal)>>Offs))
+
+#if 0
+#define mSetBit_BYTE()
+#define mSetBit_DWORD()
+#define mSetBit_QWORD()
+#endif

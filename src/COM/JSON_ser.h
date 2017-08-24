@@ -28,6 +28,11 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
+#include "SCHEDULER.h"  /* Scheduler defns */
+
+/* *****************************************************************************
+**                              TYPE DEFINITIONS
+** ************************************************************************** */
 typedef enum
 {
     eJSON_SUCCESS=0,
@@ -79,16 +84,16 @@ typedef struct
 */
 typedef struct
 {
-    byte *abyJobId;
-    byte *abyPrevHash;
-    byte *abyCoinBase1;
-    byte *abyCoinBase2;
-    byte **abyMerkleBranch;
-    byte *abyBlckVer;
-    byte *abyNbits;
-    byte *abyNtime;
+    byte abyJobId[JOBID_SIZE];
+    byte abyPrevHash[HASH_SIZE];
+    byte abyCoinBase1[COINBASE1_SIZE];
+    byte abyCoinBase2[COINBASE2_SIZE];
+    byte abyMerkleBranch[MERKLE_TREE_MAX_DEPTH][MERKLE_SIZE];
+    byte abyBlckVer[BLOCK_VER_SIZE];
+    byte abyNbits[NBITS_SIZE];
+    byte abyNtime[NTIME_SIZE];
     boolean bCleanJobs;
-    dword dwLiveDifficulty;
+    double doLiveDifficulty;
 
 } stJSON_Job_Result_t;
 
@@ -107,7 +112,7 @@ eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse); /* If return is suc
 
 eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * const pbyResponse);
 
-eJSON_Status_t JSON_Deser_ResDifficulty(dword dwDifficulty,byte * const pbyResponse);
+eJSON_Status_t JSON_Deser_ResDifficulty(double doDifficulty,byte * const pbyResponse);
 
 eJSON_Status_t JSON_Ser_ReqShare(byte * const pbyResponse);
 

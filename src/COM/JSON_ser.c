@@ -80,9 +80,9 @@ eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest)
 eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult, byte * const pbyResponse )
 {
     eJSON_Status_t eRetVal;
-    json_object *stJsonObj;
-    json_object *stJsonErr;
-    json_object *stJsonRes;
+    json_object *pstJsonObj;
+    json_object *pstJsonErr;
+    json_object *pstJsonRes;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
@@ -91,30 +91,31 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
        && ( NULL != pstResult )
       )
     {
-        stJsonObj = json_tokener_parse((const char*)pbyResponse);
+        pstJsonObj = json_tokener_parse((const char*)pbyResponse);
 
         /* Get value of each object */
-        json_object_object_get_ex(stJsonObj, "result",&stJsonRes);
-        json_object_object_get_ex(stJsonObj, "error",&stJsonErr);
+        json_object_object_get_ex(pstJsonObj, "result",&pstJsonRes);
+        json_object_object_get_ex(pstJsonObj, "error",&pstJsonErr);
 
         /* Is the answer sound ? */
-        if( 0 == json_object_get_int(stJsonErr) )
+        if( 0 == json_object_get_int(pstJsonErr) )
         {
             /* Update return value */
             eRetVal = eJSON_SUCCESS;
 
             /* Deserialise nonce 1, that is the "session Id" */
-            stJsonObj = json_object_array_get_idx(stJsonRes,1);
-            pstResult->abyNonce1 = (byte*)json_object_get_string(stJsonObj);
+            pstJsonObj = json_object_array_get_idx(pstJsonRes,1);
+            pstResult->abyNonce1 = (byte*)json_object_get_string(pstJsonObj);
 
             /* Deserialise nonce 2 size */
-            stJsonObj = json_object_array_get_idx(stJsonRes,2);
-            pstResult->wN2size = json_object_get_int(stJsonObj);
-
-            /* Ignore the 2-tuples for the time being */
-
-            /* do we need to free some memory ? */
+            pstJsonObj = json_object_array_get_idx(pstJsonRes,2);
+            pstResult->wN2size = json_object_get_int(pstJsonObj);
         }
+
+        /* Free allocated memory */
+        free(pstJsonObj);
+        free(pstJsonErr);
+        free(pstJsonRes);
     }
 
     return eRetVal;
@@ -149,29 +150,34 @@ eJSON_Status_t JSON_Ser_ReqAuth(const stJSON_Auth_Demand_t * const pstDemand, by
 eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
-    json_object *stJsonObj;
-    json_object *stJsonErr;
-    json_object *stJsonRes;
+    json_object *pstJsonObj;
+    json_object *pstJsonErr;
+    json_object *pstJsonRes;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
 
     if( NULL != pbyResponse )
     {
-        stJsonObj = json_tokener_parse((const char*)pbyResponse);
+        pstJsonObj = json_tokener_parse((const char*)pbyResponse);
 
         /* Get value of each object */
-        json_object_object_get_ex(stJsonObj, "result",&stJsonRes);
-        json_object_object_get_ex(stJsonObj, "error",&stJsonErr);
+        json_object_object_get_ex(pstJsonObj, "result",&pstJsonRes);
+        json_object_object_get_ex(pstJsonObj, "error",&pstJsonErr);
 
         /* Is the answer sound ? */
-        if(   ( 0 == json_object_get_int(stJsonErr) )
-           && ( 1 == json_object_get_boolean(stJsonRes) )
+        if(   ( 0 == json_object_get_int(pstJsonErr) )
+           && ( 1 == json_object_get_boolean(pstJsonRes) )
           )
         {
             /* Answer is sound, update return value */
             eRetVal = eJSON_SUCCESS;
         }
+
+        /* Free allocated memory */
+        free(pstJsonObj);
+        free(pstJsonRes);
+        free(pstJsonErr);
     }
 
     return eRetVal;
@@ -188,7 +194,7 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
     dword dwIndex;
 
     /* Init locals */
-    eRetVal = eJSON_ERR;
+    eRetVal = eJSON_SUCCESS;
     pbyData = NULL;
 
     if( NULL != pbyResponse )
@@ -201,7 +207,7 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
 
         if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
         {
-            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->dwLiveDifficulty,
+            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->doLiveDifficulty,
                                                             (byte*const)pbyResponse )
                )
             {
@@ -210,7 +216,11 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
                 pstJsonObj = json_tokener_parse((const char*)pbyData);
 
                 json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
-                eRetVal = eJSON_SUCCESS;
+            }
+            else
+            {
+                /* Update return value consequently */
+                eRetVal = eJSON_ERR;
             }
         }
 
@@ -235,6 +245,13 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
         dwMerkleBLen = json_object_array_length(pstJsonObj);
         for( dwIndex=0 ; dwIndex < dwMerkleBLen ; dwIndex++ )
         {
+            if( MERKLE_TREE_MAX_DEPTH < dwIndex )
+            {
+                /* Update return value consequently */
+                eRetVal = eJSON_ERR;
+                break;
+            }
+
             *(pstResult->abyMerkleBranch + dwIndex) = (byte*)(json_object_array_get_idx(pstJsonObj,dwIndex));
         }
 
@@ -254,38 +271,46 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
         pstJsonObj = json_object_array_get_idx(pstJsonArr,8);
         pstResult->bCleanJobs = (boolean)json_object_get_boolean(pstJsonObj);
 
-        eRetVal = eJSON_SUCCESS;
+        /* Free allocated memory */
+        free(pstJsonObj);
+        free(pstJsonArr);
+        free(pstJsonMeth);
     }
 
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResDifficulty(dword dwLiveDifficulty, byte * const pbyResponse)
+eJSON_Status_t JSON_Deser_ResDifficulty(double doLiveDifficulty, byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
-    json_object *stJsonObj;
-    json_object *stJsonErr;
-    json_object *stJsonRes;
+    json_object *pstJsonObj;
+    json_object *pstJsonErr;
+    json_object *pstJsonRes;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
 
     if( NULL != pbyResponse )
     {
-        stJsonObj = json_tokener_parse((const char*)pbyResponse);
+        pstJsonObj = json_tokener_parse((const char*)pbyResponse);
 
         /* Get value of each object */
-        json_object_object_get_ex(stJsonObj, "result",&stJsonRes);
-        json_object_object_get_ex(stJsonObj, "error",&stJsonErr);
+        json_object_object_get_ex(pstJsonObj, "result",&pstJsonRes);
+        json_object_object_get_ex(pstJsonObj, "error",&pstJsonErr);
 
         /* Is the answer sound ? */
-        if(   ( 0 == json_object_get_int(stJsonErr) )
-           && ( 1 == json_object_get_boolean(stJsonRes) )
+        if(   ( 0 == json_object_get_int(pstJsonErr) )
+           && ( 1 == json_object_get_boolean(pstJsonRes) )
           )
         {
             /* Answer is sound, update return value */
             eRetVal = eJSON_SUCCESS;
         }
+
+        /* Free allocated memory */
+        free(pstJsonObj);
+        free(pstJsonErr);
+        free(pstJsonRes);
     }
 
     return eRetVal;

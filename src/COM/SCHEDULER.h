@@ -28,36 +28,68 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
+#include "FPGA_Drv.h"  /* BMC macros */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
+/* All sizes are in byte */
+#define NONCE1_SIZE (4)
+
+/* Fixed by the protocol and the cryptographic scheme */
+#define JOBID_SIZE (6)
+#define HASH_SIZE (32)     /* we call HASH as merkle root or branch */
+#define COINBASE1_SIZE (60)
+#define COINBASE2_SIZE (53)
+#define MERKLE_SIZE (32)
+#define BLOCK_VER_SIZE (4)
+#define NTIME_SIZE (4)
+#define NBITS_SIZE (4)
+
+#define COINBASE_SIZE (512)
+#define BLOCKHEADER_SIZE (512)
+#define TARGET_SIZE (32)
+#define NONCE_SIZE (32) /* That is a maximum size. The real actual size is wN2size */
+
+#define MERKLE_TREE_MAX_DEPTH (32) /* maximum merkle tree depth supported */
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
 ** ************************************************************************** */
 typedef enum  {
-    eSCHED_FAILOVER = 0,
-    eSCHED_ROUNDROBIN,
-    eSCHED_ROTATE,
-    eSCHED_LOADBALANCE,
-    eSCHED_BALANCE
+    eSCHEDULER_FAILOVER = 0,
+    eSCHEDULER_ROUNDROBIN,
+    eSCHEDULER_ROTATE,
+    eSCHEDULER_LOADBALANCE,
+    eSCHEDULER_BALANCE,
+    eSCHEDULER_LEAST_DIFF
 
 } eSCHEDULER_Strgy_Type_t;
 
+/* You will find in comment the example of block #25096 */
 typedef struct {
-    qword qwTarget;
-    qword qwSDiff;
-    byte *abyNonce1;
+    /* From JSON, all in good order/endianess */
+    byte abyNonce1[NONCE1_SIZE];
     word wN2size;
-    byte *abyJobId;
-    byte *abyPrevHash;
-    byte *abyCoinBase1;
-    byte *abyCoinBase2;
-    byte **abyMerkleBranch;
-    byte *abyBlckVer;
-    byte *abyNbits;
-    byte *abyNtime;
+
+    byte abyJobId[JOBID_SIZE];
+    byte abyPrevHash[HASH_SIZE];
+    byte abyCoinBase1[COINBASE1_SIZE];
+    byte abyCoinBase2[COINBASE2_SIZE];
+    byte aabyMerkleBranch[MERKLE_TREE_MAX_DEPTH][MERKLE_SIZE];
+    byte abyBlckVer[BLOCK_VER_SIZE];
+    byte abyNbits[NBITS_SIZE];
+    byte abyNtime[NTIME_SIZE];
+    double doDiff;
+
+    /* Need the array of nonces */
+    byte abyTarget[TARGET_SIZE];
+    byte byPoolId;
+    byte byPoolPrio;
+    boolean bIsFree;
+    byte aabyNonce[NUM_BMC_CORES][NONCE_SIZE];
+    byte aabyCoinBase[NUM_BMC_CORES][COINBASE_SIZE];
+    byte aabyBlockHeader[NUM_BMC_CORES][BLOCKHEADER_SIZE];
 
 } stSCHEDULER_Work_t;
 
