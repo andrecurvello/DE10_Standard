@@ -105,7 +105,7 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
 
             /* Deserialise nonce 1, that is the "session Id" */
             pstJsonObj = json_object_array_get_idx(pstJsonRes,1);
-            pstResult->abyNonce1 = (byte*)json_object_get_string(pstJsonObj);
+            memcpy(pstResult->abyNonce1,json_object_get_string(pstJsonObj),NONCE1_SIZE);
 
             /* Deserialise nonce 2 size */
             pstJsonObj = json_object_array_get_idx(pstJsonRes,2);
@@ -226,19 +226,19 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
 
         /* Deserialise Job Id */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,0);
-        pstResult->abyJobId = (byte*)json_object_get_string(pstJsonObj);
+        memcpy( pstResult->abyJobId,json_object_get_string(pstJsonObj),JOBID_SIZE);
 
         /* Deserialise previous hash */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,1);
-        pstResult->abyPrevHash = (byte*)json_object_get_string(pstJsonObj);
+        memcpy( pstResult->abyPrevHash,json_object_get_string(pstJsonObj),HASH_SIZE);
 
         /* Deserialise Coinbase 1 */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,2);
-        pstResult->abyCoinBase1 = (byte*)json_object_get_string(pstJsonObj);
+        memcpy( pstResult->abyCoinBase1,json_object_get_string(pstJsonObj),COINBASE1_SIZE);
 
         /* Deserialise Coinbase 2 */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,3);
-        pstResult->abyCoinBase2 = (byte*)json_object_get_string(pstJsonObj);
+        memcpy( pstResult->abyCoinBase2,json_object_get_string(pstJsonObj),COINBASE2_SIZE);
 
         /* Merkle branches  */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,4);
@@ -252,20 +252,23 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
                 break;
             }
 
-            *(pstResult->abyMerkleBranch + dwIndex) = (byte*)(json_object_array_get_idx(pstJsonObj,dwIndex));
+            /* Copy memory */
+            memcpy( (*(pstResult->abyMerkleBranch + dwIndex)),
+                    json_object_get_string(pstJsonObj),
+                    MERKLE_SIZE );
         }
 
         /* Deserialise block version */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,5);
-        pstResult->abyBlckVer = (byte*)(json_object_get_string(pstJsonObj));
+        memcpy( pstResult->abyBlckVer, json_object_get_string(pstJsonObj), BLOCK_VER_SIZE );
 
         /* Deserialise nbits, network difficulty */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,6);
-        pstResult->abyNbits = (byte*)(json_object_get_string(pstJsonObj));
+        memcpy( pstResult->abyNbits, json_object_get_string(pstJsonObj), NBITS_SIZE );
 
         /* Deserialise time, crypto-system clock */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,7);
-        pstResult->abyNtime = (byte*)(json_object_get_string(pstJsonObj));
+        memcpy( pstResult->abyNtime, json_object_get_string(pstJsonObj), NTIME_SIZE );
 
         /* Deserialise clean, is it still relevent to share for that block ?*/
         pstJsonObj = json_object_array_get_idx(pstJsonArr,8);

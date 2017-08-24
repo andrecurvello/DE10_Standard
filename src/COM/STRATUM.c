@@ -287,7 +287,7 @@ void STRATUM_Ptcl_Bkgnd(void)
         if( TRUE == astSTRATUM_Pools[dwIndex].bWorkReady )
         {
             /* Push work to the scheduler */
-            SCHEDULER_PushWork(&astSTRATUM_Data[dwIndex].stJob);
+            SCHEDULER_PushWork(&astSTRATUM_Data[dwIndex].stCurretWork);
 
             /* Reset work status for reuse */
             astSTRATUM_Pools[dwIndex].bWorkReady = FALSE;
@@ -637,18 +637,45 @@ static void Publish(stSTRATUM_Pool_t * const pstPool)
     if ( FALSE == pstPool->bWorkReady )
     {
         /* Do the copy to safe results structure */
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNonce1 = astSTRATUM_Data.stConnection.abyNonce1;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.wN2size = astSTRATUM_Data.stConnection.wN2size;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyBlckVer = astSTRATUM_Data.stJob.abyBlckVer;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyCoinBase1 = astSTRATUM_Data.stJob.abyCoinBase1;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyCoinBase2 = astSTRATUM_Data.stJob.abyCoinBase2;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyJobId = astSTRATUM_Data.stJob.abyJobId;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyMerkleBranch = astSTRATUM_Data.stJob.abyMerkleBranch;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNbits = astSTRATUM_Data.stJob.abyNbits;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNtime = astSTRATUM_Data.stJob.abyNtime;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyPrevHash = astSTRATUM_Data.stJob.abyPrevHash;
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNonce1[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stConnection.abyNonce1[0],
+                NONCE1_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyBlckVer[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyBlckVer[0],
+                BLOCK_VER_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyCoinBase1[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyCoinBase1[0],
+                COINBASE1_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyCoinBase2[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyCoinBase2[0],
+                COINBASE2_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyJobId[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyJobId[0],
+                JOBID_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.aabyMerkleBranch,
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyMerkleBranch,
+                (MERKLE_TREE_MAX_DEPTH*MERKLE_SIZE) );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNbits[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyNbits[0],
+                NBITS_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyNtime[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyNtime[0],
+                NTIME_SIZE );
+
+        memcpy( &astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.abyPrevHash[0],
+                &astSTRATUM_Data[pstPool->byPoolIdx].stJob.abyPrevHash[0],
+                HASH_SIZE );
+
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.wN2size = astSTRATUM_Data[pstPool->byPoolIdx].stConnection.wN2size;
         astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.byPoolId = pstPool->byPoolIdx;
-        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.doDiff = astSTRATUM_Data.stJob.doLiveDifficulty;
+        astSTRATUM_Data[pstPool->byPoolIdx].stCurretWork.doDiff = astSTRATUM_Data[pstPool->byPoolIdx].stJob.doLiveDifficulty;
 
         /* Update pool information consequently */
         pstPool->bWorkReady = TRUE;

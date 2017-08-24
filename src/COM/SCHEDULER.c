@@ -24,6 +24,7 @@
 #include "Types.h"  /* Legacy types definitions */
 
 #include <endian.h> /* Endianess definitions */
+#include <string.h> /* memset and memcpy */
 
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
@@ -40,13 +41,6 @@
 
 #define BLOCK_HEADER_PADDING "000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000"
 #define MASK_8_BYTES (0xFFFFFFFFFFFFFFFF)
-
-/* Target related macros */
-#define TGT_OFFS_64 (64)
-#define TGT_OFFS_128 (128)
-#define TGT_OFFS_192 (192)
-#define TGT_OFFS_208 (208)
-#define TGT_DIFF_1 ((double)(0xFFFF*((double)(1<<TGT_OFFS_208))))
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
@@ -75,6 +69,15 @@ typedef struct{
 **                                 LOCALS
 ** ************************************************************************** */
 static stSCHEDULER_Data_t stLocalData;
+
+/*
+** Target related locals. Unfortunately can't use anything cleaner like,
+** Masks and bits offset with double type.
+*/
+static const double doTrueDiffOne = 26959535291011309493156476344723991336010898738574164086137773096960.0;
+static const double doBits192 = 6277101735386680763835789423207666416102355444464034512896.0;
+static const double doBits128 = 340282366920938463463374607431768211456.0;
+static const double doBits64 = 18446744073709551616.0;
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
@@ -120,12 +123,11 @@ void SCHEDULER_Init(void)     /* Reinit the work queue */
 
 void SCHEDULER_Bkgnd(void)
 {
+    dword dwIndex;
     stSCHEDULER_Work_t * pstCurrent;
-    dword dwFPGAState;
 
     /* Initialize locals, retrieve data */
     pstCurrent = stLocalData.pstCurrent;
-    dwFPGAState = 0;
 
     switch( stLocalData.eState )
     {
@@ -137,7 +139,8 @@ void SCHEDULER_Bkgnd(void)
             /* Get coinbase */
             PrepareCoinbase(pstCurrent);
 
-            dwFPGAState = FPGA_Drv_StageWork( pstCurrent );
+            /* Feed FPGA */
+            FPGA_Drv_StageWork( pstCurrent );
 
             /* Now ready trigger transition to next state */
             stLocalData.eState = eSCHEDULER_COMPUTING;
@@ -149,22 +152,24 @@ void SCHEDULER_Bkgnd(void)
             /*
             ** FPGA fabric computing the batch. Crunching big number real'hard.
             */
-
-            /* Feed FPGA */
-            dwFPGAState = FPGA_Drv_GetStatus();
-
-            /* Now ready trigger transition to next state, go to ready in all cases */
-            if( /* Need to be interrupted ? */ )
+            if( eFPGA_COMPUTING != FPGA_Drv_GetStatus() )
             {
-                /* Purge FPGA from now useless work */
+#if 0
+                /* Now ready trigger transition to next state, go to ready in all cases */
+                if( /* Need to be interrupted ? */ )
+                {
+                    /* Purge FPGA from now useless work */
 
-                stLocalData.eState = eSCHEDULER_READY;
-            }
+                    stLocalData.eState = eSCHEDULER_READY;
+                }
 
-            /*  ---- OR ---- */
-            if( /* Need to recalibrate ? */ )
-            {
-                stLocalData.eState = eSCHEDULER_RECALIBRATION;
+                /*  ---- OR ---- */
+                if( /* Need to recalibrate ? */ )
+                {
+                    stLocalData.eState = eSCHEDULER_RECALIBRATION;
+                }
+#endif
+                /* Do nothing for the time being */
             }
 
             break;
@@ -179,6 +184,7 @@ void SCHEDULER_Bkgnd(void)
             /* Mark work as done or abandone if notrelevant anymore, see bClear in stratum */
 
             /* Get next work */
+#if 0
             if( /* need work update ? */ )
             {
                 pstCurrent = SelectWork();
@@ -186,6 +192,19 @@ void SCHEDULER_Bkgnd(void)
                 /* New work, trigger transition to calibration state */
                 stLocalData.eState = eSCHEDULER_RECALIBRATION;
             }
+#else
+            pstCurrent = SelectWork();
+
+            /* Preset nonce array */
+            for( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
+            {
+                /* WRONG should be a string still */
+                pstCurrent->aabyNonce[dwIndex][0]=dwIndex;
+            }
+
+            /* New work, trigger transition to calibration state */
+            stLocalData.eState = eSCHEDULER_RECALIBRATION;
+#endif
 
             /* If no new work is present, just hang in that state */
 
@@ -243,7 +262,7 @@ void SCHEDULER_PushWork(const stSCHEDULER_Work_t * const pstWork)
         for( dwIndex = 0; dwIndex < WORK_QUEUE_SIZE; dwIndex++ )
         {
             /* Retrieve data */
-            pstLocalWork = stLocalData.astWorkQueue[dwIndex];
+            pstLocalWork = &stLocalData.astWorkQueue[dwIndex];
 
             /* Found free slot ? */
             if( TRUE == pstLocalWork->bIsFree )
@@ -317,38 +336,49 @@ static void SetTarget(byte * pstDest, double doDifficulty)
 **
 ** ************************************************************************** */
 {
-    double dDiffRatio;
-    double dChunk;
+    double doDiffRatio;
+    double doChunk;
     qword *pqwData64;
     byte byTarget[TARGET_SIZE];
 
     /* Initialize variables */
-    dDiffRatio = (double)( TGT_DIFF_1 / doDifficulty ); /* Get difficulty ratio */
+    doDiffRatio = (double)( doTrueDiffOne / doDifficulty ); /* Get difficulty ratio */
 
     /*
     ** This has been voluntarily implemented like this and not in the loop in
     ** order to keep it clear and understandable.
     */
 
+    /* REMINDER :
+    ** Unfortunately can't use anything cleaner like masks and bit offsets with
+    ** double type :(
+    */
+
     /* 1st chunk */
-    dChunk = ( MASK_8_BYTES & mBITS_RightShiftDouble(dDiffRatio,TGT_OFFS_192) );
-    pqwData64 = (qword *)(byTarget + 24);
-    *pqwData64 = htole64(dChunk);
+    doChunk = (doDiffRatio/doBits192); /* Right shift for double */
+    pqwData64 = (qword *)(byTarget + 24); /* Get target buffer */
+    *pqwData64 = htole64(doChunk); /* Write/convert */
+    doChunk *= doBits192; /* Offset of 192 again to be able to mask for the second chunk */
+    doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 1st chunk */
 
     /* 2nd chunk */
-    dChunk = ( MASK_8_BYTES & mBITS_RightShiftDouble(dDiffRatio,TGT_OFFS_128) );
-    pqwData64 = (qword *)(byTarget + 16);
-    *pqwData64 = htole64(dChunk);
+    doChunk = (doDiffRatio/doBits128); /* Right shift for double */
+    pqwData64 = (qword *)(byTarget + 16); /* Get target buffer */
+    *pqwData64 = htole64(doChunk); /* Write/convert */
+    doChunk *= doBits128; /* Offset of 128 again to be able to mask for the third chunk */
+    doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 2nd chunk */
 
     /* 3rd chunk */
-    dChunk = ( MASK_8_BYTES & mBITS_RightShiftDouble(dDiffRatio,TGT_OFFS_64) );
+    doChunk = (doDiffRatio/doBits64); /* Right shift for double */
     pqwData64 = (qword *)(byTarget + 8);
-    *pqwData64 = htole64(dChunk);
+    *pqwData64 = htole64(doChunk);
+    doChunk *= doBits64; /* Offset of 64 again to be able to mask for the fourth chunk */
+    doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 3rd chunk */
 
     /* 4th chunk */
-    dChunk = ( MASK_8_BYTES & dDiffRatio );
+    doChunk = doDiffRatio;
     pqwData64 = (qword *)(byTarget);
-    *pqwData64 = htole64(dChunk);
+    *pqwData64 = htole64(doChunk);
 
     return;
 }
@@ -363,6 +393,7 @@ static void PrepareNonceArray(stSCHEDULER_Work_t * const pstWork)
         for ( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
         {
             /* Increment nonce. Beware of the size as we get it in the connection phase ! */
+            /* WRONG should be a string still */
             *(pstWork->aabyNonce[dwIndex]) += NUM_BMC_CORES;
         }
     }
@@ -392,19 +423,19 @@ static void PrepareCoinbase(stSCHEDULER_Work_t *pstWork)
             */
 
             /* Cb1 */
-            *(pbyData) = pstWork->abyCoinBase1 ;
-            pbyData += strlen(pstWork->abyCoinBase1);
+            memcpy(pbyData,pstWork->abyCoinBase1,strlen((char*)pstWork->abyCoinBase1));
+            pbyData += (word)strlen((char*)pstWork->abyCoinBase1);
 
             /* ExtN1 */
-            *(pbyData) = pstWork->abyNonce1 ;
-            pbyData += strlen(pstWork->abyNonce1);
+            memcpy(pbyData,pstWork->abyNonce1,strlen((char*)pstWork->abyNonce1));
+            pbyData += (word)strlen((char*)pstWork->abyNonce1);
 
             /* Cb2 */
-            *(pbyData) = pstWork->abyCoinBase2 ;
-            pbyData += strlen(pstWork->abyCoinBase2);
+            memcpy(pbyData,pstWork->abyCoinBase2,strlen((char*)pstWork->abyCoinBase2));
+            pbyData += (word)strlen((char*)pstWork->abyCoinBase2);
 
             /* ExtN2 */
-            *(pbyData) = *(pstWork->aabyNonce[dwIndex]) ;
+            memcpy(pbyData,pstWork->aabyNonce[dwIndex],strlen((char*)(pstWork->aabyNonce[dwIndex])));
         }
     }
 
@@ -415,7 +446,6 @@ static stSCHEDULER_Work_t *SelectWork(void)
 {
     stSCHEDULER_Work_t * pstWork;
     stSCHEDULER_Work_t * pstCompare;
-    dword dwIndex;
 
     /* Init locals */
     pstWork = NULL;

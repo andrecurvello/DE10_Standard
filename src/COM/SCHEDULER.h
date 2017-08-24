@@ -28,7 +28,7 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "FPGA_Drv.h"  /* BMC macros */
+#include "design.h"  /* General design macros */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -111,8 +111,8 @@ void SCHEDULER_Init(void);  /* Reinit the work queue */
 
 void SCHEDULER_Bkgnd(void); /* queue and donkey work management */
 
-void SCHEDULER_PopWork(void);  /* Schedule work and push to FPGA */
-void SCHEDULER_PushWork(void); /*  */
+stSCHEDULER_Work_t * SCHEDULER_PopWork(const byte byPoolIdx);  /* Schedule work and push to FPGA */
+void SCHEDULER_PushWork(const stSCHEDULER_Work_t * const pstWork); /* Transfer work to scheduler */
 
 void SCHEDULER_SetStrategy(const eSCHEDULER_Strgy_Type_t eStrategy); /* Set scheduling method */
 

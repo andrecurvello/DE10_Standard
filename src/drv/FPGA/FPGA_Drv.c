@@ -175,10 +175,10 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
     return dwRetVal;
 }
 
-boolean FPGA_Drv_Ready(void)
+eFPGA_State_t FPGA_Drv_GetStatus(void)
 {
     /* always return true for the time being */
-    return TRUE;
+    return eFPGA_COMPUTING;
 }
 
 void FPGA_Drv_Shutdown(void)

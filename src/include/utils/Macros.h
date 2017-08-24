@@ -37,8 +37,8 @@
 #define mArraySize(Array) (sizeof(Array)/sizeof(Array[0]))
 
 /* Offset macros */
-#define mBITS_LeftShiftDouble(DblVal,Offs) ((double)(((double)DblVal)<<Offs))
-#define mBITS_RightShiftDouble(DblVal,Offs) ((double)(((double)DblVal)>>Offs))
+#define mBITS_LeftShiftDouble(DblVal,Offs) ((double)(DblVal<<Offs))
+#define mBITS_RightShiftDouble(DblVal,Offs) ((double)(DblVal>>Offs))
 
 #if 0
 #define mSetBit_BYTE()

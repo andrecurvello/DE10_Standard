@@ -33,14 +33,14 @@
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
-#define NUM_BMC_CORES (8) /* Number of mining cores */
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
 ** ************************************************************************** */
 typedef enum
 {
-    eFPGA_ = 0,
+    eFPGA_IDLE = 0,
+    eFPGA_COMPUTING
 
 } eFPGA_State_t;
 
@@ -62,8 +62,7 @@ dword FPGA_Drv_Setup(void);
 dword FPGA_Drv_Init(void);
 
 dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork);
-boolean FPGA_Drv_Ready(void);
-dword FPGA_Drv_GetStatus(void);
+eFPGA_State_t FPGA_Drv_GetStatus(void);
 
 void FPGA_Drv_Shutdown(void); /* Avoid segfault and wrong access to phy memory */
 
