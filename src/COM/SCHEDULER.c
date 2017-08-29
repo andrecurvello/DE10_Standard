@@ -58,6 +58,7 @@ typedef struct{
     eSCHEDULER_Strgy_Type_t eStrategy;
     eSCHEDULER_Type_t eState;
     byte byNumWork;
+    dword dwWorkIterationCounter;
 
 } stSCHEDULER_Data_t;
 
@@ -98,7 +99,17 @@ static void ResetData(void);
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
-void SCHEDULER_Setup(void) /* Setup module, make sure we can use the FPGA */
+
+/* ************************************************************************** */
+void SCHEDULER_Setup(void)
+/* **************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description  : Setup module, make sure we can use the FPGA
+**
+** ************************************************************************** */
 {
     /* Reset data */
     ResetData();
@@ -106,7 +117,16 @@ void SCHEDULER_Setup(void) /* Setup module, make sure we can use the FPGA */
     return;
 }
 
+/* ************************************************************************** */
 void SCHEDULER_Init(void)     /* Reinit the work queue */
+/* **************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description  : Init mining Hw
+**
+** ************************************************************************** */
 {
     /* Initialize working queue */
     stLocalData.byNumWork = 0;
@@ -118,10 +138,22 @@ void SCHEDULER_Init(void)     /* Reinit the work queue */
     /* Initialize state machine control variable */
     stLocalData.eState = eSCHEDULER_READY;
 
+    /* General  */
+    stLocalData.dwWorkIterationCounter = 0;
+
     return;
 }
 
+/* ************************************************************************** */
 void SCHEDULER_Bkgnd(void)
+/* **************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description  : Continuously feed the FPGA.
+**
+** ************************************************************************** */
 {
     dword dwIndex;
     stSCHEDULER_Work_t * pstCurrent;
@@ -131,10 +163,43 @@ void SCHEDULER_Bkgnd(void)
 
     switch( stLocalData.eState )
     {
+        case eSCHEDULER_READY :
+        {
+            /*
+            ** Interpret the result, two options really :
+            ** i)  No good result, recalibrate and compute.
+            ** ii) Good result found :), prepare and send share.
+            */
+
+            /* Mark work as done or abandon if not relevant anymore, see bClear in stratum */
+
+            /* Get next work */
+            pstCurrent = SelectWork();
+
+            /* Preset nonce array */
+            for( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
+            {
+                /* WRONG should be a string still */
+                pstCurrent->aabyNonce[dwIndex][0]=dwIndex;
+            }
+
+            /* New work, trigger transition to calibration state */
+            stLocalData.eState = eSCHEDULER_RECALIBRATION;
+
+            /* If no new work is present, just hang in that state */
+
+            break;
+        }
         case eSCHEDULER_RECALIBRATION :
         {
             /* Recalculate nonces */
-            PrepareNonceArray(pstCurrent);
+            if ( 0 != stLocalData.dwWorkIterationCounter )
+            {
+                PrepareNonceArray(pstCurrent);
+            }
+
+            /* Increment the work iteration counter */
+            stLocalData.dwWorkIterationCounter++;
 
             /* Get coinbase */
             PrepareCoinbase(pstCurrent);
@@ -171,42 +236,6 @@ void SCHEDULER_Bkgnd(void)
 #endif
                 /* Do nothing for the time being */
             }
-
-            break;
-        }
-        case eSCHEDULER_READY :
-        {
-            /* Interpret the result, two options really :
-            ** i)  No good result, recalibrate and compute.
-            ** ii) Good result found :), prepare and send share.
-            */
-
-            /* Mark work as done or abandone if notrelevant anymore, see bClear in stratum */
-
-            /* Get next work */
-#if 0
-            if( /* need work update ? */ )
-            {
-                pstCurrent = SelectWork();
-
-                /* New work, trigger transition to calibration state */
-                stLocalData.eState = eSCHEDULER_RECALIBRATION;
-            }
-#else
-            pstCurrent = SelectWork();
-
-            /* Preset nonce array */
-            for( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
-            {
-                /* WRONG should be a string still */
-                pstCurrent->aabyNonce[dwIndex][0]=dwIndex;
-            }
-
-            /* New work, trigger transition to calibration state */
-            stLocalData.eState = eSCHEDULER_RECALIBRATION;
-#endif
-
-            /* If no new work is present, just hang in that state */
 
             break;
         }
@@ -383,7 +412,16 @@ static void SetTarget(byte * pstDest, double doDifficulty)
     return;
 }
 
+/* ************************************************************************** */
 static void PrepareNonceArray(stSCHEDULER_Work_t * const pstWork)
+/* *****************************************************************************
+** Input  : Work structure to prepare
+** Output : -
+** Return : -
+**
+** Description  : Prepare nonce array for FPGA stage work.
+**
+** ************************************************************************** */
 {
     dword dwIndex;
 
@@ -401,7 +439,16 @@ static void PrepareNonceArray(stSCHEDULER_Work_t * const pstWork)
     return;
 }
 
+/* ************************************************************************** */
 static void PrepareCoinbase(stSCHEDULER_Work_t *pstWork)
+/* *****************************************************************************
+** Input  : Work structure to prepare
+** Output : -
+** Return : -
+**
+** Description  : Putting coinbase together.
+**
+** ************************************************************************** */
 {
     dword dwIndex;
     byte * pbyData;
@@ -442,7 +489,16 @@ static void PrepareCoinbase(stSCHEDULER_Work_t *pstWork)
     return;
 }
 
+/* ************************************************************************** */
 static stSCHEDULER_Work_t *SelectWork(void)
+/* *****************************************************************************
+** Input  : -
+** Output : Pointer to next work structure.
+** Return : -
+**
+** Description  : Select next empty element in the queue according to current strategy
+**
+** ************************************************************************** */
 {
     stSCHEDULER_Work_t * pstWork;
     stSCHEDULER_Work_t * pstCompare;
@@ -485,7 +541,16 @@ static stSCHEDULER_Work_t *SelectWork(void)
     return pstWork;
 }
 
+/* ************************************************************************** */
 static void ResetData(void)
+/* *****************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description  : Reset modules data structures.
+**
+** ************************************************************************** */
 {
     /* Reset local data */
     memset(&stLocalData,0x00,sizeof(stSCHEDULER_Data_t));

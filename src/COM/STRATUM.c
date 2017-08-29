@@ -43,7 +43,6 @@
 #include <netdb.h>       /* net def "in_addr_t" */
 #include <errno.h>       /* ErrNo defns */
 
-
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
@@ -74,14 +73,18 @@ typedef enum
     eSTRATUM_MSG_TIMEOUT,
     eSTRATUM_MSG_ERR
 
-}eSTRATUM_Status_t;
+} eSTRATUM_Status_t;
 
 /* Introduce state machine for better handling of the threads */
 typedef enum
 {
-    eSTRATUM_CONNECTING=0
+    eSTRATUM_CONNECTING=0,
+    eSTRATUM_AUTHENTICATING,
+    eSTRATUM_LISTENING,
+    eSTRATUM_PUBLISHING,
+    eSTRATUM_SHARING
 
-}eSTRATUM_State_t;
+} eSTRATUM_State_t;
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
@@ -144,6 +147,7 @@ typedef struct  {
     stSTRATUM_Data_t stData;
     pthread_t stThId;
     pthread_attr_t stThAttr;
+    eSTRATUM_State_t eState;
 
 } stSTRATUM_Desc_t;
 
@@ -196,7 +200,7 @@ static void ResetData(void);
 
 /* ************************************************************************** */
 eCOM_Mgr_Status_t STRATUM_Ptcl_Setup( const COM_Mgr_CnxTableEntry_t * const pstComDesc)
-/* **************************************************************************
+/* *****************************************************************************
 ** Input  : -
 ** Output : -
 ** Return : -
@@ -274,7 +278,7 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
 ** Output : -
 ** Return : -
 **
-** Description  : Initialise sockets. Kick off threads/connections
+** Description  : Initialize sockets. Kick off threads/connections
 **
 ** ************************************************************************** */
 {
@@ -286,6 +290,9 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
 
     for( dwIndex = 0; dwIndex < eSTRATUM_ID_TOTAL; dwIndex++ )
     {
+        /* Initialize the state machine */
+        astDesc[dwIndex].eState = eSTRATUM_CONNECTING;
+
         /* Kick off threads */
         if ( 0 == pthread_create( &astDesc[dwIndex].stThId,
                                   &astDesc[dwIndex].stThAttr,
@@ -370,46 +377,100 @@ static void * CnxClient(void * pbyId)
     pstPool = &astDesc[byId].stPool;
     pstData = &astDesc[byId].stData;
 
-    /* Set thread priority. Consider pool mngmt strategy and so one ... */
-    Connect(&astDesc[byId]);
+    switch (astDesc[byId].eState)
+    {
+        case eSTRATUM_CONNECTING:
+        {
+            /* Set thread priority. Consider pool mngmt strategy and so one ... */
+            if( eSTRATUM_CNX_SUCCESS == Connect(&astDesc[byId]) )
+            {
+                /* Trigger transition to authentication state */
+                astDesc[byId].eState = eSTRATUM_AUTHENTICATING;
+            }
 
-    /* Need to login */
-    Authenticate(&astDesc[byId]);
+            break;
+        }
+        case eSTRATUM_AUTHENTICATING:
+        {
+            /* Need to login */
+            if ( eSTRATUM_CNX_SUCCESS == Authenticate(&astDesc[byId]) )
+            {
+                /* Trigger transition to authentication state */
+                astDesc[byId].eState = eSTRATUM_LISTENING;
+            }
+            else
+            {
+                /* Trigger transition to authentication state */
+                astDesc[byId].eState = eSTRATUM_CONNECTING;
+            }
 
-    /* Start receiving jobs, Fill out pool structure accordingly */
-    /* Get answer from the server. Get extra nonce 1 and ext nonce 2 size */
-	while( TRUE )
-	{
-		eRetVal = RxPool( (byte*)pstPool->abyJsonRes,
-              		      pstPool->dwJsonResLen,
-		                  pstPool );
+            break;
+        }
+        case eSTRATUM_PUBLISHING:
+        case eSTRATUM_LISTENING:
+        {
+            /*
+            ** Start receiving jobs, Fill out pool structure accordingly
+            ** Get answer from the server. Get extra nonce 1 and ext nonce 2 size
+            */
+            eRetVal = RxPool( (byte*)pstPool->abyJsonRes,
+                              pstPool->dwJsonResLen,
+                              pstPool );
 
-		if ( eRetVal != eSTRATUM_MSG_SUCCESS )
-		{
-			printf("Ouch!\n");
-		}
+            if ( eRetVal != eSTRATUM_MSG_SUCCESS )
+            {
+                /* Something is wrong with the receiving trigger transition to reconnect */
+                printf("Ouch!\n");
 
-        /* Link JSON request to work */
-        pstData->stJob.abyBlckVer = pstData->stCurrentWork.abyBlckVer;
-        pstData->stJob.abyCoinBase1 = pstData->stCurrentWork.abyCoinBase1;
-        pstData->stJob.abyCoinBase2 = pstData->stCurrentWork.abyCoinBase2;
-        pstData->stJob.abyJobId = pstData->stCurrentWork.abyJobId;
-        pstData->stJob.abyPrevHash = pstData->stCurrentWork.abyPrevHash;
-        pstData->stJob.abyNbits = pstData->stCurrentWork.abyNbits;
-        pstData->stJob.abyNtime = pstData->stCurrentWork.abyNtime;
-        pstData->stJob.abyMerkleBranch = (byte**)pstData->stCurrentWork.aabyMerkleBranch;
+                astDesc[byId].eState = eSTRATUM_CONNECTING;
+            }
+            else
+            {
+                /* Received anything ? */
+                if( 0 != pstPool->dwJsonResLen )
+                {
+                    astDesc[byId].eState = eSTRATUM_LISTENING;
+                }
+            }
 
-        /* Deserialize */
-		if ( eJSON_SUCCESS == JSON_Deser_ResJob( &pstData->stJob,
-												 (byte*const)&pstPool->abyJsonRes )
-		   )
-		{
-	    	printf("%s\n",pstPool->abyJsonRes);
-		}
-	}
+            /* Link JSON request to work */
+            if ( eSTRATUM_LISTENING == astDesc[byId].eState )
+            {
+                /* Link data to work */
+                pstData->stJob.abyBlckVer = pstData->stCurrentWork.abyBlckVer;
+                pstData->stJob.abyCoinBase1 = pstData->stCurrentWork.abyCoinBase1;
+                pstData->stJob.abyCoinBase2 = pstData->stCurrentWork.abyCoinBase2;
+                pstData->stJob.abyJobId = pstData->stCurrentWork.abyJobId;
+                pstData->stJob.abyPrevHash = pstData->stCurrentWork.abyPrevHash;
+                pstData->stJob.abyNbits = pstData->stCurrentWork.abyNbits;
+                pstData->stJob.abyNtime = pstData->stCurrentWork.abyNtime;
+                pstData->stJob.abyMerkleBranch = (byte**)pstData->stCurrentWork.aabyMerkleBranch;
 
-	/* Now feed up the FPGA. On to the Scheduler */
-	Publish(&astDesc[byId]);
+                /* Deserialize */
+                if ( eJSON_SUCCESS == JSON_Deser_ResJob( &pstData->stJob,
+                                                         (byte*const)&pstPool->abyJsonRes )
+                   )
+                {
+                    /* And publish */
+                    Publish(&astDesc[byId]);
+
+                    /* Received something, cannot publish anymore */
+                    astDesc[byId].eState = eSTRATUM_PUBLISHING;
+                }
+            }
+
+            break;
+        }
+        case eSTRATUM_SHARING:
+        {
+            /* Send golden nonce to pool */
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
 
     pthread_exit(NULL);
 }
@@ -544,7 +605,7 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Desc_t * const pstDesc)
         if ( eSTRATUM_MSG_SUCCESS == TxPool(pstPool->abyJsonReq,strlen((char*)pstPool->abyJsonReq),pstPool) )
         {
             /* Parse all data in the queue and anything left should be auth */
-            while (TRUE)
+            for (;;)
             {
                 eRetVal = RxPool(pstPool->abyJsonRes,pstPool->dwJsonResLen,pstPool);
 
@@ -588,6 +649,7 @@ static eSTRATUM_Status_t TxPool( const byte* const abyData,
     /* Init locals */
     eRetVal = eSTRATUM_MSG_ERR;
     ssent = (ssize_t)dwLength;
+    memset((char*)abyData, 0x00, RBUFSIZE);
 
     while ( 0 < ssent )
     {
@@ -631,7 +693,7 @@ static eSTRATUM_Status_t RxPool( byte* const abyData,
 
     /* Init locals,  Reset receive buffer */
     eRetVal = eSTRATUM_MSG_ERR;
-    memset((char*)abyData, 0x00, RBUFSIZE); /* Risky */
+    memset((char*)abyData, 0x00, RBUFSIZE);
     dwLength=0;
     pbyData=abyData;
 
