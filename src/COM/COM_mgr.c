@@ -50,13 +50,8 @@ typedef enum
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
 ** ************************************************************************** */
-typedef struct
-{
-    /* Empty for now */
-} COM_Mgr_Result_t;
-
 /* Pointer to connection client */
-typedef eCOM_Mgr_Status_t (*pfnCnxClient_Setup_t)(void);
+typedef eCOM_Mgr_Status_t (*pfnCnxClient_Setup_t)(const COM_Mgr_CnxTableEntry_t *const);
 typedef eCOM_Mgr_Status_t (*pfnCnxClient_Init_t)(void);
 typedef eCOM_Mgr_Status_t (*pfnCnxClient_Bkgnd_t)(void);
 
@@ -67,12 +62,13 @@ typedef struct
     const pfnCnxClient_Setup_t pfnCnxClient_Setup;
     const pfnCnxClient_Init_t pfnCnxClient_Init;
     const pfnCnxClient_Bkgnd_t pfnCnxClient_Bkgnd;
+    const COM_Mgr_CnxTableEntry_t * const pstCnxClient_Entry;
 
 } COM_Mgr_Cnx_t;
 
 typedef struct
 {
-    COM_Mgr_Cnx_t const* pstCnx;
+    const COM_Mgr_Cnx_t const* pstCnx;
     dword dwCnxNum;
 
     /* Usefull for statistic display */
@@ -96,21 +92,77 @@ typedef struct
 /* *****************************************************************************
 **                                 LOCALS
 ** ************************************************************************** */
-/* Stratum connection declaration */
+/* Pool informations */
+static const COM_Mgr_CnxTableEntry_t COM_Mgr_CnxTable[eSTRATUM_ID_TOTAL] =
+{
+    { eSTRATUM_ID_SG, "sg.stratum.slushpool.com", "3333" }
+#if 0
+    /* Europe and North America */
+    { eSTRATUM_ID_NA_EAST, "us-east.stratum.slushpool.com", "3333?" },
+    { eSTRATUM_ID_EU,"eu.stratum.slushpool.com", "3333?" },
+    /* Asia */
+    { eSTRATUM_ID_CN_2, "stratum.f2pool.com", "3333" }, /* Not subscribed yet */
+    { eSTRATUM_ID_CN_1, "cn.stratum.slushpool.com", "443" },
+    { eSTRATUM_ID_CN_0, "cn.stratum.slushpool.com", "3333" },
+#endif
+
+};
+
+/* Connection definitions */
 static COM_Mgr_Cnx_t astCOM_Mgr_Cnx[] =
 {
-    {
+    {   /* Singapore */
         eCOM_MGR_PRCL_STRATUM,
         &STRATUM_Ptcl_Setup,
         &STRATUM_Ptcl_Init,
-        NULL
+        NULL,
+        &COM_Mgr_CnxTable[eSTRATUM_ID_SG]
     }
 #if 0 /* That is how an additional connection would look like */
-    ,{
+    ,{  /* China */
         eCOM_MGR_PRCL_STRATUM,
         &STRATUM_Ptcl_Setup,
         &STRATUM_Ptcl_Init,
-        NULL
+        NULL,
+        (byte)eSTRATUM_ID_CN_0,
+        "cn.stratum.slushpool.com",
+        "3333"
+    }
+    ,{  /* China */
+        eCOM_MGR_PRCL_STRATUM,
+        &STRATUM_Ptcl_Setup,
+        &STRATUM_Ptcl_Init,
+        NULL,
+        (byte)eSTRATUM_ID_CN_1,
+        "cn.stratum.slushpool.com",
+        "443"
+    }
+    ,{  /* China */
+        eCOM_MGR_PRCL_STRATUM,
+        &STRATUM_Ptcl_Setup,
+        &STRATUM_Ptcl_Init,
+        NULL,
+        (byte)eSTRATUM_ID_CN_2,
+        "stratum.f2pool.com",
+        "3333"
+    }
+    ,{  /* Europe */
+        eCOM_MGR_PRCL_STRATUM,
+        &STRATUM_Ptcl_Setup,
+        &STRATUM_Ptcl_Init,
+        NULL,
+        (byte)eSTRATUM_ID_EU,
+        "eu.stratum.slushpool.com",
+        "3333"
+    }
+    ,{  /* North America */
+        eCOM_MGR_PRCL_STRATUM,
+        &STRATUM_Ptcl_Setup,
+        &STRATUM_Ptcl_Init,
+        NULL,
+        (byte)eSTRATUM_ID_NA_EAST,
+        "us-east.stratum.slushpool.com",
+        "3333"
     }
 #endif
 };
@@ -134,7 +186,7 @@ static void ResetData(void);
 eCOM_Mgr_Status_t COM_Mgr_Setup(void)
 {
     eCOM_Mgr_Status_t eRetVal;
-    word byIndex;
+    word dwIndex;
 
     /* Initialise local variables */
     eRetVal = 0;
@@ -145,21 +197,21 @@ eCOM_Mgr_Status_t COM_Mgr_Setup(void)
     /* Shall we clean up the result here ? */
 
     /* Visit connection list */
-    for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
+    for( dwIndex=0; dwIndex < stLocalDesc.dwCnxNum; dwIndex++ )
     {
-        if ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup )
+        if ( NULL != stLocalDesc.pstCnx[dwIndex].pfnCnxClient_Setup )
         {
             /* Setup connections */
-            stLocalDesc.pstCnx[byIndex].pfnCnxClient_Setup();
+            stLocalDesc.pstCnx[dwIndex].pfnCnxClient_Setup(stLocalDesc.pstCnx[dwIndex].pstCnxClient_Entry);
         }
 
-        if( eCOM_MGR_PRCL_STRATUM == stLocalDesc.pstCnx[byIndex].ePrclType )
+        if( eCOM_MGR_PRCL_STRATUM == stLocalDesc.pstCnx[dwIndex].ePrclType )
         {
             /* Protocol specific */
         }
 
         /* old getwork protocol support */
-        if( eCOM_MGR_PRCL_GETWORK == stLocalDesc.pstCnx[byIndex].ePrclType )
+        if( eCOM_MGR_PRCL_GETWORK == stLocalDesc.pstCnx[dwIndex].ePrclType )
         {
             /* Protocol specific */
         }
@@ -171,22 +223,22 @@ eCOM_Mgr_Status_t COM_Mgr_Setup(void)
 eCOM_Mgr_Status_t COM_Mgr_Init(void)
 {
     eCOM_Mgr_Status_t eRetVal;
-    word byIndex;
+    word dwIndex;
 
     /* Initial locals, pessimist hypothesis */
     eRetVal = 0;
 
     /* Prepare connection start */
-    for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
+    for( dwIndex=0; dwIndex < stLocalDesc.dwCnxNum; dwIndex++ )
     {
         /* Prepare threads */
-        if ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init )
+        if ( NULL != stLocalDesc.pstCnx[dwIndex].pfnCnxClient_Init )
         {
             /* Update return variable consequently */
             eRetVal = 1;
 
             /* Init connections */
-            stLocalDesc.pstCnx[byIndex].pfnCnxClient_Init();
+            stLocalDesc.pstCnx[dwIndex].pfnCnxClient_Init();
         }
     }
 
@@ -200,15 +252,15 @@ eCOM_Mgr_Status_t COM_Mgr_Init(void)
 /* Things to do in the background task */
 void COM_Mgr_Bkgnd(void)
 {
-    word byIndex;
+    word dwIndex;
 
     /* Prepare connection start */
-    for( byIndex=0; byIndex < stLocalDesc.dwCnxNum; byIndex++ )
+    for( dwIndex=0; dwIndex < stLocalDesc.dwCnxNum; dwIndex++ )
     {
         /* Prepare threads */
-        if ( NULL != stLocalDesc.pstCnx[byIndex].pfnCnxClient_Bkgnd )
+        if ( NULL != stLocalDesc.pstCnx[dwIndex].pfnCnxClient_Bkgnd )
         {
-            stLocalDesc.pstCnx[byIndex].pfnCnxClient_Bkgnd();
+            stLocalDesc.pstCnx[dwIndex].pfnCnxClient_Bkgnd();
         }
     }
 

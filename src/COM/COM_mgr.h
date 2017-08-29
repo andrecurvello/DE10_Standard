@@ -32,6 +32,10 @@
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
+
+/* *****************************************************************************
+**                              TYPE DEFINITIONS
+** ************************************************************************** */
 /* Status enum for interaction with COMs. The idea here is to stay general */
 typedef enum
 {
@@ -41,6 +45,14 @@ typedef enum
     eCOM_MGR_FAIL
 
 }eCOM_Mgr_Status_t;
+
+typedef struct
+{
+    const byte byIdentifier;
+    const char * const abyUrl;  /* char - avoid signedness compiler warnings */
+    const char * const abyPort;
+
+} COM_Mgr_CnxTableEntry_t;
 
 /* *****************************************************************************
 **                                  API

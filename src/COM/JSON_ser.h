@@ -84,14 +84,14 @@ typedef struct
 */
 typedef struct
 {
-    byte abyJobId[JOBID_SIZE];
-    byte abyPrevHash[HASH_SIZE];
-    byte abyCoinBase1[COINBASE1_SIZE];
-    byte abyCoinBase2[COINBASE2_SIZE];
-    byte abyMerkleBranch[MERKLE_TREE_MAX_DEPTH][MERKLE_SIZE];
-    byte abyBlckVer[BLOCK_VER_SIZE];
-    byte abyNbits[NBITS_SIZE];
-    byte abyNtime[NTIME_SIZE];
+    byte *abyJobId;
+    byte *abyPrevHash;
+    byte *abyCoinBase1;
+    byte *abyCoinBase2;
+    byte **abyMerkleBranch;
+    byte *abyBlckVer;
+    byte *abyNbits;
+    byte *abyNtime;
     boolean bCleanJobs;
     double doLiveDifficulty;
 
