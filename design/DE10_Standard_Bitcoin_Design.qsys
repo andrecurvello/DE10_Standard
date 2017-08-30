@@ -25,6 +25,54 @@
          type = "int";
       }
    }
+   element BMC_10
+   {
+      datum _sortIndex
+      {
+         value = "22";
+         type = "int";
+      }
+   }
+   element BMC_11
+   {
+      datum _sortIndex
+      {
+         value = "23";
+         type = "int";
+      }
+   }
+   element BMC_12
+   {
+      datum _sortIndex
+      {
+         value = "24";
+         type = "int";
+      }
+   }
+   element BMC_13
+   {
+      datum _sortIndex
+      {
+         value = "25";
+         type = "int";
+      }
+   }
+   element BMC_14
+   {
+      datum _sortIndex
+      {
+         value = "26";
+         type = "int";
+      }
+   }
+   element BMC_15
+   {
+      datum _sortIndex
+      {
+         value = "27";
+         type = "int";
+      }
+   }
    element BMC_2
    {
       datum _sortIndex
@@ -70,6 +118,22 @@
       datum _sortIndex
       {
          value = "19";
+         type = "int";
+      }
+   }
+   element BMC_8
+   {
+      datum _sortIndex
+      {
+         value = "20";
+         type = "int";
+      }
+   }
+   element BMC_9
+   {
+      datum _sortIndex
+      {
+         value = "21";
          type = "int";
       }
    }
@@ -320,12 +384,20 @@
    dir="end" />
  <module name="BMC_0" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_1" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_10" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_11" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_12" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_13" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_14" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_15" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_2" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_3" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_4" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_5" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_6" kind="BMC" version="1.0" enabled="1" />
  <module name="BMC_7" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_8" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMC_9" kind="BMC" version="1.0" enabled="1" />
  <module
    name="ILC"
    kind="interrupt_latency_counter"
@@ -1182,6 +1254,14 @@
  <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_5.clock_sink" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_6.clock_sink" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_7.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_8.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_9.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_10.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_11.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_12.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_13.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_14.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_15.clock_sink" />
  <connection
    kind="clock"
    version="17.0"
@@ -1308,6 +1388,46 @@
    version="17.0"
    start="clk_0.clk_reset"
    end="BMC_4.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_8.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_9.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_10.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_11.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_12.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_13.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_14.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_15.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

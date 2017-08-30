@@ -115,7 +115,6 @@ architecture Behavioral of BMC is
 begin
   -- Mapping from hash to digest
   output_mapping: for i in 0 to 7 generate
-    --digest((i+1)*32-1 downto i*32) <= slv(q_hash(7-i));
     slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(q_hash(i));
   end generate output_mapping;
 
