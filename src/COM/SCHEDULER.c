@@ -23,6 +23,7 @@
 #include "Macros.h" /* Divers macros definitions */
 #include "Types.h"  /* Legacy types definitions */
 
+#include <stdio.h>  /* Standard IO defns */
 #include <endian.h> /* Endianess definitions */
 #include <string.h> /* memset and memcpy */
 
@@ -128,6 +129,8 @@ void SCHEDULER_Init(void)     /* Reinit the work queue */
 **
 ** ************************************************************************** */
 {
+    dword dwIndex;
+
     /* Initialize working queue */
     stLocalData.byNumWork = 0;
     stLocalData.pstCurrent = &stLocalData.astWorkQueue[0];
@@ -140,6 +143,12 @@ void SCHEDULER_Init(void)     /* Reinit the work queue */
 
     /* General  */
     stLocalData.dwWorkIterationCounter = 0;
+
+    for(dwIndex=0;dwIndex<WORK_QUEUE_SIZE;dwIndex++)
+    {
+    	stLocalData.astWorkQueue[dwIndex].bIsFree=TRUE;
+    }
+
 
     return;
 }
@@ -165,26 +174,31 @@ void SCHEDULER_Bkgnd(void)
     {
         case eSCHEDULER_READY :
         {
-            /*
-            ** Interpret the result, two options really :
-            ** i)  No good result, recalibrate and compute.
-            ** ii) Good result found :), prepare and send share.
-            */
+        	/* Is there a work ready in the queue ? */
+			if( 0 != stLocalData.byNumWork )
+			{
+	            /*
+	            ** Interpret the result, two options really :
+	            ** i)  No good result, recalibrate and compute.
+	            ** ii) Good result found :), prepare and send share.
+	            */
 
-            /* Mark work as done or abandon if not relevant anymore, see bClear in stratum */
+	            /* Mark work as done or abandon if not relevant anymore, see bClear in stratum */
 
-            /* Get next work */
-            pstCurrent = SelectWork();
+	            /* Get next work */
+	            pstCurrent = SelectWork();
 
-            /* Preset nonce array */
-            for( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
-            {
-                /* WRONG should be a string still */
-                pstCurrent->aabyNonce[dwIndex][0]=dwIndex;
-            }
+	            /* Preset nonce array */
+	            for( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
+	            {
+	                /* WRONG should be a string still */
+	                pstCurrent->aabyNonce[dwIndex][0]=dwIndex;
+	            }
 
-            /* New work, trigger transition to calibration state */
-            stLocalData.eState = eSCHEDULER_RECALIBRATION;
+	            /* New work, trigger transition to calibration state */
+	            stLocalData.eState = eSCHEDULER_RECALIBRATION;
+			}
+
 
             /* If no new work is present, just hang in that state */
 
@@ -296,6 +310,7 @@ void SCHEDULER_PushWork(const stSCHEDULER_Work_t * const pstWork)
             /* Found free slot ? */
             if( TRUE == pstLocalWork->bIsFree )
             {
+
                 /* Increment number of elements */
                 stLocalData.byNumWork++;
 
@@ -368,10 +383,12 @@ static void SetTarget(byte * pstDest, double doDifficulty)
     double doDiffRatio;
     double doChunk;
     qword *pqwData64;
-    byte byTarget[TARGET_SIZE];
+    dword dwIdx;
 
+    printf("Diff %lf\n",doDifficulty);
     /* Initialize variables */
     doDiffRatio = (double)( doTrueDiffOne / doDifficulty ); /* Get difficulty ratio */
+    printf("DiffRatio %lf\n",doDiffRatio);
 
     /*
     ** This has been voluntarily implemented like this and not in the loop in
@@ -385,29 +402,42 @@ static void SetTarget(byte * pstDest, double doDifficulty)
 
     /* 1st chunk */
     doChunk = (doDiffRatio/doBits192); /* Right shift for double */
-    pqwData64 = (qword *)(byTarget + 24); /* Get target buffer */
+    pqwData64 = (qword *)(pstDest + 24); /* Get target buffer */
     *pqwData64 = htole64(doChunk); /* Write/convert */
     doChunk *= doBits192; /* Offset of 192 again to be able to mask for the second chunk */
     doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 1st chunk */
 
+    printf("Target method 1\n");
+
     /* 2nd chunk */
     doChunk = (doDiffRatio/doBits128); /* Right shift for double */
-    pqwData64 = (qword *)(byTarget + 16); /* Get target buffer */
+    pqwData64 = (qword *)(pstDest + 16); /* Get target buffer */
     *pqwData64 = htole64(doChunk); /* Write/convert */
     doChunk *= doBits128; /* Offset of 128 again to be able to mask for the third chunk */
     doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 2nd chunk */
 
+    printf("Target method 2\n");
+
     /* 3rd chunk */
     doChunk = (doDiffRatio/doBits64); /* Right shift for double */
-    pqwData64 = (qword *)(byTarget + 8);
+    pqwData64 = (qword *)(pstDest + 8);
     *pqwData64 = htole64(doChunk);
     doChunk *= doBits64; /* Offset of 64 again to be able to mask for the fourth chunk */
     doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 3rd chunk */
 
     /* 4th chunk */
     doChunk = doDiffRatio;
-    pqwData64 = (qword *)(byTarget);
+    pqwData64 = (qword *)(pstDest);
     *pqwData64 = htole64(doChunk);
+
+    printf("Target :\n");
+    printf("0x");
+    for(dwIdx=0;dwIdx<TARGET_SIZE;dwIdx++)
+    {
+        printf("%.2x",pstDest[dwIdx]);
+    }
+    printf("\n");
+
 
     return;
 }
@@ -525,7 +555,9 @@ static stSCHEDULER_Work_t *SelectWork(void)
                  pstCompare++
                )
             {
-                if( pstCompare->doDiff < pstWork->doDiff )
+                if(   ( 0!= pstCompare->doDiff )
+               	   && ( pstCompare->doDiff < pstWork->doDiff )
+				  )
                 {
                     pstWork = pstCompare;
                 }

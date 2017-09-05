@@ -53,7 +53,7 @@ typedef enum
 /* Pointer to connection client */
 typedef eCOM_Mgr_Status_t (*pfnCnxClient_Setup_t)(const COM_Mgr_CnxTableEntry_t *const);
 typedef eCOM_Mgr_Status_t (*pfnCnxClient_Init_t)(void);
-typedef eCOM_Mgr_Status_t (*pfnCnxClient_Bkgnd_t)(void);
+typedef void (*pfnCnxClient_Bkgnd_t)(void);
 
 /* Need perhaps a connection descriptor something where we can register connection related data */
 typedef struct
@@ -115,7 +115,7 @@ static COM_Mgr_Cnx_t astCOM_Mgr_Cnx[] =
         eCOM_MGR_PRCL_STRATUM,
         &STRATUM_Ptcl_Setup,
         &STRATUM_Ptcl_Init,
-        NULL,
+		&STRATUM_Ptcl_Bkgnd,
         &COM_Mgr_CnxTable[eSTRATUM_ID_SG]
     }
 #if 0 /* That is how an additional connection would look like */

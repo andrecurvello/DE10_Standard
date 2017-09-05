@@ -175,6 +175,7 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 {
     dword dwRetVal;
     dword dwIndex;
+    dword dwIdx;
 
     /* Initialize locals */
     dwRetVal = 0;
@@ -183,16 +184,74 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
     {
         for ( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
         {
+            /* Debug */
             printf("\n--------------------------------------\n");
-            printf("pstWork->abyJobId : %s\n",pstWork->abyJobId);
-            printf("pstWork->abyNbits : %s\n",pstWork->abyNbits);
-            printf("pstWork->abyBlckVer : %s\n",pstWork->abyBlckVer);
-            printf("pstWork->abyCoinBase1 : %s\n",pstWork->abyCoinBase1);
-            printf("pstWork->abyCoinBase2 : %s\n",pstWork->abyCoinBase2);
-            printf("pstWork->abyNonce1 : %s\n",pstWork->abyNonce1);
-            printf("pstWork->abyNtime : %s\n",pstWork->abyNtime);
+            printf("pstWork->abyNonce1 : 0x");
+			for( dwIdx=0;dwIdx<NONCE1_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyNonce1[dwIdx]);
+			}
+            printf("\n");
+
             printf("pstWork->wN2size : %d\n",pstWork->wN2size);
-            printf("pstWork->abyPrevHash : %s\n",pstWork->abyPrevHash);
+
+            printf("pstWork->abyJobId : 0x");
+			for( dwIdx=0;dwIdx<JOBID_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyJobId[dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->abyPrevHash : 0x");
+			for( dwIdx=0;dwIdx<HASH_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyPrevHash[dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->abyCoinBase1 : 0x");
+			for( dwIdx=0;dwIdx<COINBASE1_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyCoinBase1[dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->abyCoinBase2 : 0x");
+			for( dwIdx=0;dwIdx<COINBASE2_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyCoinBase2[dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->aabyNonce : 0x");
+			for( dwIdx=0;dwIdx<NONCE_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->aabyNonce[dwIndex][dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->abyBlckVer : 0x");
+			for( dwIdx=0;dwIdx<BLOCK_VER_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyBlckVer[dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->abyNbits : 0x");
+			for( dwIdx=0;dwIdx<NBITS_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyNbits[dwIdx]);
+			}
+            printf("\n");
+
+            printf("pstWork->abyNtime : 0x");
+			for( dwIdx=0;dwIdx<NTIME_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyNtime[dwIdx]);
+			}
+            printf("\n");
+
+            /* Display merkle hashes */
             printf("--------------------------------------\n");
         }
 

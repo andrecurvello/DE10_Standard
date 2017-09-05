@@ -34,13 +34,13 @@
 **                          ENUM & MACRO DEFINITIONS
 ** ************************************************************************** */
 /* All sizes are in byte */
-#define NONCE1_SIZE (4)
+#define NONCE1_SIZE (7)
 
 /* Fixed by the protocol and the cryptographic scheme */
 #define JOBID_SIZE (6)
 #define HASH_SIZE (32)     /* we call HASH as merkle root or branch */
-#define COINBASE1_SIZE (60)
-#define COINBASE2_SIZE (53)
+#define COINBASE1_SIZE (90)
+#define COINBASE2_SIZE (104)
 #define MERKLE_SIZE (32)
 #define BLOCK_VER_SIZE (4)
 #define NTIME_SIZE (4)

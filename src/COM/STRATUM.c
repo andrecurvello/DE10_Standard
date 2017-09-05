@@ -249,6 +249,9 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Setup( const COM_Mgr_CnxTableEntry_t * const pstC
             pstPool->stServHints.ai_family = AF_UNSPEC;
             pstPool->stServHints.ai_socktype = SOCK_STREAM;
 
+            /* Control */
+            pstPool->bWorkReady = FALSE;
+
             /* Fill up pool Id */
             pstPool->byPoolIdx = dwIndex;
 
@@ -292,6 +295,18 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
     {
         /* Initialize the state machine */
         astDesc[dwIndex].eState = eSTRATUM_CONNECTING;
+
+        /* Attach data */
+        astDesc[dwIndex].stData.stConnection.abyNonce1 = &astDesc[dwIndex].stData.stCurrentWork.abyNonce1[0];
+        astDesc[dwIndex].stData.stJob.abyBlckVer = &astDesc[dwIndex].stData.stCurrentWork.abyBlckVer[0];
+        astDesc[dwIndex].stData.stJob.abyCoinBase1 = &astDesc[dwIndex].stData.stCurrentWork.abyCoinBase1[0];
+        astDesc[dwIndex].stData.stJob.abyCoinBase2 = &astDesc[dwIndex].stData.stCurrentWork.abyCoinBase2[0];
+        astDesc[dwIndex].stData.stJob.abyJobId = &astDesc[dwIndex].stData.stCurrentWork.abyJobId[0];
+        astDesc[dwIndex].stData.stJob.abyPrevHash = &astDesc[dwIndex].stData.stCurrentWork.abyPrevHash[0];
+        astDesc[dwIndex].stData.stJob.abyPrevHash = &astDesc[dwIndex].stData.stCurrentWork.abyPrevHash[0];
+        astDesc[dwIndex].stData.stJob.abyNbits = &astDesc[dwIndex].stData.stCurrentWork.abyNbits[0];
+        astDesc[dwIndex].stData.stJob.abyNtime = &astDesc[dwIndex].stData.stCurrentWork.abyNtime[0];
+        astDesc[dwIndex].stData.stJob.abyMerkleBranch = astDesc[dwIndex].stData.stCurrentWork.aabyMerkleBranch;
 
         /* Kick off threads */
         if ( 0 == pthread_create( &astDesc[dwIndex].stThId,
@@ -377,100 +392,98 @@ static void * CnxClient(void * pbyId)
     pstPool = &astDesc[byId].stPool;
     pstData = &astDesc[byId].stData;
 
-    switch (astDesc[byId].eState)
+    /* Stratum connection state machine */
+    for(;;)
     {
-        case eSTRATUM_CONNECTING:
+        switch (astDesc[byId].eState)
         {
-            /* Set thread priority. Consider pool mngmt strategy and so one ... */
-            if( eSTRATUM_CNX_SUCCESS == Connect(&astDesc[byId]) )
+            case eSTRATUM_CONNECTING:
             {
-                /* Trigger transition to authentication state */
-                astDesc[byId].eState = eSTRATUM_AUTHENTICATING;
-            }
-
-            break;
-        }
-        case eSTRATUM_AUTHENTICATING:
-        {
-            /* Need to login */
-            if ( eSTRATUM_CNX_SUCCESS == Authenticate(&astDesc[byId]) )
-            {
-                /* Trigger transition to authentication state */
-                astDesc[byId].eState = eSTRATUM_LISTENING;
-            }
-            else
-            {
-                /* Trigger transition to authentication state */
-                astDesc[byId].eState = eSTRATUM_CONNECTING;
-            }
-
-            break;
-        }
-        case eSTRATUM_PUBLISHING:
-        case eSTRATUM_LISTENING:
-        {
-            /*
-            ** Start receiving jobs, Fill out pool structure accordingly
-            ** Get answer from the server. Get extra nonce 1 and ext nonce 2 size
-            */
-            eRetVal = RxPool( (byte*)pstPool->abyJsonRes,
-                              pstPool->dwJsonResLen,
-                              pstPool );
-
-            if ( eRetVal != eSTRATUM_MSG_SUCCESS )
-            {
-                /* Something is wrong with the receiving trigger transition to reconnect */
-                printf("Ouch!\n");
-
-                astDesc[byId].eState = eSTRATUM_CONNECTING;
-            }
-            else
-            {
-                /* Received anything ? */
-                if( 0 != pstPool->dwJsonResLen )
+                /* Set thread priority. Consider pool mngmt strategy and so one ... */
+                if( eSTRATUM_CNX_SUCCESS == Connect(&astDesc[byId]) )
                 {
+                    /* Trigger transition to authentication state */
+                    astDesc[byId].eState = eSTRATUM_AUTHENTICATING;
+                }
+
+                break;
+            }
+            case eSTRATUM_AUTHENTICATING:
+            {
+                /* Need to login */
+                if ( eSTRATUM_CNX_SUCCESS == Authenticate(&astDesc[byId]) )
+                {
+                    /* Trigger transition to authentication state */
                     astDesc[byId].eState = eSTRATUM_LISTENING;
                 }
-            }
-
-            /* Link JSON request to work */
-            if ( eSTRATUM_LISTENING == astDesc[byId].eState )
-            {
-                /* Link data to work */
-                pstData->stJob.abyBlckVer = pstData->stCurrentWork.abyBlckVer;
-                pstData->stJob.abyCoinBase1 = pstData->stCurrentWork.abyCoinBase1;
-                pstData->stJob.abyCoinBase2 = pstData->stCurrentWork.abyCoinBase2;
-                pstData->stJob.abyJobId = pstData->stCurrentWork.abyJobId;
-                pstData->stJob.abyPrevHash = pstData->stCurrentWork.abyPrevHash;
-                pstData->stJob.abyNbits = pstData->stCurrentWork.abyNbits;
-                pstData->stJob.abyNtime = pstData->stCurrentWork.abyNtime;
-                pstData->stJob.abyMerkleBranch = (byte**)pstData->stCurrentWork.aabyMerkleBranch;
-
-                /* Deserialize */
-                if ( eJSON_SUCCESS == JSON_Deser_ResJob( &pstData->stJob,
-                                                         (byte*const)&pstPool->abyJsonRes )
-                   )
+                else
                 {
-                    /* And publish */
-                    Publish(&astDesc[byId]);
-
-                    /* Received something, cannot publish anymore */
-                    astDesc[byId].eState = eSTRATUM_PUBLISHING;
+                    /* Trigger transition to authentication state */
+                    astDesc[byId].eState = eSTRATUM_CONNECTING;
                 }
-            }
 
-            break;
-        }
-        case eSTRATUM_SHARING:
-        {
-            /* Send golden nonce to pool */
-            break;
-        }
-        default:
-        {
-            break;
+                break;
+            }
+            case eSTRATUM_PUBLISHING:
+            case eSTRATUM_LISTENING:
+            {
+
+                /*
+                ** Start receiving jobs, Fill out pool structure accordingly
+                ** Get answer from the server. Get extra nonce 1 and ext nonce 2 size
+                */
+                eRetVal = RxPool( (byte*)pstPool->abyJsonRes,
+                                  pstPool->dwJsonResLen,
+                                  pstPool );
+
+                if ( eRetVal != eSTRATUM_MSG_SUCCESS )
+                {
+                    /* Something is wrong with the receiving trigger transition to reconnect */
+                    printf("Ouch!\n");
+
+                    astDesc[byId].eState = eSTRATUM_CONNECTING;
+                }
+                else
+                {
+                    /* Received anything ? */
+                    if( 0 != pstPool->dwJsonResLen )
+                    {
+                        astDesc[byId].eState = eSTRATUM_LISTENING;
+                    }
+                }
+
+                /* Link JSON request to work */
+                if ( eSTRATUM_LISTENING == astDesc[byId].eState )
+                {
+                    /* Deserialize */
+                    if ( eJSON_SUCCESS == JSON_Deser_ResJob( &pstData->stJob,
+                                                             (byte*const)&pstPool->abyJsonRes )
+                       )
+                    {
+                    	printf("[RX]{JOB} %s\n",pstPool->abyJsonRes);
+
+                        /* And publish */
+                        Publish(&astDesc[byId]);
+
+                        /* Received something, cannot publish anymore */
+                        astDesc[byId].eState = eSTRATUM_PUBLISHING;
+                    }
+                }
+
+                break;
+            }
+            case eSTRATUM_SHARING:
+            {
+                /* Send golden nonce to pool */
+                break;
+            }
+            default:
+            {
+                break;
+            }
         }
     }
+
 
     pthread_exit(NULL);
 }
@@ -494,7 +507,7 @@ static eSTRATUM_Status_t Connect(stSTRATUM_Desc_t * const pstDesc)
     sent=0;
 
     /* Get server info, prepare connection */
-    if (   ( NULL == pstDesc )
+    if (   ( NULL != pstDesc )
         && ( 0  == getaddrinfo( (const char*)pstDesc->stPool.abyStratumUrl,
                                 (const char*)pstDesc->stPool.abyStratumPort,
                                 &pstDesc->stPool.stServHints,
@@ -533,10 +546,6 @@ static eSTRATUM_Status_t Connect(stSTRATUM_Desc_t * const pstDesc)
                         {
                             printf("Send select failed\n");
                         }
-                        else
-                        {
-                            printf("Select send success\n");
-                        }
 
                         sent += send( pstPool->sSocket,
                                       (&pstPool->abyJsonReq + sent),
@@ -544,8 +553,10 @@ static eSTRATUM_Status_t Connect(stSTRATUM_Desc_t * const pstDesc)
                                       MSG_NOSIGNAL );
                     }
 
+                	printf("[TX]{CONNECT} %s",pstPool->abyJsonReq);
+
                     /* Trigger stratum connect answer */
-                    eRetVal = eSTRATUM_MSG_PENDING;
+                    eRetVal = eSTRATUM_CNX_PENDING;
 
                     /* Get answer from the server. Get extra nonce 1 and ext nonce 2 size */
                     while( eSTRATUM_MSG_SUCCESS != eRetVal )
@@ -554,17 +565,14 @@ static eSTRATUM_Status_t Connect(stSTRATUM_Desc_t * const pstDesc)
                                           pstPool->dwJsonResLen,
                                           pstPool );
 
-                        /* Link JSON request to work */
-                        pstData->stConnection.abyNonce1 = pstData->stCurrentWork.abyNonce1;
-
                         /* Deserialize */
                         if ( eJSON_SUCCESS == JSON_Deser_ResConnect( &pstData->stConnection,
-                                                                     (byte*const)&pstPool->abyJsonRes )
+                                                                     (byte*const)pstPool->abyJsonRes )
                            )
                         {
-                            /* Start to get mining jobs now */
+                            eRetVal = eSTRATUM_CNX_SUCCESS;
 
-                            /* Do something better here */
+                        	printf("[RX]{CONNECT} %s\n",pstPool->abyJsonRes);
 
                             break;
                         }
@@ -597,19 +605,19 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Desc_t * const pstDesc)
         /* Prepare JSON request */
         stJSON_Auth_Demand.abyPass = pstPool->abyJsonPass;
         stJSON_Auth_Demand.abyUser = pstPool->abyJsonUser;
-        stJSON_Auth_Demand.wWorkId = 1;
+        stJSON_Auth_Demand.wWorkId = 2;
 
         JSON_Ser_ReqAuth(&stJSON_Auth_Demand,&pstPool->abyJsonReq[0]);
 
         /* Send request */
         if ( eSTRATUM_MSG_SUCCESS == TxPool(pstPool->abyJsonReq,strlen((char*)pstPool->abyJsonReq),pstPool) )
         {
+        	printf("[TX]{AUTH} %s",pstPool->abyJsonReq);
+
             /* Parse all data in the queue and anything left should be auth */
             for (;;)
             {
                 eRetVal = RxPool(pstPool->abyJsonRes,pstPool->dwJsonResLen,pstPool);
-
-                printf("RX %d %s\n",pstPool->dwJsonResLen,(char*)&pstPool->abyJsonRes[0]);
 
                 if (   ( eSTRATUM_MSG_ERR == eRetVal )
                     || ( eSTRATUM_MSG_TIMEOUT == eRetVal )
@@ -624,6 +632,8 @@ static eSTRATUM_Status_t Authenticate(stSTRATUM_Desc_t * const pstDesc)
                     && ( eJSON_SUCCESS == JSON_Deser_ResAuth(&pstPool->abyJsonRes[0]) )
                    )
                 {
+                	printf("[RX]{AUTH} %s\n",pstPool->abyJsonRes);
+
                     eRetVal = eSTRATUM_CNX_SUCCESS;
                     break;
                 }
@@ -649,7 +659,6 @@ static eSTRATUM_Status_t TxPool( const byte* const abyData,
     /* Init locals */
     eRetVal = eSTRATUM_MSG_ERR;
     ssent = (ssize_t)dwLength;
-    memset((char*)abyData, 0x00, RBUFSIZE);
 
     while ( 0 < ssent )
     {
@@ -668,6 +677,10 @@ static eSTRATUM_Status_t TxPool( const byte* const abyData,
             /* Shall we finish ? */
             if ( 0 == ssent )
             {
+               	/* Clear buffer on exit */
+#if 0
+                memset((char*)abyData, 0x00, RBUFSIZE);
+#endif
                 /* Buffer sent. Update control variable and return value */
                 eRetVal=eSTRATUM_MSG_SUCCESS;
                 ssent = 0;
@@ -764,7 +777,7 @@ static void Publish(stSTRATUM_Desc_t * const pstDesc)
     {
         pstData->stCurrentWork.wN2size = pstData->stConnection.wN2size;
         pstData->stCurrentWork.byPoolId = pstDesc->stPool.byPoolIdx;
-        pstData->stCurrentWork.doDiff = pstData->stJob.doLiveDifficulty;
+        pstData->stCurrentWork.doDiff = (double)2048/*pstData->stJob.doLiveDifficulty*/;
 
         /* Update pool information consequently */
         pstDesc->stPool.bWorkReady = TRUE;
