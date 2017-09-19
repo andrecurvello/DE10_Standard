@@ -201,14 +201,6 @@ set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
-set_global_assignment -name SDC_FILE DE10_Standard_Bitcoin_Design.sdc
-set_global_assignment -name VHDL_FILE DE10_Standard_Bitcoin.vhd
-set_global_assignment -name QIP_FILE DE10_Standard_Bitcoin_Design/synthesis/DE10_Standard_Bitcoin_Design.qip
-set_global_assignment -name VHDL_FILE ip/BMC/BMC.vhd
-set_global_assignment -name QIP_FILE ip/altsource_probe/hps_reset.qip
-set_global_assignment -name VERILOG_FILE ip/edge_detect/altera_edge_detector.v
-set_global_assignment -name VERILOG_FILE ip/debounce/debounce.v
-set_global_assignment -name VERILOG_FILE ip/intr_capturer/intr_capturer.v
 set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to hps_memory_oct_rzqin -tag __hps_sdram_p0
 set_instance_assignment -name IO_STANDARD "SSTL-15 CLASS I" -to hps_memory_mem_dq[0] -tag __hps_sdram_p0
 set_instance_assignment -name INPUT_TERMINATION "PARALLEL 50 OHM WITH CALIBRATION" -to hps_memory_mem_dq[0] -tag __hps_sdram_p0
@@ -466,4 +458,13 @@ set_instance_assignment -name PACKAGE_SKEW_COMPENSATION OFF -to hps_memory_mem_r
 set_instance_assignment -name PACKAGE_SKEW_COMPENSATION OFF -to hps_memory_mem_ck -tag __hps_sdram_p0
 set_instance_assignment -name PACKAGE_SKEW_COMPENSATION OFF -to hps_memory_mem_ck_n -tag __hps_sdram_p0
 set_instance_assignment -name ENABLE_BENEFICIAL_SKEW_OPTIMIZATION_FOR_NON_GLOBAL_CLOCKS ON -to DE10_Standard_Bitcoin_Imp|hps_0|hps_io|border|hps_sdram_inst -tag __hps_sdram_p0
+set_global_assignment -name VHDL_FILE ip/SEG7/SEG7.vhd
+set_global_assignment -name VHDL_FILE ip/register/register.vhd
+set_global_assignment -name SDC_FILE DE10_Standard_Bitcoin_Design.sdc
+set_global_assignment -name VHDL_FILE DE10_Standard_Bitcoin.vhd
+set_global_assignment -name QIP_FILE DE10_Standard_Bitcoin_Design/synthesis/DE10_Standard_Bitcoin_Design.qip
+set_global_assignment -name QIP_FILE ip/altsource_probe/hps_reset.qip
+set_global_assignment -name VERILOG_FILE ip/edge_detect/altera_edge_detector.v
+set_global_assignment -name VERILOG_FILE ip/debounce/debounce.v
+set_global_assignment -name VERILOG_FILE ip/intr_capturer/intr_capturer.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -16,10 +16,14 @@ use ieee.numeric_std.all;
 
 entity BMC is
 port (
-  slClkInput    : in  std_logic;
-  slResetInput  : in  std_logic;
-  slvBlockInput_512 : in  std_logic_vector(511 downto 0) := X"00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380";
-  slvDigestOutput_256 : out std_logic_vector(255 downto 0)
+  slClkInput            : in  std_logic;
+  slResetInput          : in  std_logic;
+  slStartInput          : in  std_logic;
+  slvBlockInput_512     : in  std_logic_vector(511 downto 0);
+  slBlockEnableInput    : in  std_logic;
+  slvBlockByteEnable_64 : in  std_logic_vector(63 downto 0);
+  slvDigestOutput_256   : out std_logic_vector(255 downto 0);
+  slDigestOutputReady   : out std_logic
 );
 end entity BMC;
 

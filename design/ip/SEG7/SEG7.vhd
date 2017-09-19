@@ -75,8 +75,8 @@ architecture Behavioral of SEG7 is
     signal slvWriteData : std_logic_vector(7 downto 0) :="00000000";
     signal slvReadData  : std_logic_vector(7 downto 0) :="00000000";
     signal slvRegFile   : std_logic_vector(((SEG7_NUM*8)-1) downto 0);
-    signal Base         : unsigned( 7 downto 0) := unsigned((slvAddressIn(4 downto 0) & "000"));
-    signal Offset       : unsigned( 7 downto 0) := "00000000";
+    signal Base         : unsigned( (ADDR_WIDTH-1) downto 0) := unsigned(slvAddressIn);
+    signal Offset       : natural := 0;
     signal Idx          : natural := 0;
     
 -- *****************************************************************************
@@ -109,8 +109,8 @@ begin
                    -- Affect signals
                    for Idx in 0 to 7 loop
                        -- Apply default value then
-                       Offset <= Base + Idx;
-                       slvRegFile(to_integer(Offset)) <= slvWriteData(Idx);
+                       Offset <= ((to_integer(Base)*8) + Idx);
+                       slvRegFile(Offset) <= slvWriteData(Idx);
                     end loop; 
               end if;
               
@@ -119,8 +119,8 @@ begin
                    -- Affect signals
                    for Idx in 0 to 7 loop
                        -- Apply default value then
-                       Offset <= Base + Idx;
-                       slvReadData(Idx) <= slvRegFile(to_integer(Offset));
+                       Offset <= ((to_integer(Base)*8) + Idx);
+                       slvReadData(Idx) <= slvRegFile(Offset);
                    end loop;
               end if;
            end if;
