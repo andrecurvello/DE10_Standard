@@ -95,11 +95,11 @@ typedef struct
 /* Pool informations */
 static const COM_Mgr_CnxTableEntry_t COM_Mgr_CnxTable[eSTRATUM_ID_TOTAL] =
 {
-    { eSTRATUM_ID_SG, "sg.stratum.slushpool.com", "3333" }
+    { eSTRATUM_ID_SG, "sg.stratum.slushpool.com", "3333" },
 #if 0
     /* Europe and North America */
     { eSTRATUM_ID_NA_EAST, "us-east.stratum.slushpool.com", "3333?" },
-    { eSTRATUM_ID_EU,"eu.stratum.slushpool.com", "3333?" },
+    { eSTRATUM_ID_EU,"eu.stratum.slushpool.com", "3333" },
     /* Asia */
     { eSTRATUM_ID_CN_2, "stratum.f2pool.com", "3333" }, /* Not subscribed yet */
     { eSTRATUM_ID_CN_1, "cn.stratum.slushpool.com", "443" },

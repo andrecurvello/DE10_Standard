@@ -407,16 +407,12 @@ static void SetTarget(byte * pstDest, double doDifficulty)
     doChunk *= doBits192; /* Offset of 192 again to be able to mask for the second chunk */
     doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 1st chunk */
 
-    printf("Target method 1\n");
-
     /* 2nd chunk */
     doChunk = (doDiffRatio/doBits128); /* Right shift for double */
     pqwData64 = (qword *)(pstDest + 16); /* Get target buffer */
     *pqwData64 = htole64(doChunk); /* Write/convert */
     doChunk *= doBits128; /* Offset of 128 again to be able to mask for the third chunk */
     doDiffRatio = (doDiffRatio - doChunk); /* Mask out the 2nd chunk */
-
-    printf("Target method 2\n");
 
     /* 3rd chunk */
     doChunk = (doDiffRatio/doBits64); /* Right shift for double */

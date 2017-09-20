@@ -88,7 +88,7 @@ typedef struct
     byte *abyPrevHash;
     byte *abyCoinBase1;
     byte *abyCoinBase2;
-    byte **abyMerkleBranch;
+    byte *abyMerkleBranch[MERKLE_TREE_MAX_DEPTH];
     byte *abyBlckVer;
     byte *abyNbits;
     byte *abyNtime;

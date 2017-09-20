@@ -175,7 +175,10 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 {
     dword dwRetVal;
     dword dwIndex;
+#if 0
     dword dwIdx;
+    dword dwMerkleIdx;
+#endif
 
     /* Initialize locals */
     dwRetVal = 0;
@@ -184,6 +187,7 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
     {
         for ( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
         {
+#if 0
             /* Debug */
             printf("\n--------------------------------------\n");
             printf("pstWork->abyNonce1 : 0x");
@@ -223,6 +227,16 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 			}
             printf("\n");
 
+			for( dwMerkleIdx=0;dwMerkleIdx<MERKLE_TREE_MAX_DEPTH;dwMerkleIdx++ )
+			{
+	            printf("pstWork->aabyMerkleBranch : 0x");
+				for( dwIdx=0;dwIdx<HASH_SIZE;dwIdx++ )
+				{
+		            printf("%.2x",pstWork->aabyMerkleBranch[dwMerkleIdx][dwIdx]);
+				}
+	            printf("\n");
+			}
+
             printf("pstWork->aabyNonce : 0x");
 			for( dwIdx=0;dwIdx<NONCE_SIZE;dwIdx++ )
 			{
@@ -253,6 +267,7 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 
             /* Display merkle hashes */
             printf("--------------------------------------\n");
+#endif
         }
 
         dwRetVal = 1;

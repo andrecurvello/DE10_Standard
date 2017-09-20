@@ -167,11 +167,10 @@ static const stSTRATUM_Credentials_t astSTRATUM_Credentials[eSTRATUM_ID_TOTAL] =
     { eSTRATUM_ID_EU, "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
     /* Asia */
     { eSTRATUM_ID_CN_2, NULL, NULL }, /* Not subscribed yet */
-    { eSTRATUM_ID_CN_1, "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
     { eSTRATUM_ID_CN_0, "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
+    { eSTRATUM_ID_CN_1, "badiss_djafar.worker1", "qekWUE8Kwc34Q?" },
 #endif
     { eSTRATUM_ID_SG, "badiss_djafar.worker1", "qekWUE8Kwc34Q?" }
-
 };
 
 /* Array of connection descriptors */
@@ -287,6 +286,7 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
 {
     eCOM_Mgr_Status_t eRetVal;
     dword dwIndex;
+    dword dwIdx;
 
     /* Local initialization */
     eRetVal=eCOM_MGR_FAIL;
@@ -306,7 +306,12 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
         astDesc[dwIndex].stData.stJob.abyPrevHash = &astDesc[dwIndex].stData.stCurrentWork.abyPrevHash[0];
         astDesc[dwIndex].stData.stJob.abyNbits = &astDesc[dwIndex].stData.stCurrentWork.abyNbits[0];
         astDesc[dwIndex].stData.stJob.abyNtime = &astDesc[dwIndex].stData.stCurrentWork.abyNtime[0];
-        astDesc[dwIndex].stData.stJob.abyMerkleBranch = astDesc[dwIndex].stData.stCurrentWork.aabyMerkleBranch;
+
+        /* Fill array of Merkle branches pointers */
+        for( dwIdx=0 ; dwIdx < MERKLE_TREE_MAX_DEPTH ; dwIdx++ )
+        {
+            astDesc[dwIndex].stData.stJob.abyMerkleBranch[dwIdx] =  &astDesc[dwIndex].stData.stCurrentWork.aabyMerkleBranch[dwIdx][0];
+        }
 
         /* Kick off threads */
         if ( 0 == pthread_create( &astDesc[dwIndex].stThId,
@@ -777,7 +782,7 @@ static void Publish(stSTRATUM_Desc_t * const pstDesc)
     {
         pstData->stCurrentWork.wN2size = pstData->stConnection.wN2size;
         pstData->stCurrentWork.byPoolId = pstDesc->stPool.byPoolIdx;
-        pstData->stCurrentWork.doDiff = (double)2048/*pstData->stJob.doLiveDifficulty*/;
+        pstData->stCurrentWork.doDiff = pstData->stJob.doLiveDifficulty;
 
         /* Update pool information consequently */
         pstDesc->stPool.bWorkReady = TRUE;

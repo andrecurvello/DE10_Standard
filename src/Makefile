@@ -10,13 +10,13 @@ DIRS = COM
 ################################################################################
 #                              EXPORTS TO SUBMK                                #
 ################################################################################
-export PRJ_ROOT = C:\Users\BDJ2Bp\workspace\BASE_DE10_STANDARD
+export PRJ_ROOT = C:\Projects\DE10_Standard
 export ALT_DEVICE_FAMILY = soc_cv_av
 export SOCEDS_DEST_ROOT = C:\intelFPGA_pro\17.0\embedded
 export SOCEDS_ROOT = $(SOCEDS_DEST_ROOT)
 export HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
 export CROSS_COMPILE = arm-linux-gnueabihf-
-export IPATH = $(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) $(HWLIBS_ROOT)/include $(PRJ_ROOT)/src/include/utils $(PRJ_ROOT)/src/include/terasic $(PRJ_ROOT)/src/include/json $(PRJ_ROOT)/src/COM $(PRJ_ROOT)/src/include
+export IPATH = $(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) $(HWLIBS_ROOT)/include/ $(PRJ_ROOT)/src/include/utils $(PRJ_ROOT)/src/include/terasic $(PRJ_ROOT)/src/include/json $(PRJ_ROOT)/src/COM $(PRJ_ROOT)/src/include
 export DFLAGS = $(ALT_DEVICE_FAMILY)
 export CFLAGS = -static -g -Wall $(addprefix -D,$(DFLAGS)) $(addprefix -I,$(IPATH)) 
 
@@ -24,7 +24,6 @@ export CFLAGS = -static -g -Wall $(addprefix -D,$(DFLAGS)) $(addprefix -I,$(IPAT
 #                           ARCH AND CROSS-COMPILATION                         #
 ################################################################################
 export CC = $(CROSS_COMPILE)gcc
-export LD = $(CROSS_COMPILE)ld
 export ARCH= arm
 
 ################################################################################

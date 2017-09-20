@@ -14,6 +14,9 @@
 ** Date         Inits   Description
 ** ----------------------------------------------------------------------------
 ** 28.05.17     bd      [no issue number] File creation
+** ----------------------------------------------------------------------------
+** 17.09.17     bd      [no issue number] Make sure all stratum transaction are
+** 									      unpacked properly
 **
 ** ************************************************************************** */
 
@@ -53,36 +56,39 @@ typedef struct
 /* *****************************************************************************
 **                                 LOCALS
 ** ************************************************************************** */
+/* Handy struct for string to FPGA readable format */
 static const stAsciiHexEntry_t abyStringToHexTable[] =
 {
-	{'0',0x00},
-	{'1',0x01},
-	{'2',0x02},
-	{'3',0x03},
-	{'4',0x04},
-	{'5',0x05},
-	{'6',0x06},
-	{'7',0x07},
-	{'8',0x08},
-	{'9',0x09},
-	{'a',0x0a},
-	{'b',0x0b},
-	{'c',0x0c},
-	{'d',0x0d},
-	{'e',0x0e},
-	{'f',0x0f},
-	{'A',0x0a},
-	{'B',0x0b},
-	{'C',0x0c},
-	{'D',0x0d},
-	{'E',0x0e},
-	{'F',0x0f}
+	{'0',0x00}, /* '0' is 48 and correspond to 0x00 */
+	{'1',0x01}, /* '1' is 49 and correspond to 0x00 */
+	{'2',0x02}, /* '2' is 50 and correspond to 0x00 */
+	{'3',0x03}, /* '3' is 51 and correspond to 0x00 */
+	{'4',0x04}, /* '4' is 52 and correspond to 0x00 */
+	{'5',0x05}, /* '5' is 53 and correspond to 0x00 */
+	{'6',0x06}, /* '6' is 54 and correspond to 0x00 */
+	{'7',0x07}, /* '7' is 55 and correspond to 0x00 */
+	{'8',0x08}, /* '8' is 56 and correspond to 0x00 */
+	{'9',0x09}, /* '9' is 57 and correspond to 0x00 */
+	{'a',0x0a}, /* 'a' is 97 and correspond to 0x00 */
+	{'b',0x0b}, /* 'b' is 98 and correspond to 0x00 */
+	{'c',0x0c}, /* 'c' is 99 and correspond to 0x00 */
+	{'d',0x0d}, /* 'd' is 100 and correspond to 0x00 */
+	{'e',0x0e}, /* 'e' is 101 and correspond to 0x00 */
+	{'f',0x0f}, /* 'f' is 102 and correspond to 0x00 */
+	{'A',0x0a}, /* 'A' is 65 and correspond to 0x00 */
+	{'B',0x0b}, /* 'B' is 66 and correspond to 0x00 */
+	{'C',0x0c}, /* 'C' is 67 and correspond to 0x00 */
+	{'D',0x0d}, /* 'D' is 68 and correspond to 0x00 */
+	{'E',0x0e}, /* 'E' is 69 and correspond to 0x00 */
+	{'F',0x0f}  /* 'F' is 70 and correspond to 0x00 */
 };
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
 ** ************************************************************************** */
 static void StringToHex(byte*abyDest,const byte * const abySrc, const dword dwLength);
+static byte NumMsgPacked( byte * abyMsg);
+static byte * UnpackReq( byte * abyMsg,const byte * const abyToken);
 
 /* *****************************************************************************
 **                                  API
@@ -140,15 +146,7 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
             StringToHex( pstResult->abyNonce1,
             		     (byte*)json_object_get_string(pstJsonObj),
 						 json_object_get_string_len(pstJsonObj) );
-#if 0
-            /* Debug */
-            printf("[JSON] 0x");
-			for( dwIdx=0;dwIdx<(json_object_get_string_len(pstJsonObj)/2);dwIdx++ )
-			{
-	            printf("%.2x",pstResult->abyNonce1[dwIdx]);
-			}
-            printf("\n");
-#endif
+
             /* Deserialise nonce 2 size */
             pstJsonObj = json_object_array_get_idx(pstJsonRes,2);
             pstResult->wN2size = json_object_get_int(pstJsonObj);
@@ -326,10 +324,14 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
                 break;
             }
 
+            /* Get merkle branch */
+            pstJsonObj = json_object_array_get_idx(json_object_array_get_idx(pstJsonArr,4),dwIndex);
+
             /* Copy memory */
-            StringToHex( *(pstResult->abyMerkleBranch+dwIndex),
+            StringToHex( pstResult->abyMerkleBranch[dwIndex],
             		     (byte*)json_object_get_string(pstJsonObj),
     					 json_object_get_string_len(pstJsonObj) );
+
         }
 
         /* Free allocated memory */
@@ -433,4 +435,78 @@ static void StringToHex( byte * abyDest, const byte * const abySrc, const dword 
 	}
 
 	return;
+}
+
+#if 0
+/* Need to implement a parsing state machine */
+static byte * UnpackReq( byte * abyMsg,const byte * const abyToken)
+{
+	dword dwIdx;
+	dword dwConvIdx;
+	const byte * pbyRet;
+	byte byNumRequest ;
+
+	/* Basic sanity check */
+	if(  NULL != abyMsg )
+	{
+		/* Init locals */
+		byNumRequest = NumMsgPacked(abyMsg);
+
+		for()
+		{
+
+		}
+
+		if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
+        {
+            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->doLiveDifficulty,
+                                                            (byte*const)pbyResponse )
+               )
+            {
+                /* Slice up these two JSON request */
+                pbyData = strchr(((char*)pbyResponse+1), '{');
+                pstJsonObj = json_tokener_parse((const char*)pbyData);
+                json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
+            	printf("Diff %s\n",pbyResponse);
+
+            }
+            else
+            {
+               /* Update return value consequently */
+                eRetVal = eJSON_ERR;
+            }
+        }
+
+	}
+
+	return;
+}
+#endif
+
+static byte NumMsgPacked( byte * abyMsg)
+{
+	byte byRetVal;
+	dword dwConvIdx;
+	const byte * pbyData;
+
+	/* Init locals */
+	byRetVal = 0;
+
+	/* Basic sanity check */
+	if(  NULL != abyMsg )
+	{
+		/* Search */
+        pbyData = strchr(((char*)abyMsg), '{');
+
+		for(;NULL != pbyData;byRetVal++)
+		{
+			/* Trigger new search */
+			pbyData++;
+
+			/* Search */
+	        pbyData = strchr(((char*)pbyData), '{');
+		}
+	}
+
+	return byRetVal;
 }

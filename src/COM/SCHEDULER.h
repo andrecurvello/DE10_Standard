@@ -46,12 +46,12 @@
 #define NTIME_SIZE (4)
 #define NBITS_SIZE (4)
 
-#define COINBASE_SIZE (512)
-#define BLOCKHEADER_SIZE (512)
+#define COINBASE_SIZE (256)
+#define BLOCKHEADER_SIZE (256)
 #define TARGET_SIZE (32)
 #define NONCE_SIZE (32) /* That is a maximum size. The real actual size is wN2size */
 
-#define MERKLE_TREE_MAX_DEPTH (32) /* maximum merkle tree depth supported */
+#define MERKLE_TREE_MAX_DEPTH (16) /* maximum merkle tree depth supported */
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
