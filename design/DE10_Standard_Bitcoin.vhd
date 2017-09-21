@@ -33,25 +33,6 @@ port (
 	HEX3 : out std_logic_vector(7 downto 0);
 	HEX4 : out std_logic_vector(7 downto 0);
 	HEX5 : out std_logic_vector(7 downto 0);
-
-    -- BMCs
-    BMC0In : in std_logic_vector(511 downto 0);
-    BMC1In : in std_logic_vector(511 downto 0);
-    BMC2In : in std_logic_vector(511 downto 0);
-    BMC3In : in std_logic_vector(511 downto 0);
-    BMC4In : in std_logic_vector(511 downto 0);
-    BMC5In : in std_logic_vector(511 downto 0);
-    BMC6In : in std_logic_vector(511 downto 0);
-    BMC7In : in std_logic_vector(511 downto 0);
-    
-    BMC0Out : out std_logic_vector(255 downto 0);
-    BMC1Out : out std_logic_vector(255 downto 0);
-    BMC2Out : out std_logic_vector(255 downto 0);
-    BMC3Out : out std_logic_vector(255 downto 0);
-    BMC4Out : out std_logic_vector(255 downto 0);
-    BMC5Out : out std_logic_vector(255 downto 0);
-    BMC6Out : out std_logic_vector(255 downto 0);
-    BMC7Out : out std_logic_vector(255 downto 0);
 	
 	-- HPS memory controller ports
 	hps_memory_mem_a       : out std_logic_vector(14 downto 0);

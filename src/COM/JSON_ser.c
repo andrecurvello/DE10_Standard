@@ -121,9 +121,11 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
     json_object *pstJsonObj;
     json_object *pstJsonErr;
     json_object *pstJsonRes;
+    byte *pbyData;
 
     /* Init locals */
     eRetVal = eJSON_ERR;
+    pbyData = NULL;
 
     if(   ( NULL != pbyResponse )
        && ( NULL != pstResult )
@@ -151,6 +153,16 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
             pstJsonObj = json_object_array_get_idx(pstJsonRes,2);
             pstResult->wN2size = json_object_get_int(pstJsonObj);
         }
+
+        /* Have we received a "set_difficulty" request ? */
+        pbyData = UnpackReq(pbyResponse,"mining.set_difficulty");
+
+        /* Extract infos */
+
+        /* Have we received a "notify" request ? */
+        pbyData = UnpackReq(pbyResponse,"mining.notify");
+
+        /* Extract infos */
 
         /* Free allocated memory */
         free(pstJsonObj);
@@ -437,14 +449,20 @@ static void StringToHex( byte * abyDest, const byte * const abySrc, const dword 
 	return;
 }
 
-#if 0
 /* Need to implement a parsing state machine */
 static byte * UnpackReq( byte * abyMsg,const byte * const abyToken)
 {
 	dword dwIdx;
-	dword dwConvIdx;
-	const byte * pbyRet;
 	byte byNumRequest ;
+    json_object *pstJsonObj;
+    json_object *pstJsonErr;
+    json_object *pstJsonMeth;
+    byte *pbyRet;
+    byte *pbyData;
+
+    /* Init locals */
+    pbyData = NULL;
+    pbyRet = NULL;
 
 	/* Basic sanity check */
 	if(  NULL != abyMsg )
@@ -452,36 +470,44 @@ static byte * UnpackReq( byte * abyMsg,const byte * const abyToken)
 		/* Init locals */
 		byNumRequest = NumMsgPacked(abyMsg);
 
-		for()
+		for( dwIdx = 0; dwIdx < byNumRequest ; dwIdx++ )
 		{
+	        /* Search */
+	        pbyData = strchr(((char*)abyMsg), '{');
 
+	        pstJsonObj = json_tokener_parse((const char*)pbyData);
+
+	        /* Get value of each object */
+	        json_object_object_get_ex(pstJsonObj, "method",&pstJsonMeth);
+	        json_object_object_get_ex(pstJsonObj, "error",&pstJsonErr);
+
+	        /* Difficulty */
+	        if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
+	        {
+	            /* Update return value */
+	            pbyRet = pbyData;
+
+                /* Getting out */
+                break;
+	        }
+
+            /* Jobs */
+            if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.notify") )
+            {
+                /* Update return value */
+                pbyRet = pbyData;
+
+                /* Getting out */
+                break;
+            }
+
+            /* Slice up these two JSON request */
+            pbyData++;
 		}
-
-		if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
-        {
-            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->doLiveDifficulty,
-                                                            (byte*const)pbyResponse )
-               )
-            {
-                /* Slice up these two JSON request */
-                pbyData = strchr(((char*)pbyResponse+1), '{');
-                pstJsonObj = json_tokener_parse((const char*)pbyData);
-                json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
-            	printf("Diff %s\n",pbyResponse);
-
-            }
-            else
-            {
-               /* Update return value consequently */
-                eRetVal = eJSON_ERR;
-            }
-        }
-
 	}
 
-	return;
+	return pbyRet;
 }
-#endif
 
 static byte NumMsgPacked( byte * abyMsg)
 {
