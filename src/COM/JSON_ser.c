@@ -88,7 +88,7 @@ static const stAsciiHexEntry_t abyStringToHexTable[] =
 ** ************************************************************************** */
 static void StringToHex(byte*abyDest,const byte * const abySrc, const dword dwLength);
 static byte NumMsgPacked( byte * abyMsg);
-static byte * UnpackReq( byte * abyMsg,const byte * const abyToken);
+static byte *UnpackReq( byte * abyMsg,const byte * const abyToken);
 
 /* *****************************************************************************
 **                                  API
@@ -155,14 +155,22 @@ eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult,
         }
 
         /* Have we received a "set_difficulty" request ? */
-        pbyData = UnpackReq(pbyResponse,"mining.set_difficulty");
+        pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.set_difficulty");
 
         /* Extract infos */
+        if ( NULL != pbyData )
+        {
+            /* Keep compiler happy */
+        }
 
         /* Have we received a "notify" request ? */
-        pbyData = UnpackReq(pbyResponse,"mining.notify");
+        pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.notify");
 
         /* Extract infos */
+        if ( NULL != pbyData )
+        {
+            /* Keep compiler happy */
+        }
 
         /* Free allocated memory */
         free(pstJsonObj);
@@ -450,7 +458,7 @@ static void StringToHex( byte * abyDest, const byte * const abySrc, const dword 
 }
 
 /* Need to implement a parsing state machine */
-static byte * UnpackReq( byte * abyMsg,const byte * const abyToken)
+static byte * UnpackReq( byte * abyMsg,const byte* const abyToken)
 {
 	dword dwIdx;
 	byte byNumRequest ;
@@ -473,7 +481,7 @@ static byte * UnpackReq( byte * abyMsg,const byte * const abyToken)
 		for( dwIdx = 0; dwIdx < byNumRequest ; dwIdx++ )
 		{
 	        /* Search */
-	        pbyData = strchr(((char*)abyMsg), '{');
+	        pbyData = (byte*)strchr(((char*)abyMsg), '{');
 
 	        pstJsonObj = json_tokener_parse((const char*)pbyData);
 
@@ -512,8 +520,7 @@ static byte * UnpackReq( byte * abyMsg,const byte * const abyToken)
 static byte NumMsgPacked( byte * abyMsg)
 {
 	byte byRetVal;
-	dword dwConvIdx;
-	const byte * pbyData;
+	byte * pbyData;
 
 	/* Init locals */
 	byRetVal = 0;
@@ -522,7 +529,7 @@ static byte NumMsgPacked( byte * abyMsg)
 	if(  NULL != abyMsg )
 	{
 		/* Search */
-        pbyData = strchr(((char*)abyMsg), '{');
+        pbyData = (byte*)strchr(((char*)abyMsg), '{');
 
 		for(;NULL != pbyData;byRetVal++)
 		{
@@ -530,7 +537,7 @@ static byte NumMsgPacked( byte * abyMsg)
 			pbyData++;
 
 			/* Search */
-	        pbyData = strchr(((char*)pbyData), '{');
+	        pbyData = (byte*)strchr(((char*)pbyData), '{');
 		}
 	}
 
