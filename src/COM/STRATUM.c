@@ -131,10 +131,6 @@ typedef struct {
 } stSTRATUM_Pool_t;
 
 typedef struct  {
-    /* JSON */
-    stJSON_Job_Result_t stJob;
-    stJSON_Connect_Result_t stConnection;
-
     /* Scheduler */
     stSCHEDULER_Work_t stCurrentWork;
 
@@ -286,7 +282,6 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
 {
     eCOM_Mgr_Status_t eRetVal;
     dword dwIndex;
-    dword dwIdx;
 
     /* Local initialization */
     eRetVal=eCOM_MGR_FAIL;
@@ -295,23 +290,6 @@ eCOM_Mgr_Status_t STRATUM_Ptcl_Init(void)
     {
         /* Initialize the state machine */
         astDesc[dwIndex].eState = eSTRATUM_CONNECTING;
-
-        /* Attach data */
-        astDesc[dwIndex].stData.stConnection.abyNonce1 = &astDesc[dwIndex].stData.stCurrentWork.abyNonce1[0];
-        astDesc[dwIndex].stData.stJob.abyBlckVer = &astDesc[dwIndex].stData.stCurrentWork.abyBlckVer[0];
-        astDesc[dwIndex].stData.stJob.abyCoinBase1 = &astDesc[dwIndex].stData.stCurrentWork.abyCoinBase1[0];
-        astDesc[dwIndex].stData.stJob.abyCoinBase2 = &astDesc[dwIndex].stData.stCurrentWork.abyCoinBase2[0];
-        astDesc[dwIndex].stData.stJob.abyJobId = &astDesc[dwIndex].stData.stCurrentWork.abyJobId[0];
-        astDesc[dwIndex].stData.stJob.abyPrevHash = &astDesc[dwIndex].stData.stCurrentWork.abyPrevHash[0];
-        astDesc[dwIndex].stData.stJob.abyPrevHash = &astDesc[dwIndex].stData.stCurrentWork.abyPrevHash[0];
-        astDesc[dwIndex].stData.stJob.abyNbits = &astDesc[dwIndex].stData.stCurrentWork.abyNbits[0];
-        astDesc[dwIndex].stData.stJob.abyNtime = &astDesc[dwIndex].stData.stCurrentWork.abyNtime[0];
-
-        /* Fill array of Merkle branches pointers */
-        for( dwIdx=0 ; dwIdx < MERKLE_TREE_MAX_DEPTH ; dwIdx++ )
-        {
-            astDesc[dwIndex].stData.stJob.abyMerkleBranch[dwIdx] =  &astDesc[dwIndex].stData.stCurrentWork.aabyMerkleBranch[dwIdx][0];
-        }
 
         /* Kick off threads */
         if ( 0 == pthread_create( &astDesc[dwIndex].stThId,
@@ -461,7 +439,7 @@ static void * CnxClient(void * pbyId)
                 if ( eSTRATUM_LISTENING == astDesc[byId].eState )
                 {
                     /* Deserialize */
-                    if ( eJSON_SUCCESS == JSON_Deser_ResJob( &pstData->stJob,
+                    if ( eJSON_SUCCESS == JSON_Deser_ResJob( &pstData->stCurrentWork,
                                                              (byte*const)&pstPool->abyJsonRes )
                        )
                     {
@@ -571,7 +549,7 @@ static eSTRATUM_Status_t Connect(stSTRATUM_Desc_t * const pstDesc)
                                           pstPool );
 
                         /* Deserialize */
-                        if ( eJSON_SUCCESS == JSON_Deser_ResConnect( &pstData->stConnection,
+                        if ( eJSON_SUCCESS == JSON_Deser_ResConnect( &pstData->stCurrentWork,
                                                                      (byte*const)pstPool->abyJsonRes )
                            )
                         {
@@ -683,9 +661,6 @@ static eSTRATUM_Status_t TxPool( const byte* const abyData,
             if ( 0 == ssent )
             {
                	/* Clear buffer on exit */
-#if 0
-                memset((char*)abyData, 0x00, RBUFSIZE);
-#endif
                 /* Buffer sent. Update control variable and return value */
                 eRetVal=eSTRATUM_MSG_SUCCESS;
                 ssent = 0;
@@ -693,11 +668,6 @@ static eSTRATUM_Status_t TxPool( const byte* const abyData,
         }
     }
 
-#if 0 /* Update stats */
-    pool->cgminer_pool_stats.times_sent++;
-    pool->cgminer_pool_stats.bytes_sent += ssent;
-    pool->cgminer_pool_stats.net_bytes_sent += ssent;
-#endif
     return eRetVal;
 }
 
@@ -780,9 +750,7 @@ static void Publish(stSTRATUM_Desc_t * const pstDesc)
         && ( FALSE == pstDesc->stPool.bWorkReady )
        )
     {
-        pstData->stCurrentWork.wN2size = pstData->stConnection.wN2size;
         pstData->stCurrentWork.byPoolId = pstDesc->stPool.byPoolIdx;
-        pstData->stCurrentWork.doDiff = pstData->stJob.doLiveDifficulty;
 
         /* Update pool information consequently */
         pstDesc->stPool.bWorkReady = TRUE;

@@ -10,7 +10,7 @@ DIRS = COM
 ################################################################################
 #                              EXPORTS TO SUBMK                                #
 ################################################################################
-export PRJ_ROOT = C:\Projects\DE10_Standard
+export PRJ_ROOT = C:\Users\BDJ2Bp\workspace\BASE_DE10_STANDARD
 export ALT_DEVICE_FAMILY = soc_cv_av
 export SOCEDS_DEST_ROOT = C:\intelFPGA_pro\17.0\embedded
 export SOCEDS_ROOT = $(SOCEDS_DEST_ROOT)

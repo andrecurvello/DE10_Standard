@@ -85,6 +85,7 @@ static const stAsciiHexEntry_t abyStringToHexTable[] =
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
+
 ** ************************************************************************** */
 static void StringToHex(byte*abyDest,const byte * const abySrc, const dword dwLength);
 static byte NumMsgPacked( byte * abyMsg);
@@ -93,7 +94,17 @@ static byte *UnpackReq( byte * abyMsg,const byte * const abyToken);
 /* *****************************************************************************
 **                                  API
 ** ************************************************************************** */
+
+/* ************************************************************************** */
 eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest)
+/* **************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description : Build connection request.
+**
+** ************************************************************************** */
 {
     eJSON_Status_t eRetVal;
 
@@ -115,7 +126,17 @@ eJSON_Status_t JSON_Ser_ReqConnect(const word wWorkId, byte * const pbyRequest)
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResConnect( stJSON_Connect_Result_t * const pstResult, byte * const pbyResponse )
+/* ************************************************************************** */
+eJSON_Status_t JSON_Deser_ResConnect( stSCHEDULER_Work_t * const pstResult, byte * const pbyResponse )
+/* **************************************************************************
+** Input  : pstResult   - structure receiving the data from the network
+**          pbyResponse - the received string
+** Output : -
+** Return : JSON deserializing status.
+**
+** Description : Deserialize connection response.
+**
+** ************************************************************************** */
 {
     eJSON_Status_t eRetVal;
     json_object *pstJsonObj;
@@ -244,7 +265,7 @@ eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse)
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * const pbyResponse)
+eJSON_Status_t JSON_Deser_ResJob(stSCHEDULER_Work_t * const pstResult,byte * const pbyResponse)
 {
     eJSON_Status_t eRetVal;
     json_object *pstJsonObj;
@@ -268,7 +289,7 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
 
         if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
         {
-            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->doLiveDifficulty,
+            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->doDiff,
                                                             (byte*const)pbyResponse )
                )
             {
@@ -330,7 +351,7 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
 
         /* Deserialise clean, is it still relevent to share for that block ?*/
         pstJsonObj = json_object_array_get_idx(pstJsonArr,8);
-        pstResult->bCleanJobs = (boolean)json_object_get_boolean(pstJsonObj);
+        pstResult->bClean = (boolean)json_object_get_boolean(pstJsonObj);
 
         /* Merkle branches  */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,4);
@@ -348,7 +369,7 @@ eJSON_Status_t JSON_Deser_ResJob(stJSON_Job_Result_t * const pstResult,byte * co
             pstJsonObj = json_object_array_get_idx(json_object_array_get_idx(pstJsonArr,4),dwIndex);
 
             /* Copy memory */
-            StringToHex( pstResult->abyMerkleBranch[dwIndex],
+            StringToHex( pstResult->aabyMerkleBranch[dwIndex],
             		     (byte*)json_object_get_string(pstJsonObj),
     					 json_object_get_string_len(pstJsonObj) );
 
