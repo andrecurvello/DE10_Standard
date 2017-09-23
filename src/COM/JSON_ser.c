@@ -179,7 +179,7 @@ eJSON_Status_t JSON_Deser_ResConnect( stSCHEDULER_Work_t * const pstResult, byte
         pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.set_difficulty");
 
         /* Extract infos */
-        eRetVal = JSON_Deser_ResDifficulty(pstResult->doDiff,pbyData);
+        pstResult->doDiff = JSON_Deser_ResDifficulty(pbyData);
 
         /* Have we received a "notify" request ? */
         pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.notify");
@@ -265,7 +265,7 @@ eJSON_Status_t JSON_Deser_ResJob(stSCHEDULER_Work_t * const pstResult,byte * con
     json_object *pstJsonObj;
     json_object *pstJsonArr;
     json_object *pstJsonMeth;
-    char * pbyData;
+    byte * pbyData;
     dword dwMerkleBLen;
     dword dwIndex;
 
@@ -275,31 +275,22 @@ eJSON_Status_t JSON_Deser_ResJob(stSCHEDULER_Work_t * const pstResult,byte * con
 
     if( NULL != pbyResponse )
     {
+        /* Have we received a "set_difficulty" request ? */
+        pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.set_difficulty");
+
+        /* Extract infos */
+        if ( NULL != pbyData )
+        {
+            pstResult->doDiff = JSON_Deser_ResDifficulty(pbyData);
+            printf("difficulty :%lf\n", pstResult->doDiff);
+        }
+
+        /* crack on with the job exctraction */
         pstJsonObj = json_tokener_parse((const char*)pbyResponse);
 
         /* Get value of each object */
         json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
         json_object_object_get_ex(pstJsonObj, "method", &pstJsonMeth);
-
-        if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
-        {
-            if ( eJSON_SUCCESS == JSON_Deser_ResDifficulty( pstResult->doDiff,
-                                                            (byte*const)pbyResponse )
-               )
-            {
-                /* Slice up these two JSON request */
-                pbyData = strchr(((char*)pbyResponse+1), '{');
-                pstJsonObj = json_tokener_parse((const char*)pbyData);
-                json_object_object_get_ex(pstJsonObj, "params", &pstJsonArr);
-            	printf("Diff %s\n",pbyResponse);
-
-            }
-            else
-            {
-               /* Update return value consequently */
-                eRetVal = eJSON_ERR;
-            }
-        }
 
         /* Deserialise Job Id */
         pstJsonObj = json_object_array_get_idx(pstJsonArr,0);
@@ -378,16 +369,16 @@ eJSON_Status_t JSON_Deser_ResJob(stSCHEDULER_Work_t * const pstResult,byte * con
     return eRetVal;
 }
 
-eJSON_Status_t JSON_Deser_ResDifficulty(double doLiveDifficulty, byte * const pbyResponse)
+double JSON_Deser_ResDifficulty(byte * const pbyResponse)
 {
-    eJSON_Status_t eRetVal;
+	double doRetVal;
     json_object *pstJsonObj;
     json_object *pstJsonErr;
     json_object *pstJsonRes;
     json_object *pstJsonPar;
 
     /* Init locals */
-    eRetVal = eJSON_ERR;
+    doRetVal = 0;
 
     if( NULL != pbyResponse )
     {
@@ -407,10 +398,8 @@ eJSON_Status_t JSON_Deser_ResDifficulty(double doLiveDifficulty, byte * const pb
         }
 
         /* Get diff */
-        doLiveDifficulty=json_object_get_double(json_object_array_get_idx(pstJsonPar,0));
-
-        /* Answer is sound, update return value */
-        eRetVal = eJSON_SUCCESS;
+        doRetVal=json_object_get_double(json_object_array_get_idx(pstJsonPar,0));
+        printf("difficulty :%lf\n", doRetVal);
 
         /* Free allocated memory */
         free(pstJsonObj);
@@ -418,7 +407,7 @@ eJSON_Status_t JSON_Deser_ResDifficulty(double doLiveDifficulty, byte * const pb
         free(pstJsonRes);
     }
 
-    return eRetVal;
+    return doRetVal;
 }
 
 eJSON_Status_t JSON_Ser_ReqShare(byte * const pbyResponse)
@@ -513,8 +502,6 @@ static byte * UnpackReq( byte * abyMsg,const byte* const abyToken)
 	            /* Update return value */
 	            pbyRet = pbyData;
 
-	            printf("%s :\n %s \n",abyToken,pbyData);
-
                 /* Getting out */
                 break;
 	        }
@@ -550,8 +537,6 @@ static byte NumMsgPacked( byte * abyMsg)
 	        pbyData = (byte*)strchr(((char*)pbyData), '{');
 		}
 	}
-
-    printf("TEST count msg : %d\n",byRetVal);
 
 	return byRetVal;
 }

@@ -63,7 +63,7 @@ eJSON_Status_t JSON_Deser_ResAuth(byte * const pbyResponse); /* If return is suc
 
 eJSON_Status_t JSON_Deser_ResJob(stSCHEDULER_Work_t * const pstResult,byte * const pbyResponse);
 
-eJSON_Status_t JSON_Deser_ResDifficulty(double doDifficulty,byte * const pbyResponse);
+double JSON_Deser_ResDifficulty(byte * const pbyResponse);
 
 eJSON_Status_t JSON_Ser_ReqShare(byte * const pbyResponse);
 
