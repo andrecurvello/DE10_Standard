@@ -43,6 +43,83 @@
 #define SEG7_0_END 0x7
 
 /*
+ * Macros for device 'BMC_1', class 'BMC'
+ * The macros are prefixed with 'BMC_1_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_1_COMPONENT_TYPE BMC
+#define BMC_1_COMPONENT_NAME BMC_1
+#define BMC_1_BASE 0x40
+#define BMC_1_SPAN 64
+#define BMC_1_END 0x7f
+
+/*
+ * Macros for device 'BMC_2', class 'BMC'
+ * The macros are prefixed with 'BMC_2_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_2_COMPONENT_TYPE BMC
+#define BMC_2_COMPONENT_NAME BMC_2
+#define BMC_2_BASE 0x80
+#define BMC_2_SPAN 64
+#define BMC_2_END 0xbf
+
+/*
+ * Macros for device 'BMC_3', class 'BMC'
+ * The macros are prefixed with 'BMC_3_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_3_COMPONENT_TYPE BMC
+#define BMC_3_COMPONENT_NAME BMC_3
+#define BMC_3_BASE 0xc0
+#define BMC_3_SPAN 64
+#define BMC_3_END 0xff
+
+/*
+ * Macros for device 'BMC_4', class 'BMC'
+ * The macros are prefixed with 'BMC_4_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_4_COMPONENT_TYPE BMC
+#define BMC_4_COMPONENT_NAME BMC_4
+#define BMC_4_BASE 0x100
+#define BMC_4_SPAN 64
+#define BMC_4_END 0x13f
+
+/*
+ * Macros for device 'BMC_5', class 'BMC'
+ * The macros are prefixed with 'BMC_5_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_5_COMPONENT_TYPE BMC
+#define BMC_5_COMPONENT_NAME BMC_5
+#define BMC_5_BASE 0x140
+#define BMC_5_SPAN 64
+#define BMC_5_END 0x17f
+
+/*
+ * Macros for device 'BMC_6', class 'BMC'
+ * The macros are prefixed with 'BMC_6_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_6_COMPONENT_TYPE BMC
+#define BMC_6_COMPONENT_NAME BMC_6
+#define BMC_6_BASE 0x180
+#define BMC_6_SPAN 64
+#define BMC_6_END 0x1bf
+
+/*
+ * Macros for device 'BMC_7', class 'BMC'
+ * The macros are prefixed with 'BMC_7_'.
+ * The prefix is the slave descriptor.
+ */
+#define BMC_7_COMPONENT_TYPE BMC
+#define BMC_7_COMPONENT_NAME BMC_7
+#define BMC_7_BASE 0x1c0
+#define BMC_7_SPAN 64
+#define BMC_7_END 0x1ff
+
+/*
  * Macros for device 'Register_256_0', class 'Register_256'
  * The macros are prefixed with 'REGISTER_256_0_'.
  * The prefix is the slave descriptor.
@@ -52,6 +129,94 @@
 #define REGISTER_256_0_BASE 0x200
 #define REGISTER_256_0_SPAN 32
 #define REGISTER_256_0_END 0x21f
+
+/*
+ * Macros for device 'Register_0', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_0_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_0_COMPONENT_TYPE Register_256
+#define REGISTER_0_COMPONENT_NAME Register_0
+#define REGISTER_0_BASE 0x220
+#define REGISTER_0_SPAN 32
+#define REGISTER_0_END 0x23f
+
+/*
+ * Macros for device 'Register_1', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_1_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_1_COMPONENT_TYPE Register_256
+#define REGISTER_1_COMPONENT_NAME Register_1
+#define REGISTER_1_BASE 0x240
+#define REGISTER_1_SPAN 32
+#define REGISTER_1_END 0x25f
+
+/*
+ * Macros for device 'Register_2', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_2_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_2_COMPONENT_TYPE Register_256
+#define REGISTER_2_COMPONENT_NAME Register_2
+#define REGISTER_2_BASE 0x260
+#define REGISTER_2_SPAN 32
+#define REGISTER_2_END 0x27f
+
+/*
+ * Macros for device 'Register_3', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_3_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_3_COMPONENT_TYPE Register_256
+#define REGISTER_3_COMPONENT_NAME Register_3
+#define REGISTER_3_BASE 0x280
+#define REGISTER_3_SPAN 32
+#define REGISTER_3_END 0x29f
+
+/*
+ * Macros for device 'Register_4', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_4_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_4_COMPONENT_TYPE Register_256
+#define REGISTER_4_COMPONENT_NAME Register_4
+#define REGISTER_4_BASE 0x300
+#define REGISTER_4_SPAN 32
+#define REGISTER_4_END 0x31f
+
+/*
+ * Macros for device 'Register_5', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_5_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_5_COMPONENT_TYPE Register_256
+#define REGISTER_5_COMPONENT_NAME Register_5
+#define REGISTER_5_BASE 0x320
+#define REGISTER_5_SPAN 32
+#define REGISTER_5_END 0x33f
+
+/*
+ * Macros for device 'Register_6', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_6_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_6_COMPONENT_TYPE Register_256
+#define REGISTER_6_COMPONENT_NAME Register_6
+#define REGISTER_6_BASE 0x340
+#define REGISTER_6_SPAN 32
+#define REGISTER_6_END 0x35f
+
+/*
+ * Macros for device 'Register_7', class 'Register_256'
+ * The macros are prefixed with 'REGISTER_7_'.
+ * The prefix is the slave descriptor.
+ */
+#define REGISTER_7_COMPONENT_TYPE Register_256
+#define REGISTER_7_COMPONENT_NAME Register_7
+#define REGISTER_7_BASE 0x360
+#define REGISTER_7_SPAN 32
+#define REGISTER_7_END 0x37f
 
 /*
  * Macros for device 'sysid_qsys', class 'altera_avalon_sysid_qsys'
@@ -64,7 +229,7 @@
 #define SYSID_QSYS_SPAN 8
 #define SYSID_QSYS_END 0x10007
 #define SYSID_QSYS_ID 2899645186
-#define SYSID_QSYS_TIMESTAMP 1505996721
+#define SYSID_QSYS_TIMESTAMP 1506173566
 
 /*
  * Macros for device 'button_pio', class 'altera_avalon_pio'
