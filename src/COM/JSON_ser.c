@@ -179,19 +179,13 @@ eJSON_Status_t JSON_Deser_ResConnect( stSCHEDULER_Work_t * const pstResult, byte
         pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.set_difficulty");
 
         /* Extract infos */
-        if ( NULL != pbyData )
-        {
-            /* Keep compiler happy */
-        }
+        eRetVal = JSON_Deser_ResDifficulty(pstResult->doDiff,pbyData);
 
         /* Have we received a "notify" request ? */
         pbyData = UnpackReq((byte*)pbyResponse,(const byte* const)"mining.notify");
 
         /* Extract infos */
-        if ( NULL != pbyData )
-        {
-            /* Keep compiler happy */
-        }
+        eRetVal = JSON_Deser_ResJob(pstResult,pbyData);
 
         /* Free allocated memory */
         free(pstJsonObj);
@@ -413,7 +407,7 @@ eJSON_Status_t JSON_Deser_ResDifficulty(double doLiveDifficulty, byte * const pb
         }
 
         /* Get diff */
-        doLiveDifficulty=json_object_get_double(pstJsonPar);
+        doLiveDifficulty=json_object_get_double(json_object_array_get_idx(pstJsonPar,0));
 
         /* Answer is sound, update return value */
         eRetVal = eJSON_SUCCESS;
@@ -498,11 +492,12 @@ static byte * UnpackReq( byte * abyMsg,const byte* const abyToken)
 	{
 		/* Init locals */
 		byNumRequest = NumMsgPacked(abyMsg);
+		pbyData = abyMsg;
 
 		for( dwIdx = 0; dwIdx < byNumRequest ; dwIdx++ )
 		{
 	        /* Search */
-	        pbyData = (byte*)strchr(((char*)abyMsg), '{');
+	        pbyData = (byte*)strchr(((char*)pbyData), '{');
 
 	        pstJsonObj = json_tokener_parse((const char*)pbyData);
 
@@ -511,24 +506,18 @@ static byte * UnpackReq( byte * abyMsg,const byte* const abyToken)
 	        json_object_object_get_ex(pstJsonObj, "error",&pstJsonErr);
 
 	        /* Difficulty */
-	        if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.set_difficulty") )
+	        if(    ( NULL != pstJsonMeth )
+	        	&& ( 0 == strcmp(json_object_get_string(pstJsonMeth),(const char*)abyToken) )
+			  )
 	        {
 	            /* Update return value */
 	            pbyRet = pbyData;
 
+	            printf("%s :\n %s \n",abyToken,pbyData);
+
                 /* Getting out */
                 break;
 	        }
-
-            /* Jobs */
-            if( 0 == strcmp(json_object_get_string(pstJsonMeth),"mining.notify") )
-            {
-                /* Update return value */
-                pbyRet = pbyData;
-
-                /* Getting out */
-                break;
-            }
 
             /* Slice up these two JSON request */
             pbyData++;
@@ -561,6 +550,8 @@ static byte NumMsgPacked( byte * abyMsg)
 	        pbyData = (byte*)strchr(((char*)pbyData), '{');
 		}
 	}
+
+    printf("TEST count msg : %d\n",byRetVal);
 
 	return byRetVal;
 }
