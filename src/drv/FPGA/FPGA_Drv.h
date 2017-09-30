@@ -61,6 +61,8 @@ FPGA_Drv_Result_t *pstFPGA_Drv_Results;
 dword FPGA_Drv_Setup(void);
 dword FPGA_Drv_Init(void);
 
+void FPGA_Drv_Bkgnd(void);
+
 dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork);
 eFPGA_State_t FPGA_Drv_GetStatus(void);
 

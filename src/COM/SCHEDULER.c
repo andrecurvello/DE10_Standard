@@ -383,7 +383,6 @@ static void SetTarget(byte * pstDest, double doDifficulty)
     double doDiffRatio;
     double doChunk;
     qword *pqwData64;
-    dword dwIdx;
 
     printf("Diff %lf\n",doDifficulty);
     /* Initialize variables */
@@ -425,15 +424,6 @@ static void SetTarget(byte * pstDest, double doDifficulty)
     doChunk = doDiffRatio;
     pqwData64 = (qword *)(pstDest);
     *pqwData64 = htole64(doChunk);
-
-    printf("Target :\n");
-    printf("0x");
-    for(dwIdx=0;dwIdx<TARGET_SIZE;dwIdx++)
-    {
-        printf("%.2x",pstDest[dwIdx]);
-    }
-    printf("\n");
-
 
     return;
 }

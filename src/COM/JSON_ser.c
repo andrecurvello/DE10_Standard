@@ -282,7 +282,6 @@ eJSON_Status_t JSON_Deser_ResJob(stSCHEDULER_Work_t * const pstResult,byte * con
         if ( NULL != pbyData )
         {
             pstResult->doDiff = JSON_Deser_ResDifficulty(pbyData);
-            printf("difficulty :%lf\n", pstResult->doDiff);
         }
 
         /* crack on with the job exctraction */
@@ -399,7 +398,6 @@ double JSON_Deser_ResDifficulty(byte * const pbyResponse)
 
         /* Get diff */
         doRetVal=json_object_get_double(json_object_array_get_idx(pstJsonPar,0));
-        printf("difficulty :%lf\n", doRetVal);
 
         /* Free allocated memory */
         free(pstJsonObj);

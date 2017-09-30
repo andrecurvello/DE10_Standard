@@ -49,6 +49,8 @@
 #define HW_REGS_BASE ( ALT_STM_OFST )     /* Altera memory offset */
 #define HW_REGS_SPAN ( 0x04000000 )       /* Address range */
 #define HW_REGS_MASK ( HW_REGS_SPAN - 1 ) /* Spanning mask */
+#define ALT_FPGA_BMC0_INTFC ( ( unsigned long )( ALT_H2F_OFST + BMC_0_BASE ) & ( unsigned long)( HW_REGS_MASK ) )
+#define ALT_FPGA_REG0_INTFC ( ( unsigned long )( ALT_H2F_OFST + REGISTER_0_BASE ) & ( unsigned long)( HW_REGS_MASK ) )
 
 /* *****************************************************************************
 **                              TYPE DEFINITIONS
@@ -57,6 +59,9 @@ typedef struct
 {
     word wFileDesc;
     void *pvVirtBase;
+
+    void *pvBMC0;
+    void *pvREG0;
 
 } FPGA_Drv_Data_t;
 
@@ -80,6 +85,13 @@ static FPGA_Drv_Data_t stLocalData;
 #if 0
 static FPGA_Drv_Result_t stLocalResults;
 #endif
+static byte abyTestSHA256[] =
+{
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
@@ -157,6 +169,8 @@ dword FPGA_Drv_Init(void)
     dwRetVal = 0;
 
     /* Nothing to do here for the time being */
+    stLocalData.pvBMC0 = (stLocalData.pvVirtBase + ALT_FPGA_BMC0_INTFC);
+    stLocalData.pvREG0 = (stLocalData.pvVirtBase + ALT_FPGA_REG0_INTFC);
 
     return dwRetVal;
 }
@@ -174,10 +188,10 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 ** ************************************************************************** */
 {
     dword dwRetVal;
-    dword dwIndex;
 #if 0
-    dword dwIdx;
+    dword dwIndex;
     dword dwMerkleIdx;
+    dword dwIdx;
 #endif
 
     /* Initialize locals */
@@ -185,9 +199,21 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 
     if( NULL != pstWork )
     {
+    	printf("TEST 0\n");
+
+        /* Display -dead- */
+        *((byte*)stLocalData.pvBMC0 + 0 )  = abyTestSHA256[0];
+    	printf("TEST 1\n");
+        *((byte*)stLocalData.pvBMC0 + 16 ) = abyTestSHA256[16];
+    	printf("TEST 2\n");
+        *((byte*)stLocalData.pvBMC0 + 32 ) = abyTestSHA256[32];
+    	printf("TEST 3\n");
+        *((byte*)stLocalData.pvBMC0 + 48 ) = abyTestSHA256[48];
+    	printf("TEST 4\n");
+
+#if 0
         for ( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
         {
-#if 0
             /* Debug */
             printf("\n--------------------------------------\n");
             printf("pstWork->abyNonce1 : 0x");
@@ -265,16 +291,59 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 			}
             printf("\n");
 
+            printf("pstWork->abyTarget : 0x");
+			for( dwIdx=0;dwIdx<TARGET_SIZE;dwIdx++ )
+			{
+	            printf("%.2x",pstWork->abyTarget[dwIdx]);
+			}
+            printf("\n");
+
             /* Display merkle hashes */
             printf("--------------------------------------\n");
-#endif
         }
-
+#endif
         dwRetVal = 1;
     }
 
 
     return dwRetVal;
+}
+
+/* ************************************************************************** */
+void FPGA_Drv_Bkgnd(void)
+/* *****************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description  : Guarantee good operation of the FPGA
+**
+** ************************************************************************** */
+{
+	byte *pbyData;
+    dword dwIdx;
+
+    /* Read calculated checksums */
+    if( 0x0000000000000000000000000000000 != *((byte*)stLocalData.pvREG0 + 0 ) )
+    {
+    	pbyData = ((byte*)stLocalData.pvREG0 + 0 );
+    	printf("Data 0 : 0x");
+    	for( dwIdx=0;dwIdx<16;dwIdx++ )
+    	{
+            printf("%.2x",*(pbyData + dwIdx));
+    	}
+        printf("\n");
+
+    	pbyData = ((byte*)stLocalData.pvREG0 + 16 );
+    	printf("Data 1 : 0x");
+    	for( dwIdx=0;dwIdx<16;dwIdx++ )
+    	{
+            printf("%.2x",*(pbyData + dwIdx));
+    	}
+        printf("\n");
+    }
+
+    return;
 }
 
 /* ************************************************************************** */
@@ -327,6 +396,8 @@ static void ResetData(void)
 
     stLocalData.wFileDesc = -1;
     stLocalData.pvVirtBase = NULL;
+    stLocalData.pvBMC0 = NULL;
+    stLocalData.pvREG0 = NULL;
 
     return;
 }

@@ -86,6 +86,7 @@ int main(void)
 
     /* Initialize FPGA */
     FPGA_Drv_Setup();
+    FPGA_Drv_Init();
 
 #if 0
     /* Initialise UI */
@@ -119,9 +120,10 @@ static void TASK_Bkgnd(void)
         /* Process scheduler */
         SCHEDULER_Bkgnd();
 
-#if 0
         /* Process FPGA task */
-        FPGA_Bkgnd();
+        FPGA_Drv_Bkgnd();
+
+#if 0
 
         /* Process user interface */
         UI_Mgr_Bkgnd();
