@@ -18,12 +18,11 @@ entity BMC is
 port (
   slClkInput            : in  std_logic;
   slResetInput          : in  std_logic;
-  slStartInput          : in  std_logic;
+  slValidInput          : in  std_logic -- Input from the manager is now valid 
   slvBlockInput_512     : in  std_logic_vector(511 downto 0);
-  slBlockEnableInput    : in  std_logic;
-  slvBlockByteEnable_64 : in  std_logic_vector(63 downto 0);
   slvDigestOutput_256   : out std_logic_vector(255 downto 0);
-  slDigestOutputReady   : out std_logic
+  slValidOutput         : out std_logic -- To the 256 output register 
+  
 );
 end entity BMC;
 
@@ -115,6 +114,8 @@ architecture Behavioral of BMC is
   -- Hash
   signal hash : word_array_8 := h_default;
   signal q_hash : word_array_8 := h_default;
+
+  signal CalcCounter : integer := 0;
   
 begin
   -- Mapping from hash to digest
@@ -198,18 +199,31 @@ begin
     if slResetInput = '1' then
       null;
     elsif rising_edge(slClkInput) then
-      -- Update hash
-      q_hash <= hash;
-      
-      -- Update registers
-      q_a <= a;
-      q_b <= b;
-      q_c <= c;
-      q_d <= d;
-      q_e <= e;
-      q_f <= f;
-      q_g <= g;
-      q_h <= h;
+        if (slValidInput = '1') then
+            CalcCounter <= 1;
+        end if;
+        
+         if (CalcCounter >= '1') then
+	      -- Update hash
+	      q_hash <= hash;
+	      
+	      -- Update registers
+	      q_a <= a;
+	      q_b <= b;
+	      q_c <= c;
+	      q_d <= d;
+	      q_e <= e;
+	      q_f <= f;
+	      q_g <= g;
+	      q_h <= h;
+	      
+	      CalcCounter <= CalCounter + 1;
+	      
+	      if CalcCounter = 64 then
+	          CalCounter <= 0;
+	          slValidOutput <= '1';
+          end if; 
+      end if;
     end if;
   end process;
 end architecture Behavioral;

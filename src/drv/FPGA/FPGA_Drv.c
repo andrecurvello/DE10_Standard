@@ -82,12 +82,9 @@ typedef struct
 **                                 LOCALS
 ** ************************************************************************** */
 static FPGA_Drv_Data_t stLocalData;
-#if 0
-static FPGA_Drv_Result_t stLocalResults;
-#endif
 static byte abyTestSHA256[] =
 {
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0xde,0xad,0xbe,0xef,0xde,0xad,0xbe,0xef,0xde,0xad,0xbe,0xef,0xde,0xad,0xbe,0xef,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -121,11 +118,6 @@ dword FPGA_Drv_Setup(void)
 
     /* reset internal data */
     ResetData();
-
-#if 0
-    /* Publish data */
-    pstFPGA_Drv_Results = &stLocalResults;
-#endif
 
     /* Get access to memory */
     stLocalData.wFileDesc = open( "/dev/mem", ( O_RDWR | O_SYNC ) );
@@ -188,21 +180,29 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 ** ************************************************************************** */
 {
     dword dwRetVal;
-#if 0
-    dword dwIndex;
-    dword dwMerkleIdx;
     dword dwIdx;
-#endif
 
     /* Initialize locals */
     dwRetVal = 0;
 
     if( NULL != pstWork )
     {
+        /* Test BMC0 */
     	printf("TEST 0\n");
-
-        /* Display -dead- */
+    	printf("Data Read 0 : 0x");
+    	for( dwIdx=0;dwIdx<16;dwIdx++ )
+    	{
+            printf("%.2x",*((byte*)stLocalData.pvBMC0 + dwIdx));
+    	}
+        printf("\n");
         *((byte*)stLocalData.pvBMC0 + 0 )  = abyTestSHA256[0];
+    	printf("Data Write 0 : 0x");
+    	for( dwIdx=0;dwIdx<16;dwIdx++ )
+    	{
+            printf("%.2x",*((byte*)stLocalData.pvBMC0 + dwIdx));
+    	}
+        printf("\n");
+
     	printf("TEST 1\n");
         *((byte*)stLocalData.pvBMC0 + 16 ) = abyTestSHA256[16];
     	printf("TEST 2\n");
@@ -211,100 +211,8 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
         *((byte*)stLocalData.pvBMC0 + 48 ) = abyTestSHA256[48];
     	printf("TEST 4\n");
 
-#if 0
-        for ( dwIndex = 0; dwIndex < NUM_BMC_CORES; dwIndex++ )
-        {
-            /* Debug */
-            printf("\n--------------------------------------\n");
-            printf("pstWork->abyNonce1 : 0x");
-			for( dwIdx=0;dwIdx<NONCE1_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyNonce1[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->wN2size : %d\n",pstWork->wN2size);
-
-            printf("pstWork->abyJobId : 0x");
-			for( dwIdx=0;dwIdx<JOBID_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyJobId[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyPrevHash : 0x");
-			for( dwIdx=0;dwIdx<HASH_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyPrevHash[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyCoinBase1 : 0x");
-			for( dwIdx=0;dwIdx<COINBASE1_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyCoinBase1[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyCoinBase2 : 0x");
-			for( dwIdx=0;dwIdx<COINBASE2_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyCoinBase2[dwIdx]);
-			}
-            printf("\n");
-
-			for( dwMerkleIdx=0;dwMerkleIdx<MERKLE_TREE_MAX_DEPTH;dwMerkleIdx++ )
-			{
-	            printf("pstWork->aabyMerkleBranch : 0x");
-				for( dwIdx=0;dwIdx<HASH_SIZE;dwIdx++ )
-				{
-		            printf("%.2x",pstWork->aabyMerkleBranch[dwMerkleIdx][dwIdx]);
-				}
-	            printf("\n");
-			}
-
-            printf("pstWork->aabyNonce : 0x");
-			for( dwIdx=0;dwIdx<NONCE_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->aabyNonce[dwIndex][dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyBlckVer : 0x");
-			for( dwIdx=0;dwIdx<BLOCK_VER_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyBlckVer[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyNbits : 0x");
-			for( dwIdx=0;dwIdx<NBITS_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyNbits[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyNtime : 0x");
-			for( dwIdx=0;dwIdx<NTIME_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyNtime[dwIdx]);
-			}
-            printf("\n");
-
-            printf("pstWork->abyTarget : 0x");
-			for( dwIdx=0;dwIdx<TARGET_SIZE;dwIdx++ )
-			{
-	            printf("%.2x",pstWork->abyTarget[dwIdx]);
-			}
-            printf("\n");
-
-            /* Display merkle hashes */
-            printf("--------------------------------------\n");
-        }
-#endif
         dwRetVal = 1;
     }
-
 
     return dwRetVal;
 }

@@ -9,68 +9,60 @@
    categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
-   element BMC_0
+   element BMM_0
    {
       datum _sortIndex
       {
-         value = "10";
+         value = "11";
          type = "int";
       }
    }
-   element BMC_1
+   element DE10_Standard_Bitcoin_Design
    {
-      datum _sortIndex
+      datum _originalDeviceFamily
       {
-         value = "13";
-         type = "int";
+         value = "Cyclone V";
+         type = "String";
       }
    }
-   element BMC_2
+   element DE10_Standard_Bitcoin_Design
    {
-      datum _sortIndex
+      datum _originalDeviceFamily
       {
-         value = "14";
-         type = "int";
+         value = "Cyclone V";
+         type = "String";
       }
    }
-   element BMC_3
+   element DE10_Standard_Bitcoin_Design
    {
-      datum _sortIndex
+      datum _originalDeviceFamily
       {
-         value = "15";
-         type = "int";
+         value = "Cyclone V";
+         type = "String";
       }
    }
-   element BMC_4
+   element DE10_Standard_Bitcoin_Design
    {
-      datum _sortIndex
+      datum _originalDeviceFamily
       {
-         value = "16";
-         type = "int";
+         value = "Cyclone V";
+         type = "String";
       }
    }
-   element BMC_5
+   element DE10_Standard_Bitcoin_Design
    {
-      datum _sortIndex
+      datum _originalDeviceFamily
       {
-         value = "17";
-         type = "int";
+         value = "Cyclone V";
+         type = "String";
       }
    }
-   element BMC_6
+   element DE10_Standard_Bitcoin_Design
    {
-      datum _sortIndex
+      datum _originalDeviceFamily
       {
-         value = "18";
-         type = "int";
-      }
-   }
-   element BMC_7
-   {
-      datum _sortIndex
-      {
-         value = "19";
-         type = "int";
+         value = "Cyclone V";
+         type = "String";
       }
    }
    element DE10_Standard_Bitcoin_Design
@@ -233,78 +225,6 @@
          type = "String";
       }
    }
-   element Register_0
-   {
-      datum _sortIndex
-      {
-         value = "20";
-         type = "int";
-      }
-   }
-   element Register_1
-   {
-      datum _sortIndex
-      {
-         value = "21";
-         type = "int";
-      }
-   }
-   element Register_2
-   {
-      datum _sortIndex
-      {
-         value = "22";
-         type = "int";
-      }
-   }
-   element Register_256_0
-   {
-      datum _sortIndex
-      {
-         value = "12";
-         type = "int";
-      }
-   }
-   element Register_3
-   {
-      datum _sortIndex
-      {
-         value = "23";
-         type = "int";
-      }
-   }
-   element Register_4
-   {
-      datum _sortIndex
-      {
-         value = "24";
-         type = "int";
-      }
-   }
-   element Register_5
-   {
-      datum _sortIndex
-      {
-         value = "25";
-         type = "int";
-      }
-   }
-   element Register_6
-   {
-      datum _sortIndex
-      {
-         value = "26";
-         type = "int";
-      }
-   }
-   element Register_7
-   {
-      datum _sortIndex
-      {
-         value = "27";
-         type = "int";
-      }
-   }
    element SEG7_0
    {
       datum _sortIndex
@@ -394,7 +314,7 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "10";
          type = "int";
       }
    }
@@ -487,14 +407,7 @@
    internal="SEG7_0.conduit_end"
    type="conduit"
    dir="end" />
- <module name="BMC_0" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_1" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_2" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_3" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_4" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_5" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_6" kind="BMC" version="1.0" enabled="1" />
- <module name="BMC_7" kind="BMC" version="1.0" enabled="1" />
+ <module name="BMM_0" kind="BMM" version="1.0" enabled="1" />
  <module
    name="ILC"
    kind="interrupt_latency_counter"
@@ -504,15 +417,6 @@
   <parameter name="INTR_TYPE" value="0" />
   <parameter name="IRQ_PORT_CNT" value="3" />
  </module>
- <module name="Register_0" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_1" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_2" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_256_0" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_3" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_4" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_5" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_6" kind="Register_256" version="1.0" enabled="1" />
- <module name="Register_7" kind="Register_256" version="1.0" enabled="1" />
  <module name="SEG7_0" kind="SEG7" version="1.0" enabled="1">
   <parameter name="ADDR_WIDTH" value="3" />
   <parameter name="DEFAULT_ACTIVE" value="1" />
@@ -1184,153 +1088,9 @@
    kind="avalon"
    version="17.0"
    start="mm_bridge_1.m0"
-   end="BMC_0.avalon_slave">
+   end="BMM_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_256_0.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0200" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_1.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0040" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_2.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0080" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_3.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00c0" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_4.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0100" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_5.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0140" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_6.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0180" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="BMC_7.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x01c0" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_0.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0220" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_1.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0240" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_2.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0260" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_3.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0280" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_4.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0300" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_5.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0320" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_6.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0340" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
-   end="Register_7.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0360" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1406,46 +1166,6 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_0.avalon_streaming_source"
-   end="Register_256_0.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_1.avalon_streaming_source"
-   end="Register_1.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_2.avalon_streaming_source"
-   end="Register_2.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_3.avalon_streaming_source"
-   end="Register_3.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_4.avalon_streaming_source"
-   end="Register_4.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_5.avalon_streaming_source"
-   end="Register_5.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_6.avalon_streaming_source"
-   end="Register_6.avalon_streaming_sink" />
- <connection
-   kind="avalon_streaming"
-   version="17.0"
-   start="BMC_7.avalon_streaming_source"
-   end="Register_7.avalon_streaming_sink" />
- <connection
    kind="clock"
    version="17.0"
    start="clk_0.clk"
@@ -1466,59 +1186,7 @@
  <connection kind="clock" version="17.0" start="clk_0.clk" end="mm_bridge_0.clk" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="mm_bridge_1.clk" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="SEG7_0.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_0.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_256_0.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_1.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_2.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_3.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_4.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_5.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_6.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_7.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_7.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_6.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_5.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_4.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_3.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_2.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_1.clock_sink" />
- <connection
-   kind="clock"
-   version="17.0"
-   start="clk_0.clk"
-   end="Register_0.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMM_0.clock_sink" />
  <connection
    kind="clock"
    version="17.0"
@@ -1594,87 +1262,7 @@
    kind="reset"
    version="17.0"
    start="clk_0.clk_reset"
-   end="BMC_0.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_256_0.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_1.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_2.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_3.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_4.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_5.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_6.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="BMC_7.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_7.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_6.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_5.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_4.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_3.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_2.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_1.reset_sink" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="Register_0.reset_sink" />
+   end="BMM_0.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

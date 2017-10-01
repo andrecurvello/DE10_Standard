@@ -8,8 +8,8 @@ set_global_assignment -name TOP_LEVEL_ENTITY "DE10_Standard_Bitcoin"
 set_global_assignment -name LAST_QUARTUS_VERSION "17.0.0 Standard Edition"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "FRI APR 18 11:09:14 2014"
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
-set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
-set_global_assignment -name EDA_OUTPUT_DATA_FORMAT NONE -section_id eda_simulation
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name ENABLE_SIGNALTAP ON
 set_global_assignment -name USE_SIGNALTAP_FILE cti_tapping.stp
 
