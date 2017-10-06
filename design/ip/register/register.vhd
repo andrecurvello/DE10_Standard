@@ -46,11 +46,20 @@ use ieee.numeric_std.all;
 -- wich is roughly the same thing, only it is asynchroneous.
 entity Register_256 is
 port (
+    -- Avalon slave read/write interface
+    slDataOut       : out std_logic_vector(255 downto 0) := X"DEADBEEFDEADBEEFA55AB44BA55AB44BDEADBEEFDEADBEEFA55AB44BA55AB44B"
+    slReadEnable    : in std_logic; -- Read command
+    slvRegisterAddr : in std_logic_vector(3 downto 0); -- Read command
+
+    -- Avalon streaming interface
+    slDataIn      : in std_logic_vector(255 downto 0) := X"0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+    slWriteEnable : in std_logic; -- Write command
+
+    -- Clock sink
     slClockInput  : in std_logic;
+    
+    -- Reset sink  
     slResetInput  : in std_logic;
-    slWriteEnable : in std_logic;
-    slDataIn      : in std_logic_vector(255 downto 0);
-    slDataOut     : out std_logic_vector(255 downto 0)
 );
 end entity Register_256;
 

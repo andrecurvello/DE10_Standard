@@ -15,14 +15,25 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity BMC is
+generic(
+    ADDRESS : natural := 0
+
+);
 port (
-  slClkInput            : in  std_logic;
-  slResetInput          : in  std_logic;
-  slValidInput          : in  std_logic -- Input from the manager is now valid 
-  slvBlockInput_512     : in  std_logic_vector(511 downto 0);
-  slvDigestOutput_256   : out std_logic_vector(255 downto 0);
-  slValidOutput         : out std_logic -- To the 256 output register 
-  
+    -- Avalon streming interface
+    slValidInput        : in  std_logic -- Input from the manager is now valid 
+    slvBlockInput_512   : in  std_logic_vector(511 downto 0);
+	slvChanInput        : in  std_logic_vector(3 downto 0);
+	slReadyInput        : in  std_logic
+	slValidOutput       : out std_logic -- To the 256 output register 
+    slvDigestOutput_256 : out std_logic_vector(255 downto 0);
+	
+	   -- Clock sink
+    slClkInput : in  std_logic;
+
+    -- Reset sink  
+    slResetInput : in  std_logic
+	
 );
 end entity BMC;
 
@@ -115,7 +126,7 @@ architecture Behavioral of BMC is
   signal hash : word_array_8 := h_default;
   signal q_hash : word_array_8 := h_default;
 
-  signal CalcCounter : integer := 0;
+  signal CalcCounter : natural := 0;
   
 begin
   -- Mapping from hash to digest
@@ -183,7 +194,7 @@ begin
 
   -- Hash fill
   hash(0) <= q_a(63) + h_default(0);
-  hash(1) <= q_b(63) + h_default(1);
+  hash(1) <= q_b(63) + h_default(1);    
   hash(2) <= q_c(63) + h_default(2);
   hash(3) <= q_d(63) + h_default(3);
   hash(4) <= q_e(63) + h_default(4);
@@ -197,13 +208,14 @@ begin
   process(slClkInput, slResetInput) is
   begin
     if slResetInput = '1' then
-      null;
+      -- Reset output signals
+      slValidOutput <= '0';
+      slvDigestOutput_256 <= (others => '0');
+      CalcCounter <= 0;
     elsif rising_edge(slClkInput) then
-        if (slValidInput = '1') then
-            CalcCounter <= 1;
-        end if;
+    
         
-         if (CalcCounter >= '1') then
+        if (slValidInput = '1') and (slvChanInput = ADDRESS) then
 	      -- Update hash
 	      q_hash <= hash;
 	      
@@ -219,11 +231,17 @@ begin
 	      
 	      CalcCounter <= CalCounter + 1;
 	      
-	      if CalcCounter = 64 then
-	          CalCounter <= 0;
+	      if (CalcCounter = 64) then
+	          CalcCounter <= 0;
 	          slValidOutput <= '1';
-          end if; 
+	          slvDigestOutput_256 <= q_hash;
+          end if;
+
+      elsif (slValidOutput = '1') and (slReadyInput = '0') then
+          -- Do nothing in here
       end if;
+          
     end if;
+    
   end process;
 end architecture Behavioral;
