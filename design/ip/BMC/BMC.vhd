@@ -17,17 +17,16 @@ use ieee.numeric_std.all;
 entity BMC is
 generic(
     ADDRESS : natural := 0
-
 );
 port (
     -- Avalon streming interface
-    slReadyOutput       : out std_logic -- Ready to take on next block 
-    slValidInput        : in  std_logic -- Input from the manager is now valid 
+    slReadyOutput       : out std_logic := '1'; -- Ready to take on next block 
+    slValidInput        : in  std_logic; -- Input from the manager is now valid 
     slvBlockInput_512   : in  std_logic_vector(511 downto 0);
 	slvChanInput        : in  std_logic_vector(3 downto 0);
 	slReadyInput        : in  std_logic;
-	slValidOutput       : out std_logic -- To the 256 output register 
-    slvDigestOutput_256 : out std_logic_vector(255 downto 0);
+	slValidOutput       : out std_logic := '0'; -- To the 256 output register 
+    slvDigestOutput_256 : out std_logic_vector(255 downto 0) := X"EBBEFAAF45546776EBBEFAAF45546776EBBEFAAF45546776EBBEFAAF45546776";
 	
 	   -- Clock sink
     slClkInput : in  std_logic;
@@ -130,6 +129,8 @@ architecture Behavioral of BMC is
   signal CalcCounter : natural := 0;
   
 begin
+  -- Avalon bus addressing
+  
   -- Mapping from hash to digest
   output_mapping: for i in 0 to 7 generate
     slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(q_hash(i));
@@ -206,17 +207,18 @@ begin
 -- *****************************************************************************
 --                         CLOCK Cycle processing                             **
 -- ************************************************************************** */
-  process(slClkInput, slResetInput) is
+  process(slClkInput, slResetInput)
   begin
-    if slResetInput = '1' then
+    if rising_edge(slResetInput) then
       -- Reset output signals
       slValidOutput <= '0';
+      slReadyOutput <= '1'; -- Always be ready
       slvDigestOutput_256 <= (others => '0');
       CalcCounter <= 0;
+      
     elsif rising_edge(slClkInput) then
-    
-        
-        if (slValidInput = '1') and (slvChanInput = ADDRESS) then
+        -- Manage receiving part
+        if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
 	      -- Update hash
 	      q_hash <= hash;
 	      
@@ -230,19 +232,29 @@ begin
 	      q_g <= g;
 	      q_h <= h;
 	      
-	      CalcCounter <= CalCounter + 1;
+	      CalcCounter <= CalcCounter + 1;
 	      
 	      if (CalcCounter = 64) then
 	          CalcCounter <= 0;
-	          slValidOutput <= '1';
+	          slReadyOutput <= '0';
 	          slvDigestOutput_256 <= q_hash;
           end if;
-
-      elsif (slValidOutput = '1') and (slReadyInput = '0') then
-          -- Do nothing in here
       end if;
-          
+      
+      -- Manage transmiting part
+      if (slReadyOutput = '0') then
+          if (slReadyInput = '1') then
+              -- sending
+              slValidOutput <= '1';
+          end if;
+      
+          if (slValidInput = '1') then
+            -- end of transmission
+            slValidOutput <= '0';
+            slReadyOutput <= '1';
+            slvDigestOutput_256 <= (others=>'0');
+          end if;
+      end if;
     end if;
-    
   end process;
 end architecture Behavioral;

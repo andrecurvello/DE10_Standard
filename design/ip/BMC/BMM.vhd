@@ -19,7 +19,7 @@ use ieee.numeric_std.all;
 entity BMM is
 port (
     -- Avalon slave read/write interface
-	slWaitrequest   : out std_logic; -- Do we need that ?
+	slWaitrequest   : out std_logic := '0'; -- Do we need that ?
     slWriteIn       : in std_logic;
     slvAddrIn       : in std_logic_vector(4 downto 0);
 	slvByteEnableIn : in std_logic_vector(63 downto 0);
@@ -47,78 +47,84 @@ architecture Behavioral of BMM is
     -- 01 -> PREPARING
     -- 10 -> DISPATCHING
     -- 11 -> reserved
-    signal seMgrState : std_logic := '00'; -- Start in "IDLING"
+    signal seMgrState : std_logic_vector(1 downto 0) := "00"; -- Start in "IDLING"
     
     signal nIdx : natural := 0; -- loop index
-    signal nByteenableCount : natural := 0; -- for end of transfer detection
+    signal nByteenableCount : integer := 0; -- for end of transfer detection
   
 -- *****************************************************************************
 --                         CLOCK Cycle processing                             **
 -- ************************************************************************** */
-  process(slClkInput, slResetInput) is
+begin
+  process(slClkInput, slResetInput)
   begin
     -- Reset input control
     if rising_edge(slResetInput) then
         -- control variables
-        seMgrState <= '00';
+        seMgrState <= "00";
         nByteenableCount <= 0;
         
         -- outputs
         slValidOutput <= '0';
-        slSlaveWaitrequest <= '0';
+        slWaitrequest <= '0';
         slvStreamDataOut <= (others => '0') ;
+        slWaitrequest <= '0';
        
     elsif rising_edge(slClkInput) then -- Clock control
             -- Slave Rx state machine
             case seMgrState is
                 -- STATE : IDLING
-                when '00' =>
+                when "00" =>
                     -- Start receiving data from the avalon bus ?
-                    if slSlaveWriteIn = '1' then
+                    if slWriteIn = '1' then
                         -- Operate transition to "preparing" state
-                        seMgrState <= '01';
+                        seMgrState <= "01";
                     end if;
 
                 -- STATE : PREPARING
-                when '01' =>
+                when "01" =>
                   -- Mapping from hash to digest
-                  if slSlaveWriteIn = '1' then
+                  if slWriteIn = '1' then
                       -- Byte enable operate on 128 bits chunks.
-                      if nByteenableCount < 4 then
+                      if (nByteenableCount < 4) then
 	                      for nIdx in 0 to 3 loop
-	                            if (slvByteEnableIn(((nIdx+1)*16) .. (nIdx*16) ) == X"FFFF") then
-	                                slvStreamDataOut(((nIdx+1)*128) .. (nIdx*128)) <= slvSlaveWriteDataIn(((nIdx+1)*128) .. (nIdx*128))
-	                                nByteenableCount <= nByteenableCount + 1; 
-	                                break;
+	                            if (slvByteEnableIn(((nIdx+1)*16) downto (nIdx*16) ) = X"FFFF") then
+	                                slvStreamDataOut(((nIdx+1)*128) downto (nIdx*128)) <= slvWriteDataIn(((nIdx+1)*128) downto (nIdx*128));
+	                                nByteenableCount <= (nByteenableCount + 1); 
+	                                exit;
 	                            end if;
 	                      end loop;
 	                  else
 	                      -- Time to operate transition to "dispatching" state
-                          seMgrState <= '10';
+                          seMgrState <= "10";
                           nByteenableCount <= 0;
 	                  end if;
 	              else
 	                  -- Go back to IDLE
-	                  seMgrState <= '00';
+	                  seMgrState <= "00";
                   end if;
                   
                 -- STATE : DISPATCHING
-                when '10' =>
+                when "10" =>
                     -- If condition fail stay in the "dispatching" state
-                    if (slReadyInput = '1') and (slValidOutput = '0') then
-                
+                    if (slReadyInput = '1')then
 	                    -- Set channel
-	                    slvCoreAddrIn <= slChanOutput;
+	                    slChanOutput <= slvAddrIn;
 	                    
 	                    -- Ouput is now ready, notice the mining core                
 	                    slValidOutput <= '1';
 	                    
-	                elsif (slReadyInput = '0') and (slValidOutput = '1') then
+	                else
 	                    -- Transmission finished. Go back to idling
-                        seMgrState <= '00';
+                        seMgrState <= "00";
+
+                        -- End outputing                
+                        slValidOutput <= '0';
+                        slChanOutput <= "0000";
+                        slvStreamDataOut <= (others=>'0');
                         
                     end if;
-                when '11' => -- reserved
+                when "11" => -- reserved
                     -- do nothing
             end case;
     end if;

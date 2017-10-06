@@ -29,6 +29,13 @@
 --                              | reset
 --        _
 -- Note : Q is not implemented here, only Q.
+-- \\\\\\\\
+-- ---------
+-- |~O~ ~O~|
+--o|   |   |o
+-- | [---] |
+-- |   U   |
+-- #########
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
@@ -47,23 +54,21 @@ use ieee.numeric_std.all;
 entity Register_256 is
 port (
     -- Avalon slave read/write interface
-    slDataOut       : out std_logic_vector(255 downto 0) := X"DEADBEEFDEADBEEFA55AB44BA55AB44BDEADBEEFDEADBEEFA55AB44BA55AB44B"
-    slReadEnable    : in std_logic; -- Read command
-    slvRegisterAddr : in std_logic_vector(3 downto 0); -- Read command
+    slDataOut    : out std_logic_vector(255 downto 0) := X"DEADBEEFDEADBEEFA55AB44BA55AB44BDEADBEEFDEADBEEFA55AB44BA55AB44B";
+    slReadEnable : in std_logic; -- Read command
 
     -- Avalon streaming interface
     slDataIn      : in std_logic_vector(255 downto 0) := X"0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
-    slReadyOutput : out std_logic; -- Ready to store new result
+    slReadyOutput : out std_logic := '1'; -- Ready to store new result
     slWriteEnable : in std_logic; -- Write command
 
     -- Clock sink
     slClockInput  : in std_logic;
     
     -- Reset sink  
-    slResetInput  : in std_logic;
+    slResetInput  : in std_logic
 );
 end entity Register_256;
-
 --------------------------------------------------------------------------------
 --                      Architecture implementations                          --
 --------------------------------------------------------------------------------
@@ -72,19 +77,28 @@ begin
     -- Sequential logic
     process (slClockInput, slResetInput) is
     begin
+        -- Reset input
+        if rising_edge(slResetInput) then
+            -- Reset ouput value
+            slDataOut <= (others => '0');
+            slReadyOutput <= '1'; -- Ready to store new result
+            
+        end if;
+        
         -- Clock input
         if rising_edge(slClockInput) then
             -- Update output value
-            if ('1' = slWriteEnable) then
-               slDataOut <= slDataIn;
+            if ('1' = slReadEnable) then
+                slReadyOutput <= '0';
+            else
+                slReadyOutput <= '1';
+
+	            if (slWriteEnable = '1')then
+	               slDataOut <= slDataIn;
+	            end if;
+                
             end if;
+            
         end if;
-        
-        -- Reset input
-        if (slResetInput = '1') then
-            -- Reset ouput value
-            slDataOut <= (others => '0');
-        end if;
-        
     end process;
 end Reg;
