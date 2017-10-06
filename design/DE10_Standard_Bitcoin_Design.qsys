@@ -9,6 +9,14 @@
    categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
+   element BMC_0
+   {
+      datum _sortIndex
+      {
+         value = "13";
+         type = "int";
+      }
+   }
    element BMM_0
    {
       datum _sortIndex
@@ -225,6 +233,14 @@
          type = "String";
       }
    }
+   element Register_256_0
+   {
+      datum _sortIndex
+      {
+         value = "12";
+         type = "int";
+      }
+   }
    element SEG7_0
    {
       datum _sortIndex
@@ -407,6 +423,9 @@
    internal="SEG7_0.conduit_end"
    type="conduit"
    dir="end" />
+ <module name="BMC_0" kind="BMC" version="1.0" enabled="1">
+  <parameter name="ADDRESS" value="0" />
+ </module>
  <module name="BMM_0" kind="BMM" version="1.0" enabled="1" />
  <module
    name="ILC"
@@ -417,6 +436,7 @@
   <parameter name="INTR_TYPE" value="0" />
   <parameter name="IRQ_PORT_CNT" value="3" />
  </module>
+ <module name="Register_256_0" kind="Register_256" version="1.0" enabled="1" />
  <module name="SEG7_0" kind="SEG7" version="1.0" enabled="1">
   <parameter name="ADDR_WIDTH" value="3" />
   <parameter name="DEFAULT_ACTIVE" value="1" />
@@ -1046,7 +1066,7 @@
   <parameter name="PIPELINE_COMMAND" value="1" />
   <parameter name="PIPELINE_RESPONSE" value="1" />
   <parameter name="SYMBOL_WIDTH" value="8" />
-  <parameter name="SYSINFO_ADDR_WIDTH" value="10" />
+  <parameter name="SYSINFO_ADDR_WIDTH" value="11" />
   <parameter name="USE_AUTO_ADDRESS_WIDTH" value="1" />
   <parameter name="USE_RESPONSE" value="0" />
  </module>
@@ -1091,6 +1111,15 @@
    end="BMM_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="17.0"
+   start="mm_bridge_1.m0"
+   end="Register_256_0.avalon_slave">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0400" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1166,6 +1195,16 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
+   kind="avalon_streaming"
+   version="17.0"
+   start="BMM_0.avalon_streaming_source"
+   end="BMC_0.avalon_streaming_sink" />
+ <connection
+   kind="avalon_streaming"
+   version="17.0"
+   start="BMC_0.avalon_streaming_source"
+   end="Register_256_0.avalon_streaming_sink" />
+ <connection
    kind="clock"
    version="17.0"
    start="clk_0.clk"
@@ -1187,6 +1226,12 @@
  <connection kind="clock" version="17.0" start="clk_0.clk" end="mm_bridge_1.clk" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="SEG7_0.clock_sink" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="BMM_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="17.0"
+   start="clk_0.clk"
+   end="Register_256_0.clock_sink" />
+ <connection kind="clock" version="17.0" start="clk_0.clk" end="BMC_0.clock_sink" />
  <connection
    kind="clock"
    version="17.0"
@@ -1263,6 +1308,16 @@
    version="17.0"
    start="clk_0.clk_reset"
    end="BMM_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="Register_256_0.reset_sink" />
+ <connection
+   kind="reset"
+   version="17.0"
+   start="clk_0.clk_reset"
+   end="BMC_0.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

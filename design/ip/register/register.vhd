@@ -53,6 +53,7 @@ port (
 
     -- Avalon streaming interface
     slDataIn      : in std_logic_vector(255 downto 0) := X"0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+    slReadyOutput : out std_logic; -- Ready to store new result
     slWriteEnable : in std_logic; -- Write command
 
     -- Clock sink

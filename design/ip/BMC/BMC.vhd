@@ -21,10 +21,11 @@ generic(
 );
 port (
     -- Avalon streming interface
+    slReadyOutput       : out std_logic -- Ready to take on next block 
     slValidInput        : in  std_logic -- Input from the manager is now valid 
     slvBlockInput_512   : in  std_logic_vector(511 downto 0);
 	slvChanInput        : in  std_logic_vector(3 downto 0);
-	slReadyInput        : in  std_logic
+	slReadyInput        : in  std_logic;
 	slValidOutput       : out std_logic -- To the 256 output register 
     slvDigestOutput_256 : out std_logic_vector(255 downto 0);
 	
