@@ -37,10 +37,10 @@ set_module_property REPORT_HIERARCHY false
 # file sets
 # 
 add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
-set_fileset_property QUARTUS_SYNTH TOP_LEVEL new_component
+set_fileset_property QUARTUS_SYNTH TOP_LEVEL BMM
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file BMM.vhd VHDL PATH ip/BMC/BMM.vhd TOP_LEVEL_FILE
+add_fileset_file BMM.vhd VHDL PATH BMM.vhd TOP_LEVEL_FILE
 
 
 # 

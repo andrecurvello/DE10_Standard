@@ -209,52 +209,50 @@ begin
 -- ************************************************************************** */
   process(slClkInput, slResetInput)
   begin
-    if rising_edge(slResetInput) then
-      -- Reset output signals
-      slValidOutput <= '0';
-      slReadyOutput <= '1'; -- Always be ready
-      slvDigestOutput_256 <= (others => '0');
-      CalcCounter <= 0;
-      
-    elsif rising_edge(slClkInput) then
+    if rising_edge(slClkInput) then
         -- Manage receiving part
         if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
-	      -- Update hash
-	      q_hash <= hash;
-	      
-	      -- Update registers
-	      q_a <= a;
-	      q_b <= b;
-	      q_c <= c;
-	      q_d <= d;
-	      q_e <= e;
-	      q_f <= f;
-	      q_g <= g;
-	      q_h <= h;
-	      
-	      CalcCounter <= CalcCounter + 1;
-	      
-	      if (CalcCounter = 64) then
-	          CalcCounter <= 0;
-	          slReadyOutput <= '0';
-	          slvDigestOutput_256 <= q_hash;
-          end if;
-      end if;
-      
-      -- Manage transmiting part
-      if (slReadyOutput = '0') then
-          if (slReadyInput = '1') then
-              -- sending
-              slValidOutput <= '1';
-          end if;
-      
-          if (slValidInput = '1') then
-            -- end of transmission
-            slValidOutput <= '0';
-            slReadyOutput <= '1';
-            slvDigestOutput_256 <= (others=>'0');
-          end if;
-      end if;
+		      -- Update hash
+		      q_hash <= hash;
+		      
+		      -- Update registers
+		      q_a <= a;
+		      q_b <= b;
+		      q_c <= c;
+		      q_d <= d;
+		      q_e <= e;
+		      q_f <= f;
+		      q_g <= g;
+		      q_h <= h;
+		      
+		      CalcCounter <= CalcCounter + 1;
+		      
+		      if (CalcCounter = 64) then
+		          CalcCounter <= 0;
+		          slReadyOutput <= '0';
+	              slValidOutput <= '1';
+	          else
+	              -- prevent sending
+	              slValidOutput <= '0';
+	                        
+	          end if;
+	
+        end if;
+
+	    --if (slResetInput ='1' ) then
+            -- Reset output signals
+	    --  slValidOutput <= '0';
+	    --  slReadyOutput <= '1'; -- Always be ready
+	    --  slvDigestOutput_256 <= (others=>'0');
+	    --  CalcCounter <= 0;
+	    --end if ;
+        
+        -- Manage transmiting part
+        if (slReadyInput = '1') then
+            -- sending
+            slValidOutput <= '1';
+        end if;
+        
     end if;
   end process;
 end architecture Behavioral;

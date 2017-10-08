@@ -21,14 +21,14 @@ port (
     -- Avalon slave read/write interface
 	slWaitrequest   : out std_logic := '0'; -- Do we need that ?
     slWriteIn       : in std_logic;
-    slvAddrIn       : in std_logic_vector(4 downto 0);
+    slvAddrIn       : in std_logic_vector(3 downto 0);
 	slvByteEnableIn : in std_logic_vector(63 downto 0);
 	slvWriteDataIn  : in std_logic_vector(511 downto 0);
 
     -- Avalon streaming interface
     slReadyInput     : in std_logic;
     slValidOutput    : out std_logic;
-    slChanOutput     : out std_logic_vector(3 downto 0);
+    slvChanOuput     : out std_logic_vector(3 downto 0);
     slvStreamDataOut : out std_logic_vector(511 downto 0);
 
 	-- Clock sink
@@ -56,22 +56,23 @@ architecture Behavioral of BMM is
 --                         CLOCK Cycle processing                             **
 -- ************************************************************************** */
 begin
-  process(slClkInput, slResetInput)
+  process(slClkInput)
   begin
     -- Reset input control
-    if rising_edge(slResetInput) then
-        -- control variables
-        seMgrState <= "00";
-        nByteenableCount <= 0;
-        
-        -- outputs
-        slValidOutput <= '0';
-        slWaitrequest <= '0';
-        slvStreamDataOut <= (others => '0') ;
-        slWaitrequest <= '0';
        
-    elsif rising_edge(slClkInput) then -- Clock control
-            -- Slave Rx state machine
+    if rising_edge(slClkInput) then -- Clock control
+        if (slResetInput='1') then
+	        -- control variables
+	        seMgrState <= "00";
+	        nByteenableCount <= 0;
+	        
+	        -- outputs
+	        slValidOutput <= '0';
+	        slWaitrequest <= '0';
+	        slvStreamDataOut <= (others => '0') ;
+	        slWaitrequest <= '0';
+        else
+            -- Slave Rx state machined
             case seMgrState is
                 -- STATE : IDLING
                 when "00" =>
@@ -88,8 +89,8 @@ begin
                       -- Byte enable operate on 128 bits chunks.
                       if (nByteenableCount < 4) then
 	                      for nIdx in 0 to 3 loop
-	                            if (slvByteEnableIn(((nIdx+1)*16) downto (nIdx*16) ) = X"FFFF") then
-	                                slvStreamDataOut(((nIdx+1)*128) downto (nIdx*128)) <= slvWriteDataIn(((nIdx+1)*128) downto (nIdx*128));
+	                            if (slvByteEnableIn(((nIdx*16)+15) downto (nIdx*16) ) = X"FFFF") then
+	                                slvStreamDataOut(((nIdx*128)+127) downto (nIdx*128)) <= slvWriteDataIn(((nIdx*128)+127) downto (nIdx*128));
 	                                nByteenableCount <= (nByteenableCount + 1); 
 	                                exit;
 	                            end if;
@@ -109,7 +110,7 @@ begin
                     -- If condition fail stay in the "dispatching" state
                     if (slReadyInput = '1')then
 	                    -- Set channel
-	                    slChanOutput <= slvAddrIn;
+	                    slvChanOuput <= slvAddrIn;
 	                    
 	                    -- Ouput is now ready, notice the mining core                
 	                    slValidOutput <= '1';
@@ -120,13 +121,14 @@ begin
 
                         -- End outputing                
                         slValidOutput <= '0';
-                        slChanOutput <= "0000";
+                        slvChanOuput <= "0000";
                         slvStreamDataOut <= (others=>'0');
                         
                     end if;
                 when "11" => -- reserved
                     -- do nothing
             end case;
+        end if;
     end if;
   end process;
 end architecture Behavioral;

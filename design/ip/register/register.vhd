@@ -75,18 +75,18 @@ end entity Register_256;
 architecture Reg of Register_256 is
 begin
     -- Sequential logic
-    process (slClockInput, slResetInput) is
+    process (slClockInput) is
     begin
-        -- Reset input
-        if rising_edge(slResetInput) then
-            -- Reset ouput value
-            slDataOut <= (others => '0');
-            slReadyOutput <= '1'; -- Ready to store new result
-            
-        end if;
-        
         -- Clock input
         if rising_edge(slClockInput) then
+	        -- Reset input
+	        if slResetInput = '1' then
+	            -- Reset ouput value
+	            slDataOut <= (others => '0');
+	            slReadyOutput <= '1'; -- Ready to store new result
+	            
+	        end if;
+	        
             -- Update output value
             if ('1' = slReadEnable) then
                 slReadyOutput <= '0';
