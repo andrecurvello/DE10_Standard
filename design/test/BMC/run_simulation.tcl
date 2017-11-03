@@ -1,6 +1,8 @@
 # setup variables for simulation script
-set system_name      BMC_test
-set QSYS_SIMDIR      $system_name/simulation
+set ROOT_DIR         ../../
+set IP_DIR           $ROOT_DIR/ip
+set TEST_DIR         BMC
+set QSYS_SIMDIR      $TEST_DIR
 set TOP_LEVEL_NAME   BMC_test
 source msim_setup.tcl
 

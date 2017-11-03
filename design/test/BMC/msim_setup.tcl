@@ -214,8 +214,8 @@ alias dev_com {
 alias com {
   echo "\[exec\] com"
 
-  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMC.vhd" 
-  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMC_test.vhd"
+  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$IP_DIR/bitcoin/BMC.vhd" 
+  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "BMC_test.vhd"
       
   
 }
