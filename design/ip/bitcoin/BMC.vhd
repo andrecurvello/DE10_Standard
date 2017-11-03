@@ -22,7 +22,7 @@ port (
     -- Avalon streming interface
     slReadyOutput       : out std_logic := '1'; -- Ready to take on next block 
     slValidInput        : in  std_logic; -- Input from the manager is now valid 
-    slvBlockInput_512   : in  std_logic_vector(511 downto 0);
+    slvBlockInput_512   : in  std_logic_vector(511 downto 0) := X"00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380"; --"abc" string see fips documentation
 	slvChanInput        : in  std_logic_vector(3 downto 0);
 	slReadyInput        : in  std_logic;
 	slValidOutput       : out std_logic := '0'; -- To the 256 output register 
@@ -128,6 +128,12 @@ architecture Behavioral of BMC is
 
   signal CalcCounter : natural := 0;
   
+  -- Pivot "state variable" of the manager  state machine
+  -- 00 -> IDLING
+  -- 01 -> CALCULATING
+  -- 11 -> PUBLISHING
+  signal seSlaveState : std_logic_vector(1 downto 0) := "00"; -- Start in "IDLING"
+  
 begin
   -- Avalon bus addressing
   
@@ -211,47 +217,56 @@ begin
   begin
     if rising_edge(slClkInput) then
         -- Manage receiving part
-        if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
-		      -- Update hash
-		      q_hash <= hash;
-		      
-		      -- Update registers
-		      q_a <= a;
-		      q_b <= b;
-		      q_c <= c;
-		      q_d <= d;
-		      q_e <= e;
-		      q_f <= f;
-		      q_g <= g;
-		      q_h <= h;
-		      
-		      CalcCounter <= CalcCounter + 1;
-		      
-		      if (CalcCounter = 64) then
-		          CalcCounter <= 0;
-		          slReadyOutput <= '0';
-	              slValidOutput <= '1';
-	          else
-	              -- prevent sending
-	              slValidOutput <= '0';
-	                        
-	          end if;
+        case seSlaveState is
+	        -- STATE : IDLING
+	        when "00" =>
+     	       if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
+	             seSlaveState <= "01";
+	           end if;
+	        -- STATE : CALCULATION ONGOING
+	        when "01" =>
+              -- Update hash
+              q_hash <= hash;
+              
+              -- Update registers
+              q_a <= a;
+              q_b <= b;
+              q_c <= c;
+              q_d <= d;
+              q_e <= e;
+              q_f <= f;
+              q_g <= g;
+              q_h <= h;
+              
+              CalcCounter <= CalcCounter + 1;
+              
+              if (CalcCounter = 64) then
+                  CalcCounter <= 0;
+                  slReadyOutput <= '0';
+                  slValidOutput <= '1';
+                  seSlaveState <= "10"; --Transition to publishing state
+              else
+                  -- prevent sending
+                  slValidOutput <= '0';
+                            
+              end if;
 	
-        end if;
+            -- STATE : CALCULATION ONGOING
+            when "10" =>
+                -- Give a chance for the reader of the result to read.
+                seSlaveState <= "00"; --Transition to IDLE
+                
+	        -- STATE : reserved	        
+	        when others =>
+                seSlaveState <= "00"; --Transition to IDLE
+        end case;        
 
-	    --if (slResetInput ='1' ) then
+	    if (slResetInput ='1' ) then
             -- Reset output signals
-	    --  slValidOutput <= '0';
-	    --  slReadyOutput <= '1'; -- Always be ready
-	    --  slvDigestOutput_256 <= (others=>'0');
-	    --  CalcCounter <= 0;
-	    --end if ;
-        
-        -- Manage transmiting part
-        if (slReadyInput = '1') then
-            -- sending
-            slValidOutput <= '1';
-        end if;
+	      slValidOutput <= '0';
+	      slReadyOutput <= '1'; -- Always be ready
+	      CalcCounter <= 0;
+	    end if ;       
         
     end if;
   end process;

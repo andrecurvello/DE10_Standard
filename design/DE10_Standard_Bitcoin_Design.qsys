@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "13";
+         value = "11";
          type = "int";
       }
    }
@@ -21,8 +21,13 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "9";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element DE10_Standard_Bitcoin_Design
@@ -221,7 +226,7 @@
    {
       datum _sortIndex
       {
-         value = "8";
+         value = "7";
          type = "int";
       }
    }
@@ -237,7 +242,7 @@
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "10";
          type = "int";
       }
    }
@@ -245,7 +250,7 @@
    {
       datum _sortIndex
       {
-         value = "9";
+         value = "8";
          type = "int";
       }
    }
@@ -315,22 +320,6 @@
       datum _sortIndex
       {
          value = "3";
-         type = "int";
-      }
-   }
-   element mm_bridge_0
-   {
-      datum _sortIndex
-      {
-         value = "7";
-         type = "int";
-      }
-   }
-   element mm_bridge_1
-   {
-      datum _sortIndex
-      {
-         value = "10";
          type = "int";
       }
    }
@@ -1035,42 +1024,6 @@
   <parameter name="USE_PLI" value="0" />
  </module>
  <module
-   name="mm_bridge_0"
-   kind="altera_avalon_mm_bridge"
-   version="17.0"
-   enabled="1">
-  <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
-  <parameter name="ADDRESS_WIDTH" value="10" />
-  <parameter name="DATA_WIDTH" value="32" />
-  <parameter name="LINEWRAPBURSTS" value="0" />
-  <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="MAX_PENDING_RESPONSES" value="4" />
-  <parameter name="PIPELINE_COMMAND" value="1" />
-  <parameter name="PIPELINE_RESPONSE" value="1" />
-  <parameter name="SYMBOL_WIDTH" value="8" />
-  <parameter name="SYSINFO_ADDR_WIDTH" value="18" />
-  <parameter name="USE_AUTO_ADDRESS_WIDTH" value="1" />
-  <parameter name="USE_RESPONSE" value="0" />
- </module>
- <module
-   name="mm_bridge_1"
-   kind="altera_avalon_mm_bridge"
-   version="17.0"
-   enabled="1">
-  <parameter name="ADDRESS_UNITS" value="SYMBOLS" />
-  <parameter name="ADDRESS_WIDTH" value="10" />
-  <parameter name="DATA_WIDTH" value="128" />
-  <parameter name="LINEWRAPBURSTS" value="0" />
-  <parameter name="MAX_BURST_SIZE" value="1" />
-  <parameter name="MAX_PENDING_RESPONSES" value="4" />
-  <parameter name="PIPELINE_COMMAND" value="1" />
-  <parameter name="PIPELINE_RESPONSE" value="1" />
-  <parameter name="SYMBOL_WIDTH" value="8" />
-  <parameter name="SYSINFO_ADDR_WIDTH" value="11" />
-  <parameter name="USE_AUTO_ADDRESS_WIDTH" value="1" />
-  <parameter name="USE_RESPONSE" value="0" />
- </module>
- <module
    name="sysid_qsys"
    kind="altera_avalon_sysid_qsys"
    version="17.0"
@@ -1081,33 +1034,6 @@
    kind="avalon"
    version="17.0"
    start="hps_0.h2f_axi_master"
-   end="mm_bridge_1.s0">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="hps_0.h2f_lw_axi_master"
-   end="mm_bridge_0.s0">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_0.m0"
-   end="ILC.avalon_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00030000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="17.0"
-   start="mm_bridge_1.m0"
    end="BMM_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
@@ -1116,7 +1042,7 @@
  <connection
    kind="avalon"
    version="17.0"
-   start="mm_bridge_1.m0"
+   start="hps_0.h2f_axi_master"
    end="Register_256_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0400" />
@@ -1125,16 +1051,16 @@
  <connection
    kind="avalon"
    version="17.0"
-   start="mm_bridge_0.m0"
-   end="sysid_qsys.control_slave">
+   start="hps_0.h2f_lw_axi_master"
+   end="ILC.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00010000" />
+  <parameter name="baseAddress" value="0x00030000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
    kind="avalon"
    version="17.0"
-   start="mm_bridge_0.m0"
+   start="hps_0.h2f_lw_axi_master"
    end="button_pio.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x000100c0" />
@@ -1143,7 +1069,7 @@
  <connection
    kind="avalon"
    version="17.0"
-   start="mm_bridge_0.m0"
+   start="hps_0.h2f_lw_axi_master"
    end="SEG7_0.slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
@@ -1222,8 +1148,6 @@
    version="17.0"
    start="clk_0.clk"
    end="f2sdram_only_master.clk" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="mm_bridge_0.clk" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="mm_bridge_1.clk" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="SEG7_0.clock_sink" />
  <connection kind="clock" version="17.0" start="clk_0.clk" end="BMM_0.clock_sink" />
  <connection
@@ -1287,16 +1211,6 @@
    version="17.0"
    start="clk_0.clk_reset"
    end="button_pio.reset" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="mm_bridge_0.reset" />
- <connection
-   kind="reset"
-   version="17.0"
-   start="clk_0.clk_reset"
-   end="mm_bridge_1.reset" />
  <connection kind="reset" version="17.0" start="clk_0.clk_reset" end="ILC.reset_n" />
  <connection
    kind="reset"
