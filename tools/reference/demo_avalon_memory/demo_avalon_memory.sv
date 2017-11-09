@@ -111,7 +111,7 @@ module demo_avalon_memory (
         print(VERBOSITY_INFO, message);            
         $sformat(message, "%m: -   $Revision: #1 $");
         print(VERBOSITY_INFO, message);            
-        $sformat(message, "%m: -   $Date: 2012/09/28 $");
+        $sformat(message, "%m: -   $Date: 2017/10/10 $");
         print(VERBOSITY_INFO, message);
         $sformat(message, "%m: -   AV_ADDRESS_W=%0d", AV_ADDRESS_W);
         print(VERBOSITY_INFO, message);      
@@ -176,11 +176,13 @@ module demo_avalon_memory (
                     pibuf     <= 32'h0;
                     picnt     <= 4'h8;
                     aso_valid <= 1'b0;
-                    sgrantq   <= 1'b0;
                     scr_din   <= {AV_DATA_W{1'b0}};
                     scr_we    <= {AV_NUMSYMBOLS{1'b0}};
                     scr_wr_addr <= {(AV_ADDRESS_W){1'b0}};
-                    scr_rd_addr <=  {AV_ADDRESS_W{1'b0}};                   
+                    scr_rd_addr <=  {AV_ADDRESS_W{1'b0}};
+                    pgrant    <= 1'b0;
+                    sgrant    <= 1'b0;
+                    sgrantq   <= 1'b0;
                     for (i=0; i<4; i++) fifo[i] <= 32'h0;
                 end
                 else if (~av_run) begin
@@ -191,6 +193,8 @@ module demo_avalon_memory (
                     pibuf      <= 32'h0;
                     picnt      <= 4'h8;
                     aso_valid  <= 1'b0;
+                    pgrant    <= 1'b0;
+                    sgrant    <= 1'b0;
                     sgrantq    <= 1'b0;
                     scr_din    <= {AV_DATA_W{1'b0}};
                     scr_we     <= {AV_NUMSYMBOLS{1'b0}};
@@ -228,8 +232,10 @@ module demo_avalon_memory (
                     if (level < 3'h3) begin
                         sreq  <= 1'b1; //get more words from RAM
                         if (sreq && sgrant) begin
-                            if (saddr < av_stop_add) saddr <= saddr + 1'b1;
-                            else                     saddr <= av_start_add;
+                            if (saddr < av_stop_add)
+                                saddr <= saddr + 1'b1;
+                            else
+                                saddr <= av_start_add;
                         end
                     end
                     if (sreq == 1'b1) begin

@@ -6,7 +6,7 @@ import verbosity_pkg::*;
 parameter TB_ADDR_W         = 16;
 parameter TB_SYMBOL_W       = 8;
 parameter TB_BURSTCOUNT_W   = 8;
-parameter TB_AV_ADDRESS_W   = 2;
+parameter TB_AV_ADDRESS_W   = 16; /* Was 2 before */
 parameter TB_AV_DATA_W      = 32;
 parameter TB_AV_NUMBYTES    = 4;
 parameter TB_ESO            = 1'b1;
@@ -57,8 +57,8 @@ demo_avalon_memory
    );
 
 task av_wrtsk;
-   input  [ 1:0] twaddr;
-   input  [15:0] twdata;
+   input  [TB_AV_ADDRESS_W-1:0] twaddr;
+   input  [TB_AV_DATA_W-1:0] twdata;
    begin
       @(posedge clk)
          av_read   = 1'b0;
@@ -76,7 +76,7 @@ task av_wrtsk;
 endtask         
 
 task av_rdtsk;
-   input  [ 1:0] traddr;
+   input  [TB_AV_ADDRESS_W-1:0] traddr;
    begin
       @(posedge clk)
          av_read   = 1'b1;
@@ -132,22 +132,19 @@ initial begin
 
    #40  rstn  =  1'b1;
 
-   //   command registers
+   /*   Try write     */
         com = "avalon_w"; 
-        av_wrtsk(2'h0, 16'h010a);
+        av_wrtsk(16'h0000, 32'hdead010a);
+   #40  av_wrtsk(16'h0001, 32'hdead010f);
+   #40  av_wrtsk(16'h0002, 32'hdead0001);
 
-   #40  av_wrtsk(2'h1, 16'h010f);
-
-   #40  av_wrtsk(2'h2, 16'h0001);
-
-   //   xr_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0])
-   //   single reads 
+   /*   Try read     */ 
    #100 com = "avalon_r"; 
-        av_rdtsk(2'h0);
-        av_rdtsk(2'h1);
-        av_rdtsk(2'h2);
+        av_rdtsk(16'h0000);
+        av_rdtsk(16'h0001);
+        av_rdtsk(16'h0002);
 
-#10000 $stop;
+   #10000 $stop;
   end
 
 endmodule

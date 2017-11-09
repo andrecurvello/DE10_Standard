@@ -10,30 +10,12 @@ add wave -noupdate -group {av bus} -radix hexadecimal /tb_mem/dut/avs_readdata
 add wave -noupdate -group {av bus} -radix hexadecimal /tb_mem/dut/avs_waitrequest
 add wave -noupdate -group {av bus} -radix hexadecimal /tb_mem/dut/avs_write
 add wave -noupdate -group {av bus} -radix hexadecimal /tb_mem/dut/avs_writedata
-
-add wave -noupdate -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/clk
-add wave -noupdate -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/rd_addr
-add wave -noupdate -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/q
-add wave -noupdate -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/we
-add wave -noupdate -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/wr_addr
-add wave -noupdate -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/d
-
-add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_din
-add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_dout
-add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_rd_addr
-add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_we
-add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_wr_addr
-
-add wave -noupdate /tb_mem/dut/sreq
-add wave -noupdate /tb_mem/dut/pgrant
-add wave -noupdate -radix hexadecimal /tb_mem/dut/aso_data
-add wave -noupdate -radix hexadecimal /tb_mem/dut/aso_valid
-add wave -noupdate -radix hexadecimal /tb_mem/dut/aso_ready
-add wave -noupdate -radix hexadecimal /tb_mem/dut/saddr
-add wave -noupdate -radix hexadecimal /tb_mem/dut/scr_rd_addr
-add wave -noupdate -radix hexadecimal /tb_mem/dut/sgrant
-add wave -noupdate -radix hexadecimal /tb_mem/dut/scr_dout
-
+add wave -noupdate -expand -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/clk
+add wave -noupdate -expand -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/rd_addr
+add wave -noupdate -expand -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/q
+add wave -noupdate -expand -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/we
+add wave -noupdate -expand -group {wdata bus} -group ram_io -radix hexadecimal /tb_mem/dut/sc_ram0/wr_addr
+add wave -noupdate -radix hexadecimal /tb_mem/dut/sc_ram0/d
 add wave -noupdate -group sc_ram -expand -group 0-7 -radix hexadecimal {/tb_mem/dut/sc_ram0/mem[0]}
 add wave -noupdate -group sc_ram -expand -group 0-7 -radix hexadecimal {/tb_mem/dut/sc_ram0/mem[1]}
 add wave -noupdate -group sc_ram -expand -group 0-7 -radix hexadecimal {/tb_mem/dut/sc_ram0/mem[2]}
@@ -70,7 +52,25 @@ add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tb_
 add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tb_mem/dut/sc_ram0/mem[269]}
 add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tb_mem/dut/sc_ram0/mem[270]}
 add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tb_mem/dut/sc_ram0/mem[271]}
-
+add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_din
+add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_dout
+add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_rd_addr
+add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_we
+add wave -noupdate -group sc_ram -group {ram i/o} -radix hexadecimal /tb_mem/dut/scr_wr_addr
+add wave -noupdate /tb_mem/dut/clk
+add wave -noupdate -radix hexadecimal /tb_mem/dut/aso_data
+add wave -noupdate -radix hexadecimal /tb_mem/dut/aso_valid
+add wave -noupdate -radix hexadecimal /tb_mem/dut/aso_ready
+add wave -noupdate /tb_mem/dut/sreq
+add wave -noupdate -radix hexadecimal /tb_mem/dut/saddr
+add wave -noupdate /tb_mem/dut/pgrant
+add wave -noupdate -radix hexadecimal /tb_mem/dut/scr_rd_addr
+add wave -noupdate -radix hexadecimal /tb_mem/dut/sgrant
+add wave -noupdate -radix hexadecimal /tb_mem/dut/scr_dout
+add wave -noupdate /tb_mem/dut/clk
+add wave -noupdate /tb_mem/dut/reset_n
+add wave -noupdate -radix hexadecimal /tb_mem/dut/sc_ram0/d
+add wave -noupdate /tb_mem/dut/clk
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {2248420 ps} 0} {{Cursor 2} {1100978 ps} 0}
 configure wave -namecolwidth 225
