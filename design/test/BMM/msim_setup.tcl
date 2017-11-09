@@ -221,10 +221,11 @@ alias dev_com {
 # Compile the design files in correct order
 alias com {
   echo "\[exec\] com"
-  eval  vlog -sv -mixedsvvh $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/verbosity_pkg.sv"                                                         -work altera_common_sv_packages
-  eval  vlog -sv -mixedsvvh $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/avalon_mm_pkg.sv"                                                         -work altera_common_sv_packages
-  eval  vlog -sv -mixedsvvh $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/avalon_utilities_pkg.sv"                                                  -work altera_common_sv_packages
 
+  eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/verbosity_pkg.sv"                     -work altera_common_sv_packages
+  eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/avalon_mm_pkg.sv"                     -work altera_common_sv_packages
+  eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/avalon_utilities_pkg.sv"              -work altera_common_sv_packages
+  
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/altera_avalon_mm_master_bfm.sv"              -L altera_common_sv_packages -work master_0                 
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS "$QSYS_SIMDIR/submodules/altera_avalon_mm_master_bfm_vhdl_wrapper.sv" -L altera_common_sv_packages -work master_0                 
   eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/altera_avalon_mm_master_bfm_vhdl_pkg.vhd"                                 -work master_0                 
@@ -236,16 +237,15 @@ alias com {
   eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/altera_avalon_mm_slave_bfm_vhdl.vhd"                                     -work slave_0
 
   eval  vlog $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0.v"          -work mm_interconnect_0                 
-  eval  vlog $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_avalon_st_adapter.v"          -work mm_interconnect_0                 
+  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_avalon_st_adapter.vhd"          -work mm_interconnect_0                 
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_avalon_st_adapter_error_adapter_0.sv"   -L altera_common_sv_packages       -work mm_interconnect_0                 
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_cmd_demux.sv"   -L altera_common_sv_packages       -work mm_interconnect_0                 
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_cmd_mux.sv"     -L altera_common_sv_packages     -work mm_interconnect_0                 
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_router.sv"     -L altera_common_sv_packages     -work mm_interconnect_0
-  eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_router_001.sv"  -L altera_common_sv_packages        -work mm_interconnect_0                 
+  eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_router_002.sv"  -L altera_common_sv_packages        -work mm_interconnect_0                 
   eval  vlog -sv $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM_test_mm_interconnect_0_rsp_mux.sv"     -L altera_common_sv_packages     -work mm_interconnect_0                 
     
-  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/submodules/BMM.vhd"
-  
+  eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "ip/bitcoin/BMM.vhd"
   eval  vcom $USER_DEFINED_COMPILE_OPTIONS     "$QSYS_SIMDIR/BMM_test.vhd"         
   
 }

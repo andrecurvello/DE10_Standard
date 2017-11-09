@@ -112,12 +112,12 @@
    kind="reset"
    version="17.0"
    start="clk.clk_reset"
-   end="BMM_0.reset_sink" />
+   end="mgc_axi_master_0.reset_sink" />
  <connection
    kind="reset"
    version="17.0"
    start="clk.clk_reset"
-   end="mgc_axi_master_0.reset_sink" />
+   end="BMM_0.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
