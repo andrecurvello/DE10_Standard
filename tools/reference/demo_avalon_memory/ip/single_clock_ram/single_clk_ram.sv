@@ -1,5 +1,7 @@
-// create a RAM module, that quartus can work with easily
-// see Recommended HDL Coding Styles
+/*
+** create a RAM module, that quartus can work with easily
+** see Recommended HDL Coding Styles
+*/
 module single_clk_ram
 #(parameter ADDW = 16,
             DATW = 32
@@ -21,6 +23,9 @@ module single_clk_ram
 // mem[0] [3] refers to byte 3 at address 0 - 8'h fe
    logic   [DATW/8-1:0] [7:0] mem [DEEP];
    logic   [7:0] writelane[DATW/8];
+   
+   /* Initialize the array */
+   
    generate
       genvar i;
       for (i=0; i<DATW/8; i++) begin: A
