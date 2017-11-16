@@ -48,7 +48,7 @@ demo_avalon_memory
      .ENABLE_PIPELINING (TB_AV_PIPELINE_EN)
    ) dut(
       .clk              (clk),  
-      .reset_n           (rstn),
+      .reset_n           (~rstn),
 
       /* Avalon write address bus */
  	  .avs_write             (avs_write),
@@ -64,8 +64,7 @@ demo_avalon_memory
 /* -----------------------------------------------------------------------------
 **                          Avalon master BFM                                 **
 ** -------------------------------------------------------------------------- */
-   
-   altera_avalon_mm_master_bfm 
+   altera_avalon_mm_master_bfm
        #(.AV_ADDRESS_W             (TB_AV_ADDRESS_W),
          .AV_SYMBOL_W              (TB_SYMBOL_W),
          .AV_NUMSYMBOLS            (TB_AV_NUMBYTES),
@@ -79,7 +78,7 @@ demo_avalon_memory
          .USE_WRITE_DATA           (1),  
          .USE_BEGIN_TRANSFER       (0),  
          .USE_BEGIN_BURST_TRANSFER (0),  
-         .USE_WAIT_REQUEST         (1)         
+         .USE_WAIT_REQUEST         (1)
          
        ) avalon_master_bfm(
            .clk              (clk),  
@@ -122,10 +121,42 @@ initial begin
 end
 initial begin
    set_verbosity(VERBOSITY_DEBUG); // set console verbosity level
+   /* Disable clock so far */
+   #100 rstn  =  1'b1;
+   #120 rstn  =  1'b0;
+   
+   #40 com = avalon_master_bfm.get_version();
+   /* Now let us enable the clock */
+   
+   /* Write to RAM */
+   #10 avalon_master_bfm.set_command_address( 16'h0003 );
+       avalon_master_bfm.set_command_byte_enable( 64'hFFFFFFFFFFFFFFFF, 0 );
+       avalon_master_bfm.set_command_data( 512'h00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380, 0 );
+       avalon_master_bfm.set_command_request( REQ_WRITE );
+       avalon_master_bfm.set_command_timeout( 5 );
+       avalon_master_bfm.push_command();
 
-   com = avalon_master_bfm.get_version();
+   #40 avalon_master_bfm.set_command_address( 16'h0007 );
+       avalon_master_bfm.set_command_byte_enable( 64'hFFFFFFFFFFFFFFFF, 0 );
+       avalon_master_bfm.set_command_data( 512'h00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380, 0 );
+       avalon_master_bfm.set_command_request( REQ_WRITE );
+       avalon_master_bfm.set_command_timeout( 5 );
+       avalon_master_bfm.push_command();
 
-   #10000 $stop;
+   #40 avalon_master_bfm.set_command_address( 16'h0101 );
+       avalon_master_bfm.set_command_byte_enable( 64'hFFFFFFFFFFFFFFFF, 0 );
+       avalon_master_bfm.set_command_data( 512'h00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380, 0 );
+       avalon_master_bfm.set_command_request( REQ_WRITE );
+       avalon_master_bfm.set_command_timeout( 5 );
+       avalon_master_bfm.push_command();
+       
+   /* Read from RAM */
+   #40 avalon_master_bfm.set_command_address( 16'h0003 );
+       avalon_master_bfm.set_command_request( REQ_READ );
+       avalon_master_bfm.set_command_timeout( 5 );
+       avalon_master_bfm.push_command();
+       
+   #3000 $stop;
   end
 
 endmodule

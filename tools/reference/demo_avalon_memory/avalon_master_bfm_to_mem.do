@@ -64,7 +64,7 @@ add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tb_
 add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tb_avalon_master_bfm_to_mem/dut/sc_ram0/mem[271]}
 
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2248420 ps} 0} {{Cursor 2} {1100978 ps} 0}
+WaveRestoreCursors {{Cursor 1} {100 ns} 0} {{Cursor 2} {110 ns} 0}
 configure wave -namecolwidth 225
 configure wave -valuecolwidth 81
 configure wave -justifyvalue left
@@ -79,4 +79,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {2078530 ps} {2293927 ps}
+WaveRestoreZoom {0 ns} {500 ns}
