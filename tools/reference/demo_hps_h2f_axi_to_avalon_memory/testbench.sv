@@ -52,8 +52,6 @@ module testbench ();
     reg           arvalid;
     wire          arready;
 
-
-
     wire  [TB_ID_W-1:0]  rid;
     wire  [TB_AXI_DW-1:0]  rdata, xrdata;
     wire  [ 1:0]  rresp;
@@ -76,7 +74,10 @@ module testbench ();
     wire          mm_interconnect_0_mm_slave_bfm_0_s0_write;         /* mm_interconnect_0:mm_slave_bfm_0_s0_write -> mm_slave_bfm_0:avs_write */
     /* 512 bits transfers in the Avalon domain */
     wire  [511:0] mm_interconnect_0_mm_slave_bfm_0_s0_writedata;     /* mm_interconnect_0:mm_slave_bfm_0_s0_writedata -> mm_slave_bfm_0:avs_writedata */
-    
+
+/* -----------------------------------------------------------------------------
+**                                SUB-COMPONENTS                              **
+** -------------------------------------------------------------------------- */
     HPS_h2f_axi_sim_hps_0 
         #(  .F2S_Width (0),
             .S2F_Width (3)
@@ -230,7 +231,10 @@ module testbench ();
             .avs_byteenable           (mm_interconnect_0_mm_slave_bfm_0_s0_byteenable),    //          .byteenable
             .avs_readdatavalid        (mm_interconnect_0_mm_slave_bfm_0_s0_readdatavalid)  //          .readdatavalid - For Pipelined memory access
         );
-    
+
+/* -----------------------------------------------------------------------------
+**                             Method definitions                             **
+** -------------------------------------------------------------------------- */
     task xw_addr;
         input  [TB_ID_W-1:0] id;
         input  [TB_AXI_ADDRESS_W-1:0] addr;
@@ -375,6 +379,10 @@ module testbench ();
     reg  [2:0]  dcnt;
     reg  [2:0]  cval;
     reg         always_rready;
+    
+/* -----------------------------------------------------------------------------
+**                             PROCEDURAL BLOCKs                              **
+** -------------------------------------------------------------------------- */
     always @ (posedge clk or negedge rstn) begin
         if (~rstn) rready = 1'b0;
         else if (rvalid && (~rready || (cval == 2'h0))) begin
@@ -438,7 +446,7 @@ module testbench ();
 
         #40  rstn  =  1'b1;
         
-        /* try a fast burst write of 8 */
+        /* try a fast burst write of 128 */
         #40 com = "bw8";
             xw_addr(4'h3, `BASEADD + 8'h0, 4'h7, 3'h2);
             xw_burst(4'h3, 32'hbaad_0000, 4'hf, 4'h7, 8'h1);
@@ -525,3 +533,254 @@ module testbench ();
     end
 endmodule
 
+/* 
+    This is a simple example of an AXI master. 
+
+    This master performs a directed test, initiating 4 sequential writes, followed by 4 sequential reads. It then verifies that the data read out matches the data written.
+    For the sake of simplicity, only one data cycle is used (default AXI burst length encoding 0).
+
+    It then initiates two write data bursts followed by two read data bursts.
+
+ */
+/*import mgc_axi_pkg::*;*/
+/*
+`define top        HPS_h2f_axi_sim_tb
+`define hps_if     HPS_h2f_axi_sim_tb.hps_h2f_axi_sim_inst.hps_0.fpga_interfaces.h2f_axi_master_inst  
+`define hps_if_rst HPS_h2f_axi_sim_tb.hps_h2f_axi_sim_inst.hps_0.fpga_interfaces.h2f_reset_inst
+*/
+module master_test_program #( int AXI_ADDRESS_WIDTH = 32,
+                              int AXI_RDATA_WIDTH = 1024,
+                              int AXI_WDATA_WIDTH = 1024,
+                              int AXI_ID_WIDTH = 18) (
+        );
+
+
+    //import verbosity_pkg::*;
+    //import mgc_axi_pkg::*;
+
+    axi_transaction trans; 
+   
+    initial
+    begin
+        /******************
+         ** Configuration **
+         ******************/
+        begin
+            `hps_if.set_config(AXI_CONFIG_MAX_TRANSACTION_TIME_FACTOR, 10000);        
+        end
+        $readmemh ("mem_init.txt", `top.hps_h2f_axi_sim_inst.demo_axi_memory_0.sc_ram0.mem); 
+        `hps_if_rst.reset_assert();
+        wait (`top.hps_h2f_axi_sim_inst_reset_bfm_reset_reset == 1);
+        `hps_if_rst.reset_deassert();
+
+        /*******************
+         ** Initialisation **
+         *******************/
+        `hps_if.wait_on(AXI_RESET_POSEDGE);
+        `hps_if.wait_on(AXI_CLOCK_POSEDGE);
+
+        /************************
+         ** Traffic generation: **
+         ************************/    
+        // 4 x Writes
+        // Write data value 1 on byte lanes 1 to address 1.
+        trans = `hps_if.create_write_transaction(30'h1000);
+        trans.set_data_words(32'h0000_0100, 0);
+        trans.set_write_strobes(4'b0010, 0);
+        trans.set_id(1);
+        $display ( "@ %t, master_test_program: Writing data (1) to address (1)", $time);    
+
+        // By default it will run in Blocking mode 
+        //`hps_if.execute_transaction(trans); 
+        `hps_if.execute_write_addr_phase(trans);
+        `hps_if.execute_write_data_burst(trans);
+        `hps_if.get_write_response_phase(trans);
+    
+        // Write data value 2 on byte lane 2 to address 2.
+        trans = `hps_if.create_write_transaction(2);
+        trans.set_data_words(32'h0002_0000, 0);
+        trans.set_write_strobes(4'b0100, 0);
+        trans.set_id(2);
+        //trans.set_write_data_mode(AXI_DATA_WITH_ADDRESS);
+        $display ( "@ %t, master_test_program: Writing data (2) to address (2)", $time);        
+
+        `hps_if.execute_transaction(trans);
+
+        // Write data value 3 on byte lane 3 to address 3.
+        trans = `hps_if.create_write_transaction(3);
+        trans.set_data_words(32'h0300_0000, 0);
+        trans.set_write_strobes(4'b1000, 0);
+        trans.set_id(3);
+        $display ( "@ %t, master_test_program: Writing data (3) to address (3)", $time);        
+
+        `hps_if.execute_transaction(trans);
+    
+        // Write data value 4 to address 4 on byte lane 0.
+        trans = `hps_if.create_write_transaction(4);
+        trans.set_data_words(32'h0000_0004, 0);
+        trans.set_write_strobes(4'b0001, 0);
+        trans.set_id(4);
+        //trans.set_write_data_mode(AXI_DATA_WITH_ADDRESS);
+        $display ( "@ %t, master_test_program: Writing data (4) to address (4)", $time);        
+
+        `hps_if.execute_transaction(trans);
+
+        // 4 x Reads
+        // Read data from address 1.
+        trans = `hps_if.create_read_transaction(30'h1000);
+        trans.set_size(AXI_BYTES_1);
+        trans.set_id(1);
+
+        `hps_if.execute_transaction(trans);
+        if (trans.get_data_words(0) == 32'h0000_0100)
+            $display ( "@ %t, master_test_program: Read correct data (1) at address (1)", $time);
+        else
+            $display ( "@ %t master_test_program: Error: Expected data (1) at address 1, but got %d", $time, trans.get_data_words(0));
+
+        // Read data from address 2.
+        trans = `hps_if.create_read_transaction(30'h0002);
+        trans.set_size(AXI_BYTES_1);
+        trans.set_id(2);
+
+        `hps_if.execute_transaction(trans);
+        if (trans.get_data_words(0) == 32'h0002_0000)
+            $display ( "@ %t, master_test_program: Read correct data (2) at address (2)", $time);
+        else
+            $display ( "@ %t master_test_program: Error: Expected data (2) at address 2, but got %d", $time, trans.get_data_words(0));
+
+        // Read data from address 3.
+        trans = `hps_if.create_read_transaction(30'h0003);
+        trans.set_size(AXI_BYTES_1);
+        trans.set_id(3);
+
+        `hps_if.execute_transaction(trans);
+        if (trans.get_data_words(0) == 32'h0300_0000)
+            $display ( "@ %t, master_test_program: Read correct data (3) at address (3)", $time);
+        else
+            $display ( "@ %t master_test_program: Error: Expected data (3) at address 3, but got %d", $time, trans.get_data_words(0));
+
+        // Read data from address 4.
+        trans = `hps_if.create_read_transaction(30'h0004);
+        trans.set_size(AXI_BYTES_1);
+        trans.set_id(4);
+
+        `hps_if.execute_transaction(trans);
+        if (trans.get_data_words(0) == 32'h0000_0004)
+            $display ( "@ %t, master_test_program: Read correct data (4) at address (4)", $time);
+        else
+            $display ( "@ %t master_test_program: Error: Expected data (4) at address 4, but got %d", $time, trans.get_data_words(0));
+
+        // Write data burst length of 7 to start address 16.
+        trans = `hps_if.create_write_transaction(16, 7);
+
+        trans.set_data_words('hACE0ACE1, 0);
+        trans.set_data_words('hACE2ACE3, 1);
+        trans.set_data_words('hACE4ACE5, 2);
+        trans.set_data_words('hACE6ACE7, 3);
+        trans.set_data_words('hACE8ACE9, 4);
+        trans.set_data_words('hACEAACEB, 5);
+        trans.set_data_words('hACECACED, 6);
+        trans.set_data_words('hACEEACEF, 7);
+        for(int i=0; i<8; i++)
+            trans.set_write_strobes(4'b1111, i);
+
+        //trans.set_write_data_mode(AXI_DATA_WITH_ADDRESS);
+        $display ( "@ %t, master_test_program: Writing data burst of length 7 to start address 16", $time);
+
+        `hps_if.execute_transaction(trans);
+
+        // Write data burst of length 7 to start address 128 with LSB write strobe inactive.
+        trans = `hps_if.create_write_transaction(128, 7);
+        trans.set_data_words('hACE0ACE1, 0);
+        trans.set_data_words('hACE2ACE3, 1);
+        trans.set_data_words('h12348765, 2);
+        trans.set_data_words('hA1B2C3D4, 3);
+        trans.set_data_words('hACE8ACE9, 4);
+        trans.set_data_words('hACEAACEB, 5);
+        trans.set_data_words('hACECACED, 6);
+        trans.set_data_words('hACEEACEF, 7);
+
+        trans.set_write_strobes(4'b1110, 0);
+        trans.set_write_strobes(4'b1101, 1);
+        for(int i=2; i<8; i++)
+            trans.set_write_strobes(4'b1111, i);
+        $display ( "@ %t, master_test_program: Writing data burst of length 7 to start address 128", $time);
+
+        `hps_if.execute_transaction(trans);
+
+
+        // Read data burst of length 8 from address 16.
+        $display ( "@ %t, master_test_program: Read data burst of length 8 starting at address 16", $time);
+        trans = `hps_if.create_read_transaction(16, 7);
+        //trans.set_size(AXI_BYTES_1);
+
+        `hps_if.execute_transaction(trans);
+        if (trans.get_data_words(0) == 'hACE0ACE1)
+            $display ( "@ %t, master_test_program: Read correct data (hACE0ACE1) at address (16)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE0ACE1) at address (16), but got %h", $time, trans.get_data_words(0));
+
+        if (trans.get_data_words(1) == 'hACE2ACE3)
+            $display ( "@ %t, master_test_program: Read correct data (hACE2ACE3) at address (17)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE2ACE3) at address (17), but got %h", $time, trans.get_data_words(1));
+
+        if (trans.get_data_words(2) == 'hACE4ACE5)
+            $display ( "@ %t, master_test_program: Read correct data (hACE4ACE5) at address (18)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE4ACE5) at address (18), but got %h", $time, trans.get_data_words(2));
+
+        if (trans.get_data_words(3) == 'hACE6ACE7)
+            $display ( "@ %t, master_test_program: Read correct data (hACE6ACE7) at address (19)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE6ACE7) at address (19), but got %h", $time, trans.get_data_words(3));
+
+        if (trans.get_data_words(4) == 'hACE8ACE9)
+            $display ( "@ %t, master_test_program: Read correct data (hACE8ACE9) at address (20)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE8ACE9) at address (20), but got %h", $time, trans.get_data_words(4));
+
+        if (trans.get_data_words(5) == 'hACEAACEB)
+            $display ( "@ %t, master_test_program: Read correct data (hACEAACEB) at address (21)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACEAACEB) at address (21), but got %h", $time, trans.get_data_words(5));
+
+        if (trans.get_data_words(6) == 'hACECACED)
+            $display ( "@ %t, master_test_program: Read correct data (hACECACED) at address (22)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACECACED) at address (22), but got %h", $time, trans.get_data_words(6));
+
+        if (trans.get_data_words(7) == 'hACEEACEF)
+            $display ( "@ %t, master_test_program: Read correct data (hACEEACEF) at address (23)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACEEACEF) at address (23), but got %h", $time, trans.get_data_words(7));
+
+
+        // Read data burst of length 4 from address 128.
+        $display ( "@ %t, master_test_program: Read data burst of length 4 starting at address 128", $time);
+        trans = `hps_if.create_read_transaction(128, 3);
+        //trans.set_size(AXI_BYTES_4);
+
+        `hps_if.execute_transaction(trans);
+        if (trans.get_data_words(0) === 'hACE0AC00)
+            $display ( "@ %t, master_test_program: Read correct data (hACE0AC00) at address (128)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE0AC00) at address (128), but got %h", $time, trans.get_data_words(0));
+
+        if (trans.get_data_words(1) === 'hACE200E3)
+            $display ( "@ %t, master_test_program: Read correct data (hACE20003) at address (129)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hACE200E3) at address (129), but got %h", $time, trans.get_data_words(1));
+
+        if (trans.get_data_words(2) === 'h12348765)
+            $display ( "@ %t, master_test_program: Read correct data (h12348765) at address (130)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (h12348765) at address (130), but got %h", $time, trans.get_data_words(2));
+
+        if (trans.get_data_words(3) === 'hA1B2C3D4)
+            $display ( "@ %t, master_test_program: Read correct data (hA1B2C3D4) at address (131)", $time);
+        else
+            $display ( "@ %t, master_test_program: Error: Expected data (hA1B2C3D4) at address (131), but got %h", $time, trans.get_data_words(3));
+
+    end
+endmodule

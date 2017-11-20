@@ -430,106 +430,92 @@ initial begin
    av_wdata      =  0;
 
 
-   #40  rstn  =  1'b1;
-   /* try a fast burst write of 8 */
-   /*#40  com = "bw8";
+    #40  rstn  =  1'b1;
+    
+    /* try a fast burst write of 128 */
+    #40 com = "bw8";
         xw_addr(4'h3, `BASEADD + 8'h0, 4'h7, 3'h2);
-        xw_burst(4'h3, 32'hbaad_0000, 4'hf, 4'h7, 8'h1); */
+        xw_burst(4'h3, 32'hbaad_0000, 4'hf, 4'h7, 8'h1);
 
-   // do a single write to addr 53 (83 dec)
-   //   xw_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0]) 
-   //#40  com = "sw";
-   //   xw_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0]) 
-   //     xw_addr(4'h1,  `BASEADD + 8'h53,     4'h0,      3'h2);
-   //   xw_data(twid[3:0], twdata[31:0], twstrb[3:0], twlast)
-   //    xw_data(4'h1,     32'hbabe_0007,   4'hf,       1'b1);
+    /* do a single write to addr 53 (83 dec)
+       xw_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0]) */ 
+    #40 com = "sw";
+        /*   xw_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0]) */ 
+        xw_addr(4'h1,  `BASEADD + 8'h53,     4'h0,      3'h2);
+        /*   xw_data(twid[3:0], twdata[31:0], twstrb[3:0], twlast) */
+        xw_data(4'h1,     32'hbabe_0007,   4'hf,       1'b1);
 
-   /*     com = "wd"; */
-   //   do a xw_data for which no valid address is stored
-   /*     xw_data(4'h7, 32'hbabe_1394, 4'hf, 1'b1); */
-   //   then follow up with the address
-   /* #40  com = "wa";
-        xw_addr( 4'h7, `BASEADD + 12'h50, 4'h0, 3'h2); */
+        com = "wd";
+    /* do a xw_data for which no valid address is stored */
+        xw_data(4'h7, 32'hbabe_1394, 4'hf, 1'b1);
+    /*   then follow up with the address */
+    #40 com = "wa";
+        xw_addr( 4'h7, `BASEADD + 12'h50, 4'h0, 3'h2);
 
-   //try a slow burst write of 4
-   /*#40  com = "slobw4";  
-        xw_addr(4'h3, `BASEADD + 12'h40, 4'h3, 3'h2); */
-   //   xw_data(twid[3:0], twdata[31:0], twstrb[3:0], twlast)
-   /*     xw_data(4'h3, 32'h1cee_0000, 4'hf, 1'b0);
+    /* try a slow burst write of 4 */
+    #40 com = "slobw4";  
+        xw_addr(4'h3, `BASEADD + 12'h40, 4'h3, 3'h2);
+        /*  xw_data(twid[3:0], twdata[31:0], twstrb[3:0], twlast) */
+        xw_data(4'h3, 32'h1cee_0000, 4'hf, 1'b0);
         xw_data(4'h3, 32'h1cee_0001, 4'hf, 1'b0);
         xw_data(4'h3, 32'h1cee_0002, 4'hf, 1'b0);
-        xw_data(4'h3, 32'h1cee_0003, 4'hf, 1'b1); */
+        xw_data(4'h3, 32'h1cee_0003, 4'hf, 1'b1);
 
-   //try a fast burst write of 16
-   /* #40  com = "bw16";  
+    //try a fast burst write of 16
+    #40 com = "bw16";  
         xw_addr(4'h3, `BASEADD + 12'h100, 4'hf, 3'h2);
-        xw_burst(4'h3, 32'hbabe_9900, 4'hf, 4'hf, 8'h11); */
- 
-   //try a fast burst write of 4
-   /* #100  com = "bw4"; 
+        xw_burst(4'h3, 32'hbabe_9900, 4'hf, 4'hf, 8'h11);
+
+    //try a fast burst write of 4
+    #100 com = "bw4"; 
         xw_addr(4'h7, `BASEADD + 12'h30, 4'h3, 3'h2);
-        xw_burst(4'h7, 32'h1c0d_0000, 4'hf, 4'h3, 8'h08); */
+        xw_burst(4'h7, 32'h1c0d_0000, 4'hf, 4'h3, 8'h08);
 
-   //   xr_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0])
-   //   single read
-   /* #50  com = "sr"; 
-        xr_addr(4'h2,     `BASEADD + 12'h30,     4'h0,       3'h2); */
+    // xr_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0])
+    // single read
+    #50  com = "sr"; 
+         xr_addr(4'h2,     `BASEADD + 12'h30,     4'h0,       3'h2);
 
-   //   burst read of 5
-   /* #50  com = "br5"; 
-        xr_addr(4'h3,     `BASEADD + 12'h00,     4'h4,       3'h2); */
-   //   burst read of 4
-   /* #10  com = "br4"; 
-        xr_addr(4'h9,     `BASEADD + 12'h30,     4'h3,       3'h2); */
+    /*   burst read of 5 */
+    #50  com = "br5"; 
+         xr_addr(4'h3,     `BASEADD + 12'h00,     4'h4,       3'h2);
+         
+    /*   burst read of 4 */
+    #10  com = "br4"; 
+         xr_addr(4'h9,     `BASEADD + 12'h30,     4'h3,       3'h2);
 
-   /* #100 always_rready = 1'b1; */
-   //   burst read of 5 with rready always asserted
-   /* #50  com = "br5_ar"; 
-        xr_addr(4'h3,     `BASEADD + 12'h00,     4'h4,       3'h2); 
-   #100 always_rready = 1'b0; */
-
-   //   burst read of 4
-   /* #10  com = "br4"; 
-        xr_addr(4'h9,     `BASEADD + 12'h30,     4'h3,       3'h2); */
-
-   /* #200 cval = 2'h1; //slowish burst read (delay rready)
-        com = "slobr4"; 
-        xr_addr(4'h9,     `BASEADD + 12'h30,     4'h3,       3'h2);
-   #100 */
-
-   //   command registers
-        com = "avwr"; 
-        av_wrtsk(2'h0, 16'h010a);
-
-   #40  av_wrtsk(2'h1, 16'h010f);
-
-   #40  av_wrtsk(2'h2, 16'h0001);
-   //   xr_addr(aid[3:0], addr[11:0], alen[3:0], asiz[2:0])
-   //   single reads 
-   #100 com = "avrd"; 
-        av_rdtsk(2'h0);
-        av_rdtsk(2'h1);
-        av_rdtsk(2'h2);
+    #100 always_rready = 1'b1;
+    /*   burst read of 5 with rready always asserted */
+    #50  com = "br5_ar";
+         xr_addr(4'h3,     `BASEADD + 12'h00,     4'h4,       3'h2);
         
-//   burst read of 16 
-//        cval = 2'h0; //fast rready
-/*   #100 com = "br16"; 
-        xr_addr(4'h3,     `BASEADD + 12'h100,     4'hf,       3'h2);
-*/
-//try a narrow burst write of 8
-/*   #200  com = "bnw8_2";
-        xw_addr(4'h3, `BASEADD + 8'h8, 4'h7, 3'h2);
-        xw_burst(4'h3, 32'h1111_1111, 4'h1, 4'h7, 32'h4321_1111);
-*/
-//try a burst, 1st transfer only 3 bytes, 4 on last 3 xfers
-/*   #200  com = "mbw4_3";
-        xw_addr(4'h3, `BASEADD + 8'h40, 4'h3, 3'h2);
-        more_burst(4'h3, 32'hbebe_8420, 4'he, 4'h3, 32'h0000_1111);
-*/
-#500 $stop;
+    #100 always_rready = 1'b0;
+
+    /* burst read of 4 */
+    #10  com = "br4"; 
+         xr_addr(4'h9,     `BASEADD + 12'h30,     4'h3,       3'h2);
+
+    #200 cval = 2'h1; //slowish burst read (delay rready)
+         com = "slobr4"; 
+         xr_addr(4'h9,     `BASEADD + 12'h30,     4'h3,       3'h2);
+    
+    #100 
+    //   burst read of 16 
+        cval = 2'h0; //fast rready
+    #100  com = "br16";
+          xr_addr(4'h3,     `BASEADD + 12'h100,     4'hf,       3'h2);
+    
+    /* try a narrow burst write of 8 */
+    #200  com = "bnw8_2";
+          xw_addr(4'h3, `BASEADD + 8'h8, 4'h7, 3'h2);
+          xw_burst(4'h3, 32'h1111_1111, 4'h1, 4'h7, 32'h4321_1111);
+          
+    /* try a burst, 1st transfer only 3 bytes, 4 on last 3 xfers */
+    #200  com = "mbw4_3";
+          xw_addr(4'h3, `BASEADD + 8'h40, 4'h3, 3'h2);
+          more_burst(4'h3, 32'hbebe_8420, 4'he, 4'h3, 32'h0000_1111);
+    
+    #500 $stop;
   end
-
-
-
 endmodule
 

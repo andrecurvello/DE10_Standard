@@ -8,7 +8,7 @@
 `timescale 1 ps / 1 ps
 module HPS_h2f_axi_sim_mm_interconnect_0 (
 		input  wire [11:0]  hps_0_h2f_axi_master_awid,                                        //                                       hps_0_h2f_axi_master.awid
-		input  wire [29:0]  hps_0_h2f_axi_master_awaddr,                                      //                                                           .awaddr
+		input  wire [15:0]  hps_0_h2f_axi_master_awaddr,                                      //                                                           .awaddr
 		input  wire [3:0]   hps_0_h2f_axi_master_awlen,                                       //                                                           .awlen
 		input  wire [2:0]   hps_0_h2f_axi_master_awsize,                                      //                                                           .awsize
 		input  wire [1:0]   hps_0_h2f_axi_master_awburst,                                     //                                                           .awburst
@@ -28,7 +28,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		output wire         hps_0_h2f_axi_master_bvalid,                                      //                                                           .bvalid
 		input  wire         hps_0_h2f_axi_master_bready,                                      //                                                           .bready
 		input  wire [11:0]  hps_0_h2f_axi_master_arid,                                        //                                                           .arid
-		input  wire [29:0]  hps_0_h2f_axi_master_araddr,                                      //                                                           .araddr
+		input  wire [15:0]  hps_0_h2f_axi_master_araddr,                                      //                                                           .araddr
 		input  wire [3:0]   hps_0_h2f_axi_master_arlen,                                       //                                                           .arlen
 		input  wire [2:0]   hps_0_h2f_axi_master_arsize,                                      //                                                           .arsize
 		input  wire [1:0]   hps_0_h2f_axi_master_arburst,                                     //                                                           .arburst
@@ -71,7 +71,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 	wire  [511:0] mm_slave_bfm_0_s0_agent_m0_readdata;                   // mm_slave_bfm_0_s0_translator:uav_readdata -> mm_slave_bfm_0_s0_agent:m0_readdata
 	wire          mm_slave_bfm_0_s0_agent_m0_waitrequest;                // mm_slave_bfm_0_s0_translator:uav_waitrequest -> mm_slave_bfm_0_s0_agent:m0_waitrequest
 	wire          mm_slave_bfm_0_s0_agent_m0_debugaccess;                // mm_slave_bfm_0_s0_agent:m0_debugaccess -> mm_slave_bfm_0_s0_translator:uav_debugaccess
-	wire   [29:0] mm_slave_bfm_0_s0_agent_m0_address;                    // mm_slave_bfm_0_s0_agent:m0_address -> mm_slave_bfm_0_s0_translator:uav_address
+	wire   [15:0] mm_slave_bfm_0_s0_agent_m0_address;                    // mm_slave_bfm_0_s0_agent:m0_address -> mm_slave_bfm_0_s0_translator:uav_address
 	wire   [63:0] mm_slave_bfm_0_s0_agent_m0_byteenable;                 // mm_slave_bfm_0_s0_agent:m0_byteenable -> mm_slave_bfm_0_s0_translator:uav_byteenable
 	wire          mm_slave_bfm_0_s0_agent_m0_read;                       // mm_slave_bfm_0_s0_agent:m0_read -> mm_slave_bfm_0_s0_translator:uav_read
 	wire          mm_slave_bfm_0_s0_agent_m0_readdatavalid;              // mm_slave_bfm_0_s0_translator:uav_readdatavalid -> mm_slave_bfm_0_s0_agent:m0_readdatavalid
@@ -188,7 +188,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.AV_BURSTCOUNT_W                (1),
 		.AV_BYTEENABLE_W                (64),
 		.UAV_BYTEENABLE_W               (64),
-		.UAV_ADDRESS_W                  (30),
+		.UAV_ADDRESS_W                  (16),
 		.UAV_BURSTCOUNT_W               (7),
 		.AV_READLATENCY                 (0),
 		.USE_READDATAVALID              (1),
@@ -247,7 +247,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 
 	altera_merlin_axi_master_ni #(
 		.ID_WIDTH                  (12),
-		.ADDR_WIDTH                (30),
+		.ADDR_WIDTH                (16),
 		.RDATA_WIDTH               (128),
 		.WDATA_WIDTH               (128),
 		.ADDR_USER_WIDTH           (1),
@@ -388,7 +388,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.PKT_BURSTWRAP_L           (623),
 		.PKT_BYTE_CNT_H            (622),
 		.PKT_BYTE_CNT_L            (612),
-		.PKT_ADDR_H                (605),
+		.PKT_ADDR_H                (591),
 		.PKT_ADDR_L                (576),
 		.PKT_TRANS_COMPRESSED_READ (606),
 		.PKT_TRANS_POSTED          (607),
