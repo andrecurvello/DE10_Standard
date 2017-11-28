@@ -280,101 +280,98 @@ module testbench ();
     end
     initial
     begin
-        set_verbosity(VERBOSITY_DEBUG); // set console verbosity level
+        set_verbosity(VERBOSITY_DEBUG); /* set console verbosity level*/
 
         /************************
          ** Traffic generation: **
          ************************/    
         // 4 x Writes
         // Write data value 1 on byte lanes 1 to address 1.
-        trans = dut.create_write_transaction(30'h1000);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(30'h1000, 1, 1);
         trans.set_data_words(32'h0000_0100, 0);
         trans.set_write_strobes(4'b0010, 0);
         trans.set_id(1);
         $display ( "@ %t, master_test_program: Writing data (1) to address (1)", $time);    
 
         // By default it will run in Blocking mode 
-        //dut.execute_transaction(trans); 
-        dut.execute_write_addr_phase(trans);
-        dut.execute_write_data_burst(trans);
-        dut.get_write_response_phase(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
     
         // Write data value 2 on byte lane 2 to address 2.
-        trans = dut.create_write_transaction(2);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(2, 2, 1);
         trans.set_data_words(32'h0002_0000, 0);
         trans.set_write_strobes(4'b0100, 0);
         trans.set_id(2);
         //trans.set_write_data_mode(AXI_DATA_WITH_ADDRESS);
         $display ( "@ %t, master_test_program: Writing data (2) to address (2)", $time);        
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
 
         // Write data value 3 on byte lane 3 to address 3.
-        trans = dut.create_write_transaction(3);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(3, 3, 1);
         trans.set_data_words(32'h0300_0000, 0);
         trans.set_write_strobes(4'b1000, 0);
         trans.set_id(3);
         $display ( "@ %t, master_test_program: Writing data (3) to address (3)", $time);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
     
         // Write data value 4 to address 4 on byte lane 0.
-        trans = dut.create_write_transaction(4);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(4, 4, 1);
         trans.set_data_words(32'h0000_0004, 0);
         trans.set_write_strobes(4'b0001, 0);
         trans.set_id(4);
         //trans.set_write_data_mode(AXI_DATA_WITH_ADDRESS);
         $display ( "@ %t, master_test_program: Writing data (4) to address (4)", $time);        
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
 
         // 4 x Reads
         // Read data from address 1.
-        trans = dut.create_read_transaction(30'h1000);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(30'h1000, 1, 1);
         trans.set_size(AXI_BYTES_1);
         trans.set_id(1);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
         if (trans.get_data_words(0) == 32'h0000_0100)
             $display ( "@ %t, master_test_program: Read correct data (1) at address (1)", $time);
         else
             $display ( "@ %t master_test_program: Error: Expected data (1) at address 1, but got %d", $time, trans.get_data_words(0));
 
         // Read data from address 2.
-        trans = dut.create_read_transaction(30'h0002);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(30'h0002,2,1);
         trans.set_size(AXI_BYTES_1);
         trans.set_id(2);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
         if (trans.get_data_words(0) == 32'h0002_0000)
             $display ( "@ %t, master_test_program: Read correct data (2) at address (2)", $time);
         else
             $display ( "@ %t master_test_program: Error: Expected data (2) at address 2, but got %d", $time, trans.get_data_words(0));
 
         // Read data from address 3.
-        trans = dut.create_read_transaction(30'h0003);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(30'h0003,3,1);
         trans.set_size(AXI_BYTES_1);
         trans.set_id(3);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
         if (trans.get_data_words(0) == 32'h0300_0000)
             $display ( "@ %t, master_test_program: Read correct data (3) at address (3)", $time);
         else
             $display ( "@ %t master_test_program: Error: Expected data (3) at address 3, but got %d", $time, trans.get_data_words(0));
 
         // Read data from address 4.
-        trans = dut.create_read_transaction(30'h0004);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(30'h0004,4,1);
         trans.set_size(AXI_BYTES_1);
         trans.set_id(4);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
         if (trans.get_data_words(0) == 32'h0000_0004)
             $display ( "@ %t, master_test_program: Read correct data (4) at address (4)", $time);
         else
             $display ( "@ %t master_test_program: Error: Expected data (4) at address 4, but got %d", $time, trans.get_data_words(0));
 
-        // Write data burst length of 7 to start address 16.
-        trans = dut.create_write_transaction(16, 7);
+        // Write data burst length of 8 to start address 16.
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(16, 7, 8);
 
         trans.set_data_words('hACE0ACE1, 0);
         trans.set_data_words('hACE2ACE3, 1);
@@ -390,10 +387,10 @@ module testbench ();
         //trans.set_write_data_mode(AXI_DATA_WITH_ADDRESS);
         $display ( "@ %t, master_test_program: Writing data burst of length 7 to start address 16", $time);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
 
         // Write data burst of length 7 to start address 128 with LSB write strobe inactive.
-        trans = dut.create_write_transaction(128, 7);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(128, 8, 8);
         trans.set_data_words('hACE0ACE1, 0);
         trans.set_data_words('hACE2ACE3, 1);
         trans.set_data_words('h12348765, 2);
@@ -409,15 +406,14 @@ module testbench ();
             trans.set_write_strobes(4'b1111, i);
         $display ( "@ %t, master_test_program: Writing data burst of length 7 to start address 128", $time);
 
-        dut.execute_transaction(trans);
-
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
 
         // Read data burst of length 8 from address 16.
         $display ( "@ %t, master_test_program: Read data burst of length 8 starting at address 16", $time);
-        trans = dut.create_read_transaction(16, 7);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(16, 2, 8);
         //trans.set_size(AXI_BYTES_1);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
         if (trans.get_data_words(0) == 'hACE0ACE1)
             $display ( "@ %t, master_test_program: Read correct data (hACE0ACE1) at address (16)", $time);
         else
@@ -461,10 +457,10 @@ module testbench ();
 
         // Read data burst of length 4 from address 128.
         $display ( "@ %t, master_test_program: Read data burst of length 4 starting at address 128", $time);
-        trans = dut.create_read_transaction(128, 3);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(128, 3, 4);
         //trans.set_size(AXI_BYTES_4);
 
-        dut.execute_transaction(trans);
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
         if (trans.get_data_words(0) === 'hACE0AC00)
             $display ( "@ %t, master_test_program: Read correct data (hACE0AC00) at address (128)", $time);
         else

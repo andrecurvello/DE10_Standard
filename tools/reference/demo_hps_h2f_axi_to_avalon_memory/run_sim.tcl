@@ -6,9 +6,12 @@ vlog ./ip/verification_lib/verbosity_pkg.sv
 vlog ./ip/verification_lib/avalon_utilities_pkg.sv
 vlog ./ip/verification_lib/avalon_mm_pkg.sv
 
+# Amba axi
+vlog ./ip/amba_axi/axi_transaction.sv
+vlog ./ip/amba_axi/axi_master_bfm.sv
+
 # HPS defns
 vlog ./ip/hps/HPS_h2f_axi_sim_hps_0.v
-vlog ./ip/amba_axi/axi_frontend.sv
 vlog ./ip/hps/HPS_h2f_axi_sim_hps_0_fpga_interfaces.sv
 vlog ./ip/hps/HPS_h2f_axi_sim_hps_0_hps_io.v
 vlog ./ip/hps/HPS_h2f_axi_sim_hps_0_hps_io_border.sv

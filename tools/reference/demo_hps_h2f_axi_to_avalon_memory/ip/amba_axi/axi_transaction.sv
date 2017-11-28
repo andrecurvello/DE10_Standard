@@ -124,13 +124,6 @@ package axi_pkg;
         AXI_RESET_1_TO_0  = 8'd9
     } axi_wait_e;
     
-    /* axi_operation_mode_e */
-    typedef enum int
-    {
-        AXI_TRANSACTION_NON_BLOCKING = 32'd0,
-        AXI_TRANSACTION_BLOCKING     = 32'd1
-    } axi_operation_mode_e;
-    
     /* axi_delay_mode_e */
     typedef enum int
     {
@@ -258,8 +251,8 @@ package axi_pkg;
         int write_response_ready_delay;
     
         // Housekeeping
+        axi_request_e request = AXI_REQ_IDLE;
         bit gen_write_strobes = 1'b1;
-        axi_operation_mode_e  operation_mode  = AXI_TRANSACTION_BLOCKING;
         axi_delay_mode_e      delay_mode      = AXI_VALID2READY;
         axi_write_data_mode_e write_data_mode = AXI_DATA_WITH_ADDRESS;
         bit data_beat_done[];
@@ -434,14 +427,6 @@ package axi_pkg;
           return gen_write_strobes;
         endfunction
     
-        function void set_operation_mode( input axi_operation_mode_e loperation_mode );
-          operation_mode = loperation_mode;
-        endfunction
-    
-        function axi_operation_mode_e get_operation_mode();
-          return operation_mode;
-        endfunction
-    
         function void set_delay_mode( input axi_delay_mode_e ldelay_mode );
           delay_mode = ldelay_mode;
         endfunction
@@ -498,7 +483,6 @@ package axi_pkg;
           $display("addr_user : 'h%h", addr_user);
           $display("read_or_write : %s", read_or_write.name());
           $display("gen_write_strobes : 'b%b", gen_write_strobes );
-          $display("operation_mode   : %s", operation_mode.name() );
           $display("delay_mode       : %s", delay_mode.name() );
           $display("write_data_mode  : %s", write_data_mode.name() );
           foreach( data_beat_done[i0_1] )
