@@ -29,6 +29,9 @@ add wave -noupdate -group {AMBA/AXI3 bus} -radix hexadecimal /testbench/dut/h2f_
 add wave -noupdate -group {AMBA/AXI3 bus} -radix hexadecimal /testbench/dut/h2f_AWBURST
 add wave -noupdate -group {AMBA/AXI3 bus} -radix hexadecimal /testbench/dut/h2f_WDATA
 
+add wave -noupdate -group {AMBA/AXI3 FPGA IF bus} -radix hexadecimal /testbench/dut/fpga_interfaces/h2f_axi_master_inst/InitiateWAddr
+add wave -noupdate -group {AMBA/AXI3 FPGA IF bus} -radix hexadecimal /testbench/dut/fpga_interfaces/h2f_axi_master_inst/WriteStatus
+
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {20 ns} 0} {{Cursor 2} {40 ns} 0}
 configure wave -namecolwidth 225

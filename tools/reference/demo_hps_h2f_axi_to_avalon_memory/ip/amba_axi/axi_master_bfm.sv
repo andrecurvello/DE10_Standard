@@ -574,13 +574,6 @@ module axi_master_bfm (
         axm_rready <= '0;
     endtask
 
-    /* General bus driving */
-    always @(posedge clk or negedge reset_n) begin
-      if (~reset_n) begin
-        init();
-      end
-    end
-
     function automatic void __init_descriptors();
         /* State machine triggers */
         InitiateWAddr = 1'b0;
@@ -595,6 +588,13 @@ module axi_master_bfm (
 /* -----------------------------------------------------------------------------
 **               Physical AXI Bus Driver (In other words the TX part)
 ** -------------------------------------------------------------------------- */
+    /* General bus driving */
+    always @(negedge reset_n) begin
+        if (~reset_n) begin
+            init();
+        end
+    end
+    
     /* Sequential logic here to implement state operations */
     always @(posedge clk) begin
       if (InitiateWAddr == 1'b1) begin

@@ -85,12 +85,8 @@ module testbench ();
     wire   [63:0] mm_interconnect_0_mm_slave_bfm_0_s0_byteenable;    /* mm_interconnect_0:mm_slave_bfm_0_s0_byteenable -> mm_slave_bfm_0:avs_byteenable */
     wire          mm_interconnect_0_mm_slave_bfm_0_s0_readdatavalid; /* mm_slave_bfm_0:avs_readdatavalid -> mm_interconnect_0:mm_slave_bfm_0_s0_readdatavalid */
     wire          mm_interconnect_0_mm_slave_bfm_0_s0_write;         /* mm_interconnect_0:mm_slave_bfm_0_s0_write -> mm_slave_bfm_0:avs_write */
-    /* 512 bits transfers in the Avalon domain */
+        /* 512 bits transfers in the Avalon domain */
     wire  [511:0] mm_interconnect_0_mm_slave_bfm_0_s0_writedata;     /* mm_interconnect_0:mm_slave_bfm_0_s0_writedata -> mm_slave_bfm_0:avs_writedata */
-
-    reg  [2:0]  dcnt;
-    reg  [2:0]  cval;
-    reg         always_rready;
 
 /* -----------------------------------------------------------------------------
 **                                SUB-COMPONENTS                              **
@@ -252,23 +248,6 @@ module testbench ();
 /* -----------------------------------------------------------------------------
 **                             PROCEDURAL BLOCKs                              **
 ** -------------------------------------------------------------------------- */
-    always @ (posedge clk or negedge rstn) begin
-        if (~rstn) rready = 1'b0;
-        else if (rvalid && (~rready || (cval == 2'h0))) begin
-            if (dcnt > 2'h0) dcnt <= dcnt - 1'b1;
-            else rready = 1'b1;
-        end
-        else begin
-            rready = always_rready;
-            dcnt   = cval;
-        end
-    end
-   
-    always @(posedge clk or negedge rstn) begin
-        if (~rstn)                 bready <= 1'b0;
-        else if (bvalid & ~bready) bready <= 1'b1;
-        else                       bready <= 1'b0;
-    end
       
 /* -----------------------------------------------------------------------------
 **                     Unfold testing scenario definitions                    **
@@ -282,6 +261,9 @@ module testbench ();
     begin
         set_verbosity(VERBOSITY_DEBUG); /* set console verbosity level*/
 
+        /* Disable clock so far */
+        #40 rstn  =  1'b1;
+        
         /************************
          ** Traffic generation: **
          ************************/    
@@ -295,7 +277,7 @@ module testbench ();
 
         // By default it will run in Blocking mode 
         dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
-    
+`ifdef NULL    
         // Write data value 2 on byte lane 2 to address 2.
         trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(2, 2, 1);
         trans.set_data_words(32'h0002_0000, 0);
@@ -480,6 +462,7 @@ module testbench ();
             $display ( "@ %t, master_test_program: Read correct data (hA1B2C3D4) at address (131)", $time);
         else
             $display ( "@ %t, master_test_program: Error: Expected data (hA1B2C3D4) at address (131), but got %h", $time, trans.get_data_words(3));
+`endif    
 
     end
 endmodule
