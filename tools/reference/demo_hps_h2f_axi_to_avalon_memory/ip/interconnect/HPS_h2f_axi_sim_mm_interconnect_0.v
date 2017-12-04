@@ -274,7 +274,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.PKT_BURSTWRAP_L           (191),
 		.PKT_BYTE_CNT_H            (190),
 		.PKT_BYTE_CNT_L            (180),
-		.PKT_ADDR_H                (173),
+		.PKT_ADDR_H                (159),
 		.PKT_ADDR_L                (144),
 		.PKT_TRANS_EXCLUSIVE       (179),
 		.PKT_TRANS_LOCK            (178),
@@ -588,7 +588,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 	);
 
 	altera_merlin_burst_adapter #(
-		.PKT_ADDR_H                (605),
+		.PKT_ADDR_H                (591),
 		.PKT_ADDR_L                (576),
 		.PKT_BEGIN_BURST           (639),
 		.PKT_BYTE_CNT_H            (622),
@@ -752,7 +752,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 	);
 
 	altera_merlin_width_adapter #(
-		.IN_PKT_ADDR_H                 (605),
+		.IN_PKT_ADDR_H                 (591),
 		.IN_PKT_ADDR_L                 (576),
 		.IN_PKT_DATA_H                 (511),
 		.IN_PKT_DATA_L                 (0),
@@ -774,7 +774,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.IN_PKT_ORI_BURST_SIZE_L       (664),
 		.IN_PKT_ORI_BURST_SIZE_H       (666),
 		.IN_ST_DATA_W                  (667),
-		.OUT_PKT_ADDR_H                (173),
+		.OUT_PKT_ADDR_H                (159),
 		.OUT_PKT_ADDR_L                (144),
 		.OUT_PKT_DATA_H                (127),
 		.OUT_PKT_DATA_L                (0),
@@ -818,7 +818,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 	);
 
 	altera_merlin_width_adapter #(
-		.IN_PKT_ADDR_H                 (173),
+		.IN_PKT_ADDR_H                 (159),
 		.IN_PKT_ADDR_L                 (144),
 		.IN_PKT_DATA_H                 (127),
 		.IN_PKT_DATA_L                 (0),
@@ -840,7 +840,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.IN_PKT_ORI_BURST_SIZE_L       (232),
 		.IN_PKT_ORI_BURST_SIZE_H       (234),
 		.IN_ST_DATA_W                  (235),
-		.OUT_PKT_ADDR_H                (605),
+		.OUT_PKT_ADDR_H                (591),
 		.OUT_PKT_ADDR_L                (576),
 		.OUT_PKT_DATA_H                (511),
 		.OUT_PKT_DATA_L                (0),

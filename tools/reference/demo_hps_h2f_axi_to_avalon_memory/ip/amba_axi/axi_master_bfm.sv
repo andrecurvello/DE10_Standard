@@ -6,6 +6,8 @@
 **
 ** No event used so far.
 ** ---------------------------------------------------------------------------*/
+`timescale 1 ns / 1 ns
+
 module axi_master_bfm (
     clk,
     reset_n,
@@ -148,8 +150,6 @@ module axi_master_bfm (
     //values from axi bus transactions.  For instance, read requests can come
     //in faster than they can be serviced, expecially with burst reads.  A read
     //access with axm_rid = 7 will store bus values in xraddr[7], and xrlen[7].
-    //The bit xraddval[7] indicates that the xraddr[7] and xrlen[7] values are valid
-    //i.e. they represent reads that need to be serviced. 
     // axi waddr logic -----------------------------------------------
     logic [AXI_ID_W-1:0]      axm_awid;
     logic [AXI_ADDRESS_W-1:0] axm_awaddr;
@@ -174,14 +174,11 @@ module axi_master_bfm (
     logic                     axm_wvalid; //master data valid
     logic [AXI_DATA_W-1:0]    xwdata [AXI_QUEUE_LEN-1:0];
     logic [AXI_DATA_W/8-1:0]  xwstrb [AXI_QUEUE_LEN-1:0];
-    logic [15:0]              xwlast;
 
 /*************************  AXI Write Response channel ************************/
-    logic [AXI_ID_W-1:0]       axm_bid;
-    logic [1:0]                axm_bresp;
-    logic                      axm_bready;
-    logic                      wrt_resp;
-    logic                      wrt_ok;
+    logic [AXI_ID_W-1:0]      axm_bid;
+    logic [1:0]               axm_bresp;
+    logic                     axm_bready;
    
 /**************************  AXI Read Address channel *************************/
     logic [AXI_ID_W-1:0]      axm_arid;
@@ -195,7 +192,6 @@ module axi_master_bfm (
     logic                     axm_arvalid; //master addr valid
     logic [AXI_ADDRESS_W-1:0] xraddr [AXI_QUEUE_LEN-1:0];
     logic [ 4:0]              xrlen  [AXI_QUEUE_LEN-1:0];
-    logic [15:0]              xraddval;
     logic [ 2:0]              xrsize;
     logic [ 1:0]              xrburst;
 
@@ -300,14 +296,14 @@ module axi_master_bfm (
                                 ((AXI_DATA_W == 512)? AXI_BYTES_64 : AXI_BYTES_128))))));
                                 
       trans.set_id(id);
-      trans.data_words        = new[(burst_length + 1)];
-      trans.write_strobes     = new[(burst_length + 1)];
-      trans.resp              = new[1];
-      trans.data_valid_delay  = new[(burst_length + 1)];
-      trans.data_beat_done    = new[(burst_length + 1)];
+      trans.set_burst_length(burst_length);
 
       trans.driver_name.itoa(id);
       trans.driver_name = {"Write: index = ", trans.driver_name, ":"};
+      
+      /* For debug purpose */
+      trans.print();
+      
       return trans;
     endfunction
     
@@ -336,13 +332,14 @@ module axi_master_bfm (
                                 ((AXI_DATA_W == 512)? AXI_BYTES_64 : AXI_BYTES_128))))));
 
       trans.set_id(id);
-      trans.data_words        = new[(burst_length + 1)];
-      trans.resp              = new[(burst_length + 1)];
-      trans.data_ready_delay  = new[(burst_length + 1)];
-      trans.data_beat_done    = new[(burst_length + 1)];
-
+      trans.set_burst_length(burst_length);
+      
       trans.driver_name.itoa(id);
       trans.driver_name = {"Read: index = ", trans.driver_name, ":"};
+      
+      /* For debug purpose */
+      trans.print();
+      
       return trans;
     endfunction
     
@@ -538,6 +535,10 @@ module axi_master_bfm (
 ** -------------------------------------------------------------------------- */
     /* First thing first */
     task automatic __drive_interface_idle();
+    
+        $sformat(message, "%m: in drive interface idle");
+        print(VERBOSITY_DEBUG, message);
+    
         /* @ Write output */
         axm_awid <= '0;
         axm_awaddr <= '0;
@@ -574,13 +575,6 @@ module axi_master_bfm (
         axm_rready <= '0;
     endtask
 
-    /* General bus driving */
-    always @(posedge clk or negedge reset_n) begin
-      if (~reset_n) begin
-        init();
-      end
-    end
-
     function automatic void __init_descriptors();
         /* State machine triggers */
         InitiateWAddr = 1'b0;
@@ -590,14 +584,23 @@ module axi_master_bfm (
         WriteStatus = AXI_REQ_IDLE;
         ReadStatus = AXI_REQ_IDLE;
         
+        $sformat(message, "%m: in init descriptor");
+        print(VERBOSITY_DEBUG, message);
+        
     endfunction
 
 /* -----------------------------------------------------------------------------
 **               Physical AXI Bus Driver (In other words the TX part)
 ** -------------------------------------------------------------------------- */
+    /* whole bus reset */
+    always @(negedge reset_n) begin
+      if (~reset_n) begin
+        init();
+      end
+    end
+
     /* Sequential logic here to implement state operations */
     always @(posedge clk) begin
-      if (InitiateWAddr == 1'b1) begin
           case (WriteStatus)
               AXI_REQ_IDLE: begin
                  /* All write signals output reset */
@@ -619,12 +622,12 @@ module axi_master_bfm (
                  
                  /* Operate transition to write address if requested */
                  if ( 1'b1 == InitiateWAddr ) begin
+                    InitiateWAddr <= 1'b0; /* Reset transaction trigger */
                     WriteStatus <= AXI_REQ_WRITE_ADDR;
-                    InitiateWAddr <= 1'b1; /* Reset transaction trigger */
                  end
               end
               AXI_REQ_WRITE_ADDR: begin
-                  /* Set master output to valid */
+                  /* Data write channel transition trigger */
                   axm_awvalid <= 1'b1;
                   axm_awid <= windex;
                   axm_awaddr <= xwaddr[windex];
@@ -636,19 +639,28 @@ module axi_master_bfm (
                   axm_awlock <= '0;
                   axm_awcache <= '0;
                   axm_awprot <= '0;
-                 
+
+                  /* Operate transition regardless */
+                  WriteStatus <= AXI_REQ_WRITE_DATA;
+                                            
+                  if ( 1'b1 == axm_awready ) begin
+                    axm_awvalid <= 1'b0;
+                  end
               end
               AXI_REQ_WRITE_DATA: begin /* Sending the data over */
                   axm_wvalid <= 1'b1;
                   axm_wid <= windex;
-
-                  /*  */
+    
+                  /* transmit data */
                   axm_wstrb <= xwstrb[i];
                   axm_wdata <= xwdata[i];
                   
                   if ( i == (xwlen[windex]-1)) begin
                     /* Set last signal */
                     axm_wlast <= 1'b1;
+                    
+                    /* Data write channel transition trigger */
+                    WriteStatus <= AXI_REQ_WRITE_RESP;
                   end
                   else begin
                     /* Increment burst count */
@@ -656,58 +668,41 @@ module axi_master_bfm (
                   end
               end
               AXI_REQ_WRITE_RESP: begin /* Set response ready signal */
-                 if (( 1'b1 == axm_bvalid ) && ( axm_bid == axm_awid )) begin
-                     axm_bready <= 1'b1;
-                 end
-                 
                  /* Signal the slave that we are ready */
                  axm_bready <= 1'b1;
+            end
+            endcase
+        end
+        
+        /* Handshake and state transition management */
+        always @ (posedge clk) begin
+          /* NEED TO ALSO TAKE INCOUNT THE IDS ! */
+          
+          if (( 1'b1 == axm_awready ) && ( 1'b1 == axm_awvalid )) begin
+              axm_awvalid = 1'b0;
+          end
+          
+          if (( 1'b1 == axm_wready )  && ( 1'b1 == axm_wvalid )) begin
+              axm_wvalid = 1'b0;
+              
+              /* Reset last signal */
+              axm_wlast <= 1'b0;
+          end
+          
+          if (( 1'b1 == axm_bvalid ) && ( 1'b1 == axm_bready )) begin
+              axm_bready <= 1'b0;
+              
+              /* Get error code and treat it */
+              /* Only operate transition if result is ok */
+              if ( '0 == axm_bresp ) begin
+                /* Trigger transition to Idle */
+                WriteStatus <= AXI_REQ_IDLE;
               end
-          endcase
-      end
-    end
-    
-    /*
-    **  Sequential logic here to implement state transitions - the triggers.
-    **  Handshake and state transition management ->
-    */
-    always @ (*) begin
-        /* Data write channel transition trigger */
-        if ( AXI_REQ_WRITE_ADDR == WriteStatus ) begin
-            if ( 1'b0 == axm_awready ) begin
-                axm_awvalid = 1'b0;
-                WriteStatus = AXI_REQ_WRITE_DATA;
-            end
+              else begin
+                 /* Treat the error, not supported for now */
+              end
+          end
         end
-        
-        /* Response write channel transition trigger */
-        if ( AXI_REQ_WRITE_DATA == WriteStatus ) begin
-            /* NEED TO ALSO TAKE INCOUNT THE IDS ! */
-            if ( 1'b0 == axm_wready ) begin
-                axm_wvalid = 1'b0;
-                axm_wlast = 1'b0;
-                WriteStatus = AXI_REQ_WRITE_RESP;
-            end
-        end
-        
-        /* Transition is finished, go back to idle state */
-        if ( AXI_REQ_WRITE_RESP == WriteStatus ) begin
-             /* NEED TO ALSO TAKE INCOUNT THE IDS ! */
-             if ( 1'b0 == axm_bvalid ) begin
-                 axm_bready = 1'b0;
-                 
-                 /* Request clean up */
-                 xwaddr[windex] = '0;
-                 xwlen[windex] = '0;
-                 windex = '0;
-
-                 /* Do not forget to clean up the data and strobes also */
-                 
-                 /* Trigger transition to Idle */
-                 WriteStatus = AXI_REQ_IDLE;
-             end
-        end
-    end
 
 /* -----------------------------------------------------------------------------
 **          Physical AXI Bus Monitor (In other words the RX part)
@@ -768,20 +763,22 @@ module axi_master_bfm (
     
     /* Handshake and state transition management */
     always @ (*) begin
-        /* Data write channel transition trigger */
-        if ( AXI_REQ_READ_ADDR == ReadStatus ) begin
-            if (( 1'b0 == axm_arready ) && ( axm_rid == axm_arid ) ) begin
-                axm_arvalid = 1'b0;
-                ReadStatus = AXI_REQ_READ_DATA;
+        case(ReadStatus)
+            AXI_REQ_READ_ADDR: begin
+                /* Data write channel transition trigger */
+                if (( 1'b0 == axm_arready ) && ( axm_rid == axm_arid ) ) begin
+                    axm_arvalid = 1'b0;
+                    ReadStatus = AXI_REQ_READ_DATA;
+                end
             end
-        end
-        
-        /* Response write channel transition trigger */
-        if ( AXI_REQ_READ_DATA == ReadStatus ) begin
-            if (( 1'b0 == axm_rvalid ) && ( axm_rid == axm_arid ) ) begin
-                axm_rready = 1'b0;
-                ReadStatus = AXI_REQ_IDLE;
+            
+            AXI_REQ_READ_DATA: begin
+                /* Response write channel transition trigger */
+                if (( 1'b0 == axm_rvalid ) && ( axm_rid == axm_arid ) ) begin
+                    axm_rready = 1'b0;
+                    ReadStatus = AXI_REQ_IDLE;
+                end
             end
-        end
+        endcase
     end
 endmodule

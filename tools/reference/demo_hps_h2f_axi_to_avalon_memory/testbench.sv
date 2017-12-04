@@ -88,10 +88,6 @@ module testbench ();
     /* 512 bits transfers in the Avalon domain */
     wire  [511:0] mm_interconnect_0_mm_slave_bfm_0_s0_writedata;     /* mm_interconnect_0:mm_slave_bfm_0_s0_writedata -> mm_slave_bfm_0:avs_writedata */
 
-    reg  [2:0]  dcnt;
-    reg  [2:0]  cval;
-    reg         always_rready;
-
 /* -----------------------------------------------------------------------------
 **                                SUB-COMPONENTS                              **
 ** -------------------------------------------------------------------------- */
@@ -207,8 +203,8 @@ module testbench ();
             .hps_0_h2f_axi_master_rvalid                                      (rvalid),                       //                                                           .rvalid
             .hps_0_h2f_axi_master_rready                                      (rready),                       //                                                           .rready
             .clk_0_clk_clk                                                    (clk),                                               //                                                  clk_0_clk.clk
-            .hps_0_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset_reset (rstn),                                              // hps_0_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset.reset
-            .mm_slave_bfm_0_clk_reset_reset_bridge_in_reset_reset             (rstn),                                              //             mm_slave_bfm_0_clk_reset_reset_bridge_in_reset.reset
+            .hps_0_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset_reset (~rstn),                                              // hps_0_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset.reset
+            .mm_slave_bfm_0_clk_reset_reset_bridge_in_reset_reset             (~rstn),                                              //             mm_slave_bfm_0_clk_reset_reset_bridge_in_reset.reset
             .mm_slave_bfm_0_s0_address                                        (mm_interconnect_0_mm_slave_bfm_0_s0_address),       //                                          mm_slave_bfm_0_s0.address
             .mm_slave_bfm_0_s0_write                                          (mm_interconnect_0_mm_slave_bfm_0_s0_write),         //                                                           .write
             .mm_slave_bfm_0_s0_read                                           (mm_interconnect_0_mm_slave_bfm_0_s0_read),          //                                                           .read
@@ -238,7 +234,7 @@ module testbench ();
             .AV_WRITERESPONSE_W         (8)
         ) mm_slave_0 (
             .clk                      (clk),                                               //       clk.clk
-            .reset_n                  (~rstn),                                             // clk_reset.reset
+            .reset_n                  (rstn),                                              // clk_reset.reset
             .avs_writedata            (mm_interconnect_0_mm_slave_bfm_0_s0_writedata),     //        s0.writedata
             .avs_readdata             (mm_interconnect_0_mm_slave_bfm_0_s0_readdata),      //          .readdata
             .avs_address              (mm_interconnect_0_mm_slave_bfm_0_s0_address),       //          .address
@@ -252,24 +248,9 @@ module testbench ();
 /* -----------------------------------------------------------------------------
 **                             PROCEDURAL BLOCKs                              **
 ** -------------------------------------------------------------------------- */
-    always @ (posedge clk or negedge rstn) begin
-        if (~rstn) rready = 1'b0;
-        else if (rvalid && (~rready || (cval == 2'h0))) begin
-            if (dcnt > 2'h0) dcnt <= dcnt - 1'b1;
-            else rready = 1'b1;
-        end
-        else begin
-            rready = always_rready;
-            dcnt   = cval;
-        end
-    end
-   
-    always @(posedge clk or negedge rstn) begin
-        if (~rstn)                 bready <= 1'b0;
-        else if (bvalid & ~bready) bready <= 1'b1;
-        else                       bready <= 1'b0;
-    end
-      
+
+/* Not needed for the time being */
+
 /* -----------------------------------------------------------------------------
 **                     Unfold testing scenario definitions                    **
 ** -------------------------------------------------------------------------- */
@@ -282,20 +263,24 @@ module testbench ();
     begin
         set_verbosity(VERBOSITY_DEBUG); /* set console verbosity level*/
 
-        /************************
+        /* Release the reset line */
+        #40 rstn  =  1'b1;
+    
+        /*************************
          ** Traffic generation: **
-         ************************/    
+         ************************/
         // 4 x Writes
         // Write data value 1 on byte lanes 1 to address 1.
-        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(30'h1000, 1, 1);
-        trans.set_data_words(32'h0000_0100, 0);
-        trans.set_write_strobes(4'b0010, 0);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(16'h0080, 1, 0);
+        trans.set_data_words(64'hDEADBEEFA55AB44B, 0);
+        trans.set_write_strobes(4'hF, 0);
         trans.set_id(1);
         $display ( "@ %t, master_test_program: Writing data (1) to address (1)", $time);    
 
         // By default it will run in Blocking mode 
         dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
-    
+
+`ifdef NULL    
         // Write data value 2 on byte lane 2 to address 2.
         trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(2, 2, 1);
         trans.set_data_words(32'h0002_0000, 0);
@@ -480,6 +465,6 @@ module testbench ();
             $display ( "@ %t, master_test_program: Read correct data (hA1B2C3D4) at address (131)", $time);
         else
             $display ( "@ %t, master_test_program: Error: Expected data (hA1B2C3D4) at address (131), but got %h", $time, trans.get_data_words(3));
-
+`endif
     end
 endmodule

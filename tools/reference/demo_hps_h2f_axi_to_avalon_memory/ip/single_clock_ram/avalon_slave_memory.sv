@@ -140,7 +140,7 @@ module avalon_slave_memory (
                     scr_we            <= {AV_NUMSYMBOLS{1'b0}};
                     scr_wr_addr       <= {AV_ADDRESS_W{1'b0}};
                     avs_readdata      <= {AV_DATA_W{1'bX}};
-                    avs_readdatavalid <= 0;
+                    avs_readdatavalid <= 0; 
                 end
                 else begin
                     if ( 1'b1 == avs_write ) begin
@@ -148,7 +148,7 @@ module avalon_slave_memory (
                         avs_waitrequest <= 1'b0;
                 
                         /* Update ram i/o for write */
-                        scr_wr_addr <= avs_address;
+                        scr_wr_addr <= (avs_address / 64);
                         scr_din <= avs_writedata;
                         scr_we <= avs_byteenable; /* Trigger write at address */
                         
@@ -156,7 +156,7 @@ module avalon_slave_memory (
                         if ( 0 == avs_waitrequest ) begin
                             $sformat( message,
                                       "%m: - write at address %x data %x",
-                                      avs_address,
+                                      (avs_address),
                                       avs_writedata );
                             print(VERBOSITY_DEBUG, message);
                         end
