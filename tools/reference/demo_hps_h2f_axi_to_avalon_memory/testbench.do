@@ -112,6 +112,9 @@ add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/tes
 add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/testbench/mm_slave_0/sc_ram0/mem[270]}
 add wave -noupdate -group sc_ram -expand -group 256-271 -radix hexadecimal {/testbench/mm_slave_0/sc_ram0/mem[271]}
 
+add wave -noupdate -group {AMBA/AXI3 FPGA IF bus} -radix hexadecimal /testbench/dut/fpga_interfaces/h2f_axi_master_inst/InitiateWAddr
+add wave -noupdate -group {AMBA/AXI3 FPGA IF bus} -radix hexadecimal /testbench/dut/fpga_interfaces/h2f_axi_master_inst/WriteStatus
+
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {20 ns} 0} {{Cursor 2} {40 ns} 0}
 configure wave -namecolwidth 225
