@@ -273,7 +273,7 @@ module testbench ();
         // Write data value 1 on byte lanes 1 to address 1.
         trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(16'h0080, 1, 0);
         trans.set_data_words(64'hDEADBEEFA55AB44B, 0);
-        trans.set_write_strobes(4'hF, 0);
+        trans.set_write_strobes(4'hFF, 0);
         trans.set_id(1);
         $display ( "@ %t, master_test_program: Writing data (1) to address (1)", $time);    
 

@@ -592,7 +592,6 @@ module axi_master_bfm (
 /* -----------------------------------------------------------------------------
 **               Physical AXI Bus Driver (In other words the TX part)
 ** -------------------------------------------------------------------------- */
-<<<<<<< HEAD
     /* whole bus reset */
     always @(negedge reset_n) begin
       if (~reset_n) begin
@@ -600,15 +599,6 @@ module axi_master_bfm (
       end
     end
 
-=======
-    /* General bus driving */
-    always @(negedge reset_n) begin
-        if (~reset_n) begin
-            init();
-        end
-    end
-    
->>>>>>> bcd736a3c66739a13b96f4514353fecbe1c60106
     /* Sequential logic here to implement state operations */
     always @(posedge clk) begin
           case (WriteStatus)
