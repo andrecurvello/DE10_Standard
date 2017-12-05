@@ -190,6 +190,7 @@ module axi_master_bfm (
     logic [ 3:0]              axm_arcache; 
     logic [ 2:0]              axm_arprot;
     logic                     axm_arvalid; //master addr valid
+    logic                     xarvalid; 
     logic [AXI_ADDRESS_W-1:0] xraddr [AXI_QUEUE_LEN-1:0];
     logic [ 4:0]              xrlen  [AXI_QUEUE_LEN-1:0];
     logic [ 2:0]              xrsize;
@@ -301,9 +302,6 @@ module axi_master_bfm (
       trans.driver_name.itoa(id);
       trans.driver_name = {"Write: index = ", trans.driver_name, ":"};
       
-      /* For debug purpose */
-      trans.print();
-      
       return trans;
     endfunction
     
@@ -336,9 +334,6 @@ module axi_master_bfm (
       
       trans.driver_name.itoa(id);
       trans.driver_name = {"Read: index = ", trans.driver_name, ":"};
-      
-      /* For debug purpose */
-      trans.print();
       
       return trans;
     endfunction
@@ -572,7 +567,7 @@ module axi_master_bfm (
         axm_arvalid <= '0;
 
         /* Data Read output */
-        axm_rready <= '0;
+        axm_rready <= 1'b0;
     endtask
 
     function automatic void __init_descriptors();
@@ -583,6 +578,9 @@ module axi_master_bfm (
         /* Pivot control variable */
         WriteStatus = AXI_REQ_IDLE;
         ReadStatus = AXI_REQ_IDLE;
+        
+        /* Locals */
+        xarvalid = 1'b0;
         
         $sformat(message, "%m: in init descriptor");
         print(VERBOSITY_DEBUG, message);
@@ -620,6 +618,9 @@ module axi_master_bfm (
                  axm_wdata <= '0;
                  axm_bready <= 1'b0;
                  
+                 /* Data Read output */
+                 axm_rready <= 1'b0;
+                 
                  /* Operate transition to write address if requested */
                  if ( 1'b1 == InitiateWAddr ) begin
                     InitiateWAddr <= 1'b0; /* Reset transaction trigger */
@@ -650,6 +651,9 @@ module axi_master_bfm (
               AXI_REQ_WRITE_DATA: begin /* Sending the data over */
                   axm_wvalid <= 1'b1;
                   axm_wid <= windex;
+                  
+                  /* Signal the slave that we are ready */
+                  axm_bready <= 1'b1;
     
                   /* transmit data */
                   axm_wstrb <= xwstrb[i];
@@ -668,8 +672,6 @@ module axi_master_bfm (
                   end
               end
               AXI_REQ_WRITE_RESP: begin /* Set response ready signal */
-                 /* Signal the slave that we are ready */
-                 axm_bready <= 1'b1;
             end
             endcase
         end
@@ -712,6 +714,7 @@ module axi_master_bfm (
       case (ReadStatus)
          AXI_REQ_IDLE: begin
              /* All read signals output reset */
+             i <= 0;
              axm_arvalid <= 1'b0;
              axm_araddr <= '0;
              axm_arlen <= '0;
@@ -721,8 +724,9 @@ module axi_master_bfm (
              axm_arlock <= '0;
              axm_arcache <= '0;
              axm_arprot <= '0;
+             axm_rready <= 1'b0;
          
-             /* Operate transition to write address if requested */
+             /* Operate transition to read address if requested */
              if ( 1'b1 == InitiateRAddr ) begin
                 ReadStatus <= AXI_REQ_READ_ADDR;
                 InitiateRAddr <= 1'b0; /* Reset transaction trigger */
@@ -736,26 +740,38 @@ module axi_master_bfm (
             axm_arlen <= xrlen[windex];
             axm_arsize <= xrsize;
             axm_arburst <= xrburst;
+
+            if ( 1'b1 == axm_arready ) begin
+               xarvalid <= 1'b1;
+            end
+          
+            if (( 1'b1 == xarvalid )  && (1'b0 == axm_arready)) begin
+                ReadStatus <= AXI_REQ_READ_DATA;
+                axm_arvalid <= 1'b0;
+                xarvalid <= 1'b0;
+            end
           
             /* Fill out protection attributes */
             axm_arlock <= '0;
             axm_arcache <= '0;
             axm_arprot <= '0;
-            
          end
          AXI_REQ_READ_DATA: begin
-              /* Receiving the data */
-              xrdata[i] <= axm_rdata;
-              
-              /* need to deal with axm_rresp also */
-              
-              if ( i == (xwlen[windex]-1)) begin
-                /* Set last signal */
-                /* axm_rlast <= 1'b1; */
+
+              axm_rready <= 1'b0;
+
+              if ( 1'b1 == axm_rvalid ) begin
+                  /* Receiving the data */
+                  xrdata[i] <= axm_rdata;
+                  
+                  if ( i != (xwlen[windex]-1)) begin
+                    /* Increment burst count */
+                    i <= (i + 1);
+                  end
               end
-              else begin 
-                /* Increment burst count */
-                i <= (i + 1);
+              else begin
+                /* Indicate to the slave that we are ready */
+                /* axm_rready <= ~axm_rready; */
               end
          end
       endcase
@@ -763,22 +779,5 @@ module axi_master_bfm (
     
     /* Handshake and state transition management */
     always @ (*) begin
-        case(ReadStatus)
-            AXI_REQ_READ_ADDR: begin
-                /* Data write channel transition trigger */
-                if (( 1'b0 == axm_arready ) && ( axm_rid == axm_arid ) ) begin
-                    axm_arvalid = 1'b0;
-                    ReadStatus = AXI_REQ_READ_DATA;
-                end
-            end
-            
-            AXI_REQ_READ_DATA: begin
-                /* Response write channel transition trigger */
-                if (( 1'b0 == axm_rvalid ) && ( axm_rid == axm_arid ) ) begin
-                    axm_rready = 1'b0;
-                    ReadStatus = AXI_REQ_IDLE;
-                end
-            end
-        endcase
     end
 endmodule

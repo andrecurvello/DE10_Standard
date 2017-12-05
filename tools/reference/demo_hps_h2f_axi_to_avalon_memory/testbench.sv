@@ -147,7 +147,7 @@ module testbench ();
             .h2f_ARREADY           (arready),
 
             .h2f_RID               (rid),
-            .h2f_RDATA             (xrdata),
+            .h2f_RDATA             (rdata),
             .h2f_RRESP             (rresp),
             .h2f_RLAST             (rlast),
             .h2f_RVALID            (rvalid),
@@ -271,16 +271,39 @@ module testbench ();
          ************************/
         // 4 x Writes
         // Write data value 1 on byte lanes 1 to address 1.
-        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(16'h0080, 1, 0);
+        trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(16'h0080, 1, 1);
+        
+        /* For debug purpose */
+        trans.print();
+        
         trans.set_data_words(64'hDEADBEEFA55AB44B, 0);
-        trans.set_write_strobes(4'hFF, 0);
-        trans.set_id(1);
+
+        /* For debug purpose */
+        trans.print();
+
+        trans.set_write_strobes(16'hFFFF, 0);
+
+        /* For debug purpose */
+        trans.print();
+
         $display ( "@ %t, master_test_program: Writing data (1) to address (1)", $time);    
 
-        // By default it will run in Blocking mode 
+        // By default it will run in Blocking mode
         dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
+        
+`ifdef NULL        
+        // Read data from address 0x80.
+        #100 trans = dut.fpga_interfaces.h2f_axi_master_inst.create_read_transaction(16'h0080, 45, 1);
 
-`ifdef NULL    
+        dut.fpga_interfaces.h2f_axi_master_inst.execute_transaction(trans);
+        if (trans.get_data_words(0) == 32'hA55AB44B)
+            $display ( "@ %t, master_test_program: Read correct data (1) at address (1)", $time);
+        else
+            $display ( "@ %t master_test_program: Error: Expected data (1) at address 1, but got %d", $time, trans.get_data_words(0));
+
+        /* For debug purpose */
+        trans.print();
+
         // Write data value 2 on byte lane 2 to address 2.
         trans = dut.fpga_interfaces.h2f_axi_master_inst.create_write_transaction(2, 2, 1);
         trans.set_data_words(32'h0002_0000, 0);

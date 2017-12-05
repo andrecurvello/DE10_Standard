@@ -70,7 +70,7 @@ module HPS_h2f_axi_sim_hps_0_fpga_interfaces
       .axm_rlast(h2f_RLAST),
       .clk(h2f_axi_clk),
       .axm_rresp(h2f_RRESP),
-      .axm_rready(h2f_ARREADY),
+      .axm_rready(h2f_RREADY),
       .axm_arprot(h2f_ARPROT),
       .axm_araddr(h2f_ARADDR),
       .axm_bvalid(h2f_BVALID),
@@ -101,7 +101,7 @@ module HPS_h2f_axi_sim_hps_0_fpga_interfaces
       .axm_awcache(h2f_AWCACHE),
       .axm_arlock(h2f_ARLOCK),
       .axm_awburst(h2f_AWBURST),
-      .axm_arready(h2f_RREADY),
+      .axm_arready(h2f_ARREADY),
       .axm_wstrb(h2f_WSTRB)
    );
 
