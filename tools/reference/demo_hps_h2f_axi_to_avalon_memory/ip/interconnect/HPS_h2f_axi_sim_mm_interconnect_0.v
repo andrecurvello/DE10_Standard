@@ -794,7 +794,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.OUT_PKT_ORI_BURST_SIZE_H      (234),
 		.OUT_ST_DATA_W                 (235),
 		.ST_CHANNEL_W                  (2),
-		.OPTIMIZE_FOR_RSP              (0),
+		.OPTIMIZE_FOR_RSP              (1),
 		.RESPONSE_PATH                 (1),
 		.CONSTANT_BURST_SIZE           (0),
 		.PACKING                       (1),
@@ -863,7 +863,7 @@ module HPS_h2f_axi_sim_mm_interconnect_0 (
 		.OPTIMIZE_FOR_RSP              (0),
 		.RESPONSE_PATH                 (0),
 		.CONSTANT_BURST_SIZE           (0),
-		.PACKING                       (0),
+		.PACKING                       (1),
 		.ENABLE_ADDRESS_ALIGNMENT      (1)
 	) mm_slave_bfm_0_s0_cmd_width_adapter (
 		.clk                  (clk_0_clk_clk),                                         //       clk.clk

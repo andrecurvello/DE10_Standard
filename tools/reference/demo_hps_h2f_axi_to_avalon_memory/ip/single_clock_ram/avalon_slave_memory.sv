@@ -50,7 +50,7 @@ module avalon_slave_memory (
     input reset_n;
     
 /* ----------------------------- Avalon MM/ST ------------------------------- */
-    output avs_waitrequest;
+    output avs_waitrequest = 0;
     output [AV_DATA_W-1:0] avs_readdata;
     input avs_write;
     input avs_read;
@@ -128,8 +128,16 @@ module avalon_slave_memory (
                 if ( 1'b1 == avs_write ) begin
                     avs_waitrequest = 1'b1; /* Stall master */
                 end
-                else if ( 1'b1 == avs_read ) begin
+                else begin
+                end
+                
+                if ( 1'b1 == avs_read ) begin
                     avs_waitrequest = 1'b1; /* Stall master */
+                end
+                else begin
+                    /* Reset signals */
+                    scr_rd_addr  = 'bX;
+                    avs_readdata = 'bX;
                 end
             end
             
@@ -156,7 +164,7 @@ module avalon_slave_memory (
                         if ( 0 == avs_waitrequest ) begin
                             $sformat( message,
                                       "%m: - write at address %x data %x",
-                                      (avs_address),
+                                      avs_address,
                                       avs_writedata );
                             print(VERBOSITY_DEBUG, message);
                         end
@@ -167,17 +175,14 @@ module avalon_slave_memory (
                             avs_waitrequest <= 1'b0; /* Release master at next clk cycle */
                             avs_readdata <= scr_dout; /* Get the RAM content */
                         end
-                
+            
                         /* Update ram i/o for read */
                         if ( 1 == avs_waitrequest ) begin
-                            scr_rd_addr <= avs_address; /* Get the RAM content */
+                            scr_rd_addr <= (avs_address / 64); /* Get the RAM content */
                         end
                         
                         /* Message to console */
                         if ( 0 == avs_waitrequest ) begin
-                            /* Reset signals */
-                            scr_rd_addr  <= 'bX;
-                            avs_readdata <= 'bX; 
                             $sformat( message,
                                     "%m: - read from address %x data %x",
                                     avs_address,

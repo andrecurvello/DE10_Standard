@@ -79,37 +79,54 @@ module HPS_h2f_axi_sim_mm_interconnect_0_rsp_demux
     input reset
 
 );
-
     localparam NUM_OUTPUTS = 2;
     wire [NUM_OUTPUTS - 1 : 0] ready_vector;
-
-    // -------------------
-    // Demux
-    // -------------------
-    always @* begin
-        src0_data          = sink_data;
-        src0_startofpacket = sink_startofpacket;
-        src0_endofpacket   = sink_endofpacket;
-        src0_channel       = sink_channel >> NUM_OUTPUTS;
-
-        src0_valid         = sink_channel[0] && sink_valid;
-
-        src1_data          = sink_data;
-        src1_startofpacket = sink_startofpacket;
-        src1_endofpacket   = sink_endofpacket;
-        src1_channel       = sink_channel >> NUM_OUTPUTS;
-
-        src1_valid         = sink_channel[1] && sink_valid;
-
-    end
+    reg [235-1 : 0] data;
+    reg in_eop;
+    reg in_sop;
+    reg valid;
+    reg chan;
 
     // -------------------
     // Backpressure
     // -------------------
     assign ready_vector[0] = src0_ready;
     assign ready_vector[1] = src1_ready;
-
     assign sink_ready = |(sink_channel & ready_vector);
+    
+    // -------------------
+    // Demux
+    // -------------------
+    always @(*) begin
+        data = sink_data;
+        in_eop = sink_endofpacket;
+        in_sop = sink_startofpacket;
+        valid = sink_valid;
+        src0_channel = sink_channel >> NUM_OUTPUTS;
+        src1_channel = sink_channel >> NUM_OUTPUTS;
 
+        if ( 1'b1 == sink_channel[0] ) begin
+            src0_data          = data;
+            src0_startofpacket = in_sop;
+            src0_endofpacket   = in_eop;
+            src0_valid         = valid;
+            
+            src1_data          = 'x;
+            src1_startofpacket = 1'b0;
+            src1_endofpacket   = 1'b0;
+            src1_valid         = 1'b0;
+        end
+        
+        if ( 1'b1 == sink_channel[1] )begin
+            src1_data          = data;
+            src1_startofpacket = in_sop;
+            src1_endofpacket   = in_eop;
+            src1_valid         = valid;
+            
+            src0_data          = 'x;
+            src0_startofpacket = 1'b0;
+            src0_endofpacket   = 1'b0;
+            src0_valid         = 1'b0;
+        end
+    end
 endmodule
-

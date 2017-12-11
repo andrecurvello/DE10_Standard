@@ -23,9 +23,16 @@ module single_clk_ram
 // mem[0] [3] refers to byte 3 at address 0 - 8'h fe
    logic   [DATW/8-1:0] [7:0] mem [DEEP];
    logic   [7:0] writelane[DATW/8];
-   
+   int k;
    /* Initialize the array */
-   
+   initial
+   begin
+       for (k = 0; k < DEEP ; k = k + 1) begin
+           mem[k] = 64'hDEADBEEF1CC12DD2;
+       end
+   end
+ 
+   /* Generate */
    generate
       genvar i;
       for (i=0; i<DATW/8; i++) begin: A

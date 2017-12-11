@@ -6,7 +6,7 @@
 **
 ** No event used so far.
 ** ---------------------------------------------------------------------------*/
-`timescale 1 ns / 1 ns
+`timescale 1ns/1ns
 
 module axi_master_bfm (
     clk,
@@ -78,15 +78,6 @@ module axi_master_bfm (
 
     localparam AXI_QUEUE_LEN = 16;  /* Queue length of 16 */
     
-    function int LeftIndex;
-        /* 
-        ** returns the left index for a vector having a declared width
-        ** when width is 0, then the left index is set to 0 rather than -1
-        */
-        input [31:0] width;
-        LeftIndex = (width > 0) ? (width-1) : 0;
-    endfunction
-
 /* -----------------------------------------------------------------------------
 **                           IO Port declarations                             **
 ** -------------------------------------------------------------------------- */
@@ -160,6 +151,9 @@ module axi_master_bfm (
     logic [ 3:0]              axm_awcache; 
     logic [ 2:0]              axm_awprot;
     logic                     axm_awvalid; //master addr valid
+    
+    logic                     xawready;
+    logic                     xwready;
     logic [AXI_ADDRESS_W-1:0] xwaddr [AXI_QUEUE_LEN-1:0];
     logic [ 4:0]              xwlen  [AXI_QUEUE_LEN-1:0];
     logic [AXI_ID_W-1:0]      windex;     /* Id/Queue management */
@@ -172,6 +166,7 @@ module axi_master_bfm (
     logic [AXI_NUMBYTES-1:0]  axm_wstrb;  //1 strobe per byte
     logic                     axm_wlast;  //last transfer in burst
     logic                     axm_wvalid; //master data valid
+    
     logic [AXI_DATA_W-1:0]    xwdata [AXI_QUEUE_LEN-1:0];
     logic [AXI_DATA_W/8-1:0]  xwstrb [AXI_QUEUE_LEN-1:0];
 
@@ -179,6 +174,8 @@ module axi_master_bfm (
     logic [AXI_ID_W-1:0]      axm_bid;
     logic [1:0]               axm_bresp;
     logic                     axm_bready;
+    
+    logic                     xbready;
    
 /**************************  AXI Read Address channel *************************/
     logic [AXI_ID_W-1:0]      axm_arid;
@@ -190,7 +187,10 @@ module axi_master_bfm (
     logic [ 3:0]              axm_arcache; 
     logic [ 2:0]              axm_arprot;
     logic                     axm_arvalid; //master addr valid
-    logic                     xarvalid; 
+    
+    logic                     xarready;
+    logic                     xrready;
+    logic                     xrlast; 
     logic [AXI_ADDRESS_W-1:0] xraddr [AXI_QUEUE_LEN-1:0];
     logic [ 4:0]              xrlen  [AXI_QUEUE_LEN-1:0];
     logic [ 2:0]              xrsize;
@@ -198,6 +198,7 @@ module axi_master_bfm (
 
 /****************************  AXI  Read Data channel *************************/
     logic                      axm_rready;/* master ready to accept */
+    
     logic [AXI_DATA_W-1:0]     xrdata;
     
     integer i;  /* loop index - various places. burst counter */
@@ -332,6 +333,7 @@ module axi_master_bfm (
       trans.set_id(id);
       trans.set_burst_length(burst_length);
       
+      trans.gen_write_strobes = 1'b0;
       trans.driver_name.itoa(id);
       trans.driver_name = {"Read: index = ", trans.driver_name, ":"};
       
@@ -509,6 +511,7 @@ module axi_master_bfm (
           InitiateRAddr = 1'b1;
       
           /* Retrieve id and use it for indexing in the queues */
+          /* Carefull about that */
           windex = trans.id; /* Current index */
           for ( int DataIdx = 0; DataIdx < trans.burst_length; DataIdx++ )
           begin
@@ -521,7 +524,6 @@ module axi_master_bfm (
           xrlen[windex] = trans.burst_length; /* Burst length */
           xrsize = trans.size; /* Burst size */
           xrburst = trans.burst;/* Burst type */
-      
       end
     endtask
     
@@ -580,7 +582,12 @@ module axi_master_bfm (
         ReadStatus = AXI_REQ_IDLE;
         
         /* Locals */
-        xarvalid = 1'b0;
+        xarready = 1'b0;
+        xrready = 1'b0;
+        xrlast = 1'b0;
+        xbready = 1'b0;
+        xawready = 1'b0;
+        xwready = 1'b0;
         
         $sformat(message, "%m: in init descriptor");
         print(VERBOSITY_DEBUG, message);
@@ -616,10 +623,8 @@ module axi_master_bfm (
                  axm_wid <= '0;
                  axm_wstrb <= '0;
                  axm_wdata <= '0;
+                 axm_wlast <= '0;
                  axm_bready <= 1'b0;
-                 
-                 /* Data Read output */
-                 axm_rready <= 1'b0;
                  
                  /* Operate transition to write address if requested */
                  if ( 1'b1 == InitiateWAddr ) begin
@@ -628,7 +633,7 @@ module axi_master_bfm (
                  end
               end
               AXI_REQ_WRITE_ADDR: begin
-                  /* Data write channel transition trigger */
+                  /* Address write and Data write channel  */
                   axm_awvalid <= 1'b1;
                   axm_awid <= windex;
                   axm_awaddr <= xwaddr[windex];
@@ -644,9 +649,6 @@ module axi_master_bfm (
                   /* Operate transition regardless */
                   WriteStatus <= AXI_REQ_WRITE_DATA;
                                             
-                  if ( 1'b1 == axm_awready ) begin
-                    axm_awvalid <= 1'b0;
-                  end
               end
               AXI_REQ_WRITE_DATA: begin /* Sending the data over */
                   axm_wvalid <= 1'b1;
@@ -658,13 +660,18 @@ module axi_master_bfm (
                   /* transmit data */
                   axm_wstrb <= xwstrb[i];
                   axm_wdata <= xwdata[i];
+
+                  if ( 1'b1 == axm_awready ) begin
+                    xawready <= 1'b1;
+                  end
+                  
+                  if( 1'b1 == axm_wready ) begin
+                    xwready <= 1'b1;
+                  end
                   
                   if ( i == (xwlen[windex]-1)) begin
                     /* Set last signal */
                     axm_wlast <= 1'b1;
-                    
-                    /* Data write channel transition trigger */
-                    WriteStatus <= AXI_REQ_WRITE_RESP;
                   end
                   else begin
                     /* Increment burst count */
@@ -672,33 +679,38 @@ module axi_master_bfm (
                   end
               end
               AXI_REQ_WRITE_RESP: begin /* Set response ready signal */
+                if( 1'b1 == axm_bvalid ) begin
+                    xbready <= 1'b1;
+                end
             end
             endcase
         end
         
         /* Handshake and state transition management */
-        always @ (posedge clk) begin
-          /* NEED TO ALSO TAKE INCOUNT THE IDS ! */
-          
-          if (( 1'b1 == axm_awready ) && ( 1'b1 == axm_awvalid )) begin
+        always @ (*) begin
+          if (( 1'b0 == axm_awready ) && ( 1'b1 == xawready )) begin
               axm_awvalid = 1'b0;
+              xawready  = 1'b0;
           end
           
-          if (( 1'b1 == axm_wready )  && ( 1'b1 == axm_wvalid )) begin
+          if (( 1'b0 == axm_wready )  && ( 1'b1 == xwready )) begin
               axm_wvalid = 1'b0;
+              xwready  = 1'b0;
+              axm_wlast = 1'b0;
               
-              /* Reset last signal */
-              axm_wlast <= 1'b0;
+              /* Data write channel transition trigger */
+              WriteStatus = AXI_REQ_WRITE_RESP;
           end
           
-          if (( 1'b1 == axm_bvalid ) && ( 1'b1 == axm_bready )) begin
-              axm_bready <= 1'b0;
+          if (( 1'b0 == axm_bvalid ) && ( 1'b1 == xbready )) begin
+              axm_bready = 1'b0;
+              xbready  = 1'b0;
               
               /* Get error code and treat it */
               /* Only operate transition if result is ok */
               if ( '0 == axm_bresp ) begin
                 /* Trigger transition to Idle */
-                WriteStatus <= AXI_REQ_IDLE;
+                WriteStatus = AXI_REQ_IDLE;
               end
               else begin
                  /* Treat the error, not supported for now */
@@ -742,13 +754,7 @@ module axi_master_bfm (
             axm_arburst <= xrburst;
 
             if ( 1'b1 == axm_arready ) begin
-               xarvalid <= 1'b1;
-            end
-          
-            if (( 1'b1 == xarvalid )  && (1'b0 == axm_arready)) begin
-                ReadStatus <= AXI_REQ_READ_DATA;
-                axm_arvalid <= 1'b0;
-                xarvalid <= 1'b0;
+               xarready <= 1'b1;
             end
           
             /* Fill out protection attributes */
@@ -757,21 +763,27 @@ module axi_master_bfm (
             axm_arprot <= '0;
          end
          AXI_REQ_READ_DATA: begin
-
-              axm_rready <= 1'b0;
+         
+              axm_rready <= 1'b1;
+         
+              if ( 1'b1 == xrlast ) begin
+                  axm_rready <= 1'b0;
+              end
 
               if ( 1'b1 == axm_rvalid ) begin
                   /* Receiving the data */
                   xrdata[i] <= axm_rdata;
+                  xrready <= 1'b1;
                   
                   if ( i != (xwlen[windex]-1)) begin
                     /* Increment burst count */
                     i <= (i + 1);
                   end
-              end
-              else begin
-                /* Indicate to the slave that we are ready */
-                /* axm_rready <= ~axm_rready; */
+                  
+                  /* RLAST management machinery */
+                  if ( 1'b1 == axm_rlast ) begin
+                     xrlast <= 1'b1;
+                 end
               end
          end
       endcase
@@ -779,5 +791,27 @@ module axi_master_bfm (
     
     /* Handshake and state transition management */
     always @ (*) begin
+        if ( (1'b0 == axm_arready) && (1'b1 == xarready) ) begin
+            axm_arid = '0;
+            axm_araddr = '0;
+            axm_arlen = '0;
+            axm_arsize = '0;
+            axm_arburst = '0;
+            axm_arvalid = 1'b0;
+            xarready = 1'b0;
+            ReadStatus = AXI_REQ_READ_DATA;
+        end
+        
+        /* Manage RVALID signal */
+        if ( ( 1'b0 == axm_rvalid )  && (1'b1 == xrready) ) begin
+            axm_rready = 1'b0;
+            xrready = 1'b0;
+        end
+        
+        /* Manage RLAST signal */
+        if ( ( 1'b0 == axm_rlast )  && (1'b1 == xrlast) ) begin
+            ReadStatus = AXI_REQ_IDLE;
+            xrlast = 1'b0;
+        end
     end
 endmodule
