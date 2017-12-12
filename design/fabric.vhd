@@ -18,7 +18,7 @@ use IEEE.numeric_std.all;
 -- *****************************************************************************
 --                                 ENTITY DEFn                                **
 -- ************************************************************************** */
-entity DE10_Standard_Bitcoin is
+entity fabric is
 port (
 	-- FPGA clock and reset
 	CLOCK_50 : in std_logic;
@@ -53,9 +53,9 @@ port (
 	hps_memory_oct_rzqin   : in std_logic
 	
 );
-end entity DE10_Standard_Bitcoin;
+end entity fabric;
 
-architecture Behavioral of DE10_Standard_Bitcoin is
+architecture Behavioral of fabric is
 -- *****************************************************************************
 --                                ALIAS & TYPEDEF                             **
 -- ************************************************************************** */
@@ -63,7 +63,7 @@ architecture Behavioral of DE10_Standard_Bitcoin is
 -- *****************************************************************************
 --                                COMPONENTS                                  **
 -- ************************************************************************** */
-component DE10_Standard_Bitcoin_Design
+component fabric_design
 port (
 	button_pio_external_connection_export : in    std_logic_vector(3 downto 0)  := (others => '0'); -- button_pio_external_connection.export
 	clk_clk                               : in    std_logic                     := '0';             -- clk.clk
@@ -91,7 +91,7 @@ port (
 	reset_reset_n                         : in    std_logic                     := '0';             -- reset.reset_n
 	seg7_0_conduit_end_writedata          : out   std_logic_vector(63 downto 0)                     -- seg7_conduit_end_writedata
 );
-end component DE10_Standard_Bitcoin_Design;
+end component fabric_design;
 
 -- *****************************************************************************
 --                              Debouncing                                    **
@@ -155,7 +155,7 @@ HEX3 <= SEG7Conduit(31 downto 24);
 HEX4 <= SEG7Conduit(39 downto 32);
 HEX5 <= SEG7Conduit(47 downto 40);
 
-DE10_Standard_Bitcoin_Imp : DE10_Standard_Bitcoin_Design
+fabric_design_implementation : fabric_design
 port map (
 	button_pio_external_connection_export => fpga_debounced_buttons,
 	clk_clk                               => CLOCK_50,

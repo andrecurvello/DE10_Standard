@@ -30,7 +30,7 @@
          type = "boolean";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -38,7 +38,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -46,7 +46,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -54,7 +54,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -62,7 +62,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -70,7 +70,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -78,7 +78,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -86,7 +86,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -94,7 +94,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -102,7 +102,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -110,7 +110,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -118,7 +118,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -126,7 +126,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -134,7 +134,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -142,7 +142,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -150,7 +150,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -158,7 +158,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -166,7 +166,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -174,7 +174,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -182,7 +182,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -190,7 +190,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -198,7 +198,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -206,7 +206,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
@@ -214,7 +214,7 @@
          type = "String";
       }
    }
-   element DE10_Standard_Bitcoin_Design
+   element fabric_design
    {
       datum _originalDeviceFamily
       {
