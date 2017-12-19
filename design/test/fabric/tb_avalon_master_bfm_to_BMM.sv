@@ -1,6 +1,6 @@
 `timescale  1ns/1ns
-`include "ip/avalon_mm_bfm/altera_avalon_mm_master_bfm.sv"
-module tb_avalon_master_bfm_to_mem ();
+`include "ip/avalon_mm_bfm/altera_avalon_mm_master_bfm_vhdl_wrapper.sv"
+module tb_avalon_master_bfm_to_BMM ();
 
 /* -----------------------------------------------------------------------------
 **                             Useful imports                                 **
@@ -15,10 +15,16 @@ import avalon_utilities_pkg::*;
 parameter TB_ADDR_W         = 16;
 parameter TB_SYMBOL_W       = 8;
 parameter TB_BURSTCOUNT_W   = 8;
-parameter TB_AV_ADDRESS_W   = 16;
+parameter TB_AV_ADDRESS_W   = 4;
 parameter TB_AV_DATA_W      = 128;
 parameter TB_AV_NUMBYTES    = 16;
 parameter TB_AV_PIPELINE_EN = 1'b0;
+
+parameter TB_AVMM_DATA_W    = 256;
+parameter TB_AVMM_NUMBYTES  = 32;
+parameter TB_AVST_DATA_W    = 512;
+parameter TB_AVST_NUMBYTES  = 64;
+parameter TB_AVST_CHAN_W    = 4;
 
 localparam TB_AV_DW = (TB_SYMBOL_W * TB_AV_NUMBYTES);
 
@@ -30,41 +36,117 @@ string        wait_debug; //comments for simulation waveform display
 integer       i;
 
 /* -----------------------------------------------------------------------------
-**                          Avalon slave memory                               **
+**                          Locals declarations                               **
 ** -------------------------------------------------------------------------- */
-reg                         avs_write;
-reg                         avs_read;
-reg  [TB_AV_ADDRESS_W-1:0]  avs_addr;
-reg  [TB_AV_NUMBYTES-1:0]   avs_byten;
-reg  [TB_AV_DATA_W-1:0]     avs_wdata;
-wire                        avs_waitreq;
-wire [TB_AV_DATA_W-1:0]     avs_readdata;
-wire                        avs_readdatavalid;
+/* Calculation par */
+reg                        avm_write;
+reg  [TB_AV_ADDRESS_W-1:0] avm_addr;
+reg  [TB_AV_NUMBYTES-1:0]  avm_byten;
+reg  [TB_AV_DATA_W-1:0]    avm_wdata;
+wire                       avm_waitreq;
 
+reg                       ast_ready;
+reg                       ast_valid;
+reg  [TB_AVST_CHAN_W-1:0] ast_channel;
+reg  [TB_AVST_DATA_W-1:0] ast_data;
+
+/* Result publication part */
+reg                       avs_mm_waitrequest;
+reg                       avs_mm_read;
+reg  [TB_AVMM_DATA_W-1:0] avs_mm_readdata;
+reg  [TB_AVST_CHAN_W-1:0] avs_mm_addr; /* match channels from st interface */
+
+reg                       avs_st_ready;
+reg                       avs_st_valid;
+reg  [TB_AVST_CHAN_W-1:0] avs_st_chan; /* match addresses to mm interface */
+reg  [TB_AVMM_DATA_W-1:0] avs_st_data;
+
+/* VHDL API request interface */
+reg [MM_MSTR_INIT:0] req_w;
+reg [MM_MSTR_INIT:0] ack_w;
+integer              data_in0_w;
+integer              data_in1_w;
+reg [1023:0]         data_in2_w;
+integer              data_out0_w;
+integer              data_out1_w;
+reg [1023:0]         data_out2_w;
+
+reg [MM_MSTR_INIT:0] req_r;
+reg [MM_MSTR_INIT:0] ack_r;
+integer              data_in0_r;
+integer              data_in1_r;
+reg [1023:0]         data_in2_r;
+integer              data_out0_r;
+integer              data_out1_r;
+reg [1023:0]         data_out2_r;
+
+/* -----------------------------------------------------------------------------
+**                           Module instances                                 **
+** -------------------------------------------------------------------------- */
+/* Calculation part */
 BMM 
-   #(.AV_ADDRESS_W   (TB_AV_ADDRESS_W),
-     .AV_DATA_W      (TB_AV_DATA_W),
-     .AV_NUMSYMBOLS  (TB_AV_NUMBYTES),
-     .ENABLE_PIPELINING (TB_AV_PIPELINE_EN)
-   ) dut(
-      .clk              (clk),  
-      .reset_n           (~rstn),
+   dut(
+      /* Clock and reset */
+      .slClkInput       (clk),  
+      .slResetInput     (rstn),
 
-      /* Avalon write address bus */
- 	  .avs_write             (avs_write),
- 	  .avs_read              (avs_read),
- 	  .avs_waitrequest       (avs_waitreq),
- 	  .avs_address           (avs_addr),
- 	  .avs_byteenable        (avs_byten),
- 	  .avs_writedata         (avs_wdata),
- 	  .avs_readdata          (avs_readdata),
-      .avs_readdatavalid     (avs_readdatavalid)
+      /* Avalon MM bus */
+ 	  .slWriteIn        (avm_write),
+ 	  .slWaitrequest    (avm_waitreq),
+ 	  .slvAddrIn        (avm_addr),
+ 	  .slvByteEnableIn  (avm_byten),
+ 	  .slvWriteDataIn   (avm_wdata),
+      
+      /* Avalon streaming to the result register */
+      .slReadyInput     (ast_ready),
+      .slValidOutput    (ast_valid),
+      .slvChanOuput     (ast_channel),
+      .slvStreamDataOut (ast_data)
+      
    );
 
+BMC 
+   BMC_0(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+/* Result publication part */
+Register_Map
+    map (
+        .slClockInput  (clk),
+        
+        .slResetInput  (rstn),
+        
+        .slvReaddata   (avs_mm_readdata),
+        .slvAddress    (avs_mm_addr),
+        .slRead        (avs_mm_read),
+        .slWaitrequest (avs_mm_waitrequest),
+        
+        .slvData (avs_st_data),
+        .slvChan (avs_st_chan),
+        .slReady (avs_st_ready),
+        .slValid (avs_st_valid)
+
+    );
+    
 /* -----------------------------------------------------------------------------
 **                          Avalon master BFM                                 **
 ** -------------------------------------------------------------------------- */
-   altera_avalon_mm_master_bfm
+   altera_avalon_mm_master_bfm_vhdl_wrapper
        #(.AV_ADDRESS_W             (TB_AV_ADDRESS_W),
          .AV_SYMBOL_W              (TB_SYMBOL_W),
          .AV_NUMSYMBOLS            (TB_AV_NUMBYTES),
@@ -80,35 +162,98 @@ BMM
          .USE_BEGIN_BURST_TRANSFER (0),  
          .USE_WAIT_REQUEST         (1)
          
-       ) avalon_master_bfm(
+       ) avalon_master_write_bfm(
            .clk              (clk),  
            .reset            (rstn),
 
            .avm_clken        (),
 
-           .avm_waitrequest   (avs_waitreq),
-           .avm_write         (avs_write),
-           .avm_read          (avs_read),
-           .avm_address       (avs_addr),
-           .avm_byteenable    (avs_byten),
+           .avm_waitrequest   (avm_waitreq),
+           .avm_write         (avm_write),
+           .avm_read          (),
+           .avm_address       (avm_addr),
+           .avm_byteenable    (avm_byten),
            .avm_burstcount    (),
            .avm_beginbursttransfer (),
            .avm_begintransfer      (),
-           .avm_writedata          (avs_wdata),
-           .avm_readdata           (avs_readdata),
-           .avm_readdatavalid      (avs_readdatavalid),
+           .avm_writedata          (avm_wdata),
+           .avm_readdata           (),
+           .avm_readdatavalid      (),
            .avm_arbiterlock        (),
            .avm_lock               (),
            .avm_debugaccess        (),
 
            .avm_transactionid        (),
-           .avm_readresponse         (8'b0),
            .avm_readid               (8'b0),
            .avm_writeresponserequest (), /* obsolete signal */
            .avm_writeresponsevalid   (1'b0),
-           .avm_writeresponse        (8'b0),
            .avm_writeid              (8'b0),
-           .avm_response             (2'b0)
+           .avm_response             (2'b0),
+           .req (req_w),
+           .ack (ack_w),
+           .data_in0 (data_in0_w),
+           .data_in1 (data_in1_w),
+           .data_in2 (data_in2_w),
+           .data_out0 (data_out0_w),
+           .data_out1 (data_out1_w),
+           .data_out2 (data_out2_w),
+           .events ()
+           
+   );
+
+   altera_avalon_mm_master_bfm_vhdl_wrapper
+       #(.AV_ADDRESS_W             (TB_AV_ADDRESS_W),
+         .AV_SYMBOL_W              (TB_SYMBOL_W),
+         .AV_NUMSYMBOLS            (TB_AVMM_NUMBYTES),
+         .USE_READ                 (1),
+         .USE_WRITE                (1),  
+         .USE_ADDRESS              (1),  
+         .USE_BYTE_ENABLE          (1),  
+         .USE_BURSTCOUNT           (0),  
+         .USE_READ_DATA            (1),  
+         .USE_READ_DATA_VALID      (0),  
+         .USE_WRITE_DATA           (1),  
+         .USE_BEGIN_TRANSFER       (0),  
+         .USE_BEGIN_BURST_TRANSFER (0),  
+         .USE_WAIT_REQUEST         (1)
+         
+       ) avalon_master_read_bfm(
+           .clk              (clk),  
+           .reset            (rstn),
+
+           .avm_clken        (),
+
+           .avm_waitrequest   (avs_mm_waitrequest),
+           .avm_write         (),
+           .avm_read          (avs_mm_read),
+           .avm_address       (avs_mm_addr),
+           .avm_byteenable    (),
+           .avm_burstcount    (),
+           .avm_beginbursttransfer (),
+           .avm_begintransfer      (),
+           .avm_writedata          (),
+           .avm_readdata           (avs_mm_readdata),
+           .avm_readdatavalid      (),
+           .avm_arbiterlock        (),
+           .avm_lock               (),
+           .avm_debugaccess        (),
+
+           .avm_transactionid        (),
+           .avm_readid               (8'b0),
+           .avm_writeresponserequest (), /* obsolete signal */
+           .avm_writeresponsevalid   (1'b0),
+           .avm_writeid              (8'b0),
+           .avm_response             (2'b0),
+           .req (req_r),
+           .ack (ack_r),
+           .data_in0 (data_in0_r),
+           .data_in1 (data_in1_r),
+           .data_in2 (data_in2_r),
+           .data_out0 (data_out0_r),
+           .data_out1 (data_out1_r),
+           .data_out2 (data_out2_r),
+           .events ()
+           
    );
    
 /* -----------------------------------------------------------------------------
@@ -117,46 +262,157 @@ BMM
 initial begin
    clk    = 1'b0;
    rstn   = 1'b0;
-   #20 forever  clk = #5 ~clk;
+   forever  clk = #5 ~clk;
 end
 initial begin
    set_verbosity(VERBOSITY_DEBUG); // set console verbosity level
    /* Disable clock so far */
-   #100 rstn  =  1'b1;
-   #120 rstn  =  1'b0;
-   
-   #40 com = avalon_master_bfm.get_version();
-   /* Now let us enable the clock */
-   
+   #10 rstn  =  1'b1;
+   #20 rstn  =  1'b0;
+
    /* Write to RAM */
-   #10 avalon_master_bfm.set_command_address( 16'h0003 );
-       avalon_master_bfm.set_command_byte_enable( 64'hFFFFFFFFFFFFFFFF, 0 );
-       avalon_master_bfm.set_command_data( 512'h00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380, 0 );
-       avalon_master_bfm.set_command_request( REQ_WRITE );
-       avalon_master_bfm.set_command_timeout( 5 );
-       avalon_master_bfm.push_command();
-
-   #40 avalon_master_bfm.set_command_address( 16'h0007 );
-       avalon_master_bfm.set_command_byte_enable( 64'hFFFFFFFFFFFFFFFF, 0 );
-       avalon_master_bfm.set_command_data( 512'h00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380, 0 );
-       avalon_master_bfm.set_command_request( REQ_WRITE );
-       avalon_master_bfm.set_command_timeout( 5 );
-       avalon_master_bfm.push_command();
-
-   #40 avalon_master_bfm.set_command_address( 16'h0101 );
-       avalon_master_bfm.set_command_byte_enable( 64'hFFFFFFFFFFFFFFFF, 0 );
-       avalon_master_bfm.set_command_data( 512'h00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380, 0 );
-       avalon_master_bfm.set_command_request( REQ_WRITE );
-       avalon_master_bfm.set_command_timeout( 5 );
-       avalon_master_bfm.push_command();
+   
+/************************************CHUNK 0***********************************/
+   #20 data_in2_w = 8'h1; /* Set the command address */
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
        
-   /* Read from RAM */
-   #40 avalon_master_bfm.set_command_address( 16'h0003 );
-       avalon_master_bfm.set_command_request( REQ_READ );
-       avalon_master_bfm.set_command_timeout( 5 );
-       avalon_master_bfm.push_command();
+       data_in2_w = 16'hFFFF; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] == 1);
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
        
-   #3000 $stop;
+       /* Set data */
+       data_in2_w = 128'h00000000000000000000000061626380; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 0;
+
+       /* set request */
+       data_in0_w = 1; /* REQ_WRITE = 1 */
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_REQUEST] == 1);
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 0;
+
+       /* set timeout */
+       data_in0_w = 5; /* 5 cycles of timeout */
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_TIMEOUT] == 1);
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 0;
+
+       req_w[MM_MSTR_PUSH_COMMAND] = 1;
+       wait (ack_w[MM_MSTR_PUSH_COMMAND] == 1);
+       req_w[MM_MSTR_PUSH_COMMAND] = 0;
+
+/************************************CHUNK 1***********************************/
+   #20 data_in2_w = 8'h1; /* Set the command address */
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
+       
+       data_in2_w = 16'hFFFF; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] == 1);
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
+       
+       /* Set data */
+       data_in2_w = 128'h00000000000000000000000000000000; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 0;
+
+       /* set request */
+       data_in0_w = 1; /* REQ_WRITE = 1 */
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_REQUEST] == 1);
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 0;
+
+       /* set timeout */
+       data_in0_w = 5; /* 5 cycles of timeout */
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_TIMEOUT] == 1);
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 0;
+
+       req_w[MM_MSTR_PUSH_COMMAND] = 1;
+       wait (ack_w[MM_MSTR_PUSH_COMMAND] == 1);
+       req_w[MM_MSTR_PUSH_COMMAND] = 0;
+
+/************************************CHUNK 2***********************************/
+   #20 data_in2_w = 8'h1; /* Set the command address */
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
+       
+       data_in2_w = 16'hFFFF; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] == 1);
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
+       
+       /* Set data */
+       data_in2_w = 128'h00000000000000000000000000000000; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 0;
+
+       /* set request */
+       data_in0_w = 1; /* REQ_WRITE = 1 */
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_REQUEST] == 1);
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 0;
+
+       /* set timeout */
+       data_in0_w = 5; /* 5 cycles of timeout */
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_TIMEOUT] == 1);
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 0;
+
+       req_w[MM_MSTR_PUSH_COMMAND] = 1;
+       wait (ack_w[MM_MSTR_PUSH_COMMAND] == 1);
+       req_w[MM_MSTR_PUSH_COMMAND] = 0;
+
+/************************************CHUNK 3***********************************/
+   #20 data_in2_w = 8'h1; /* Set the command address */
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
+       req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
+       
+       data_in2_w = 16'hFFFF; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] == 1);
+       req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
+       
+       /* Set data */
+       data_in2_w = 128'h00000018000000000000000000000000; /* Set byte enable */
+       data_in1_w = 0;
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
+       req_w[MM_MSTR_SET_COMMAND_DATA] = 0;
+
+       /* set request */
+       data_in0_w = 1; /* REQ_WRITE = 1 */
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_REQUEST] == 1);
+       req_w[MM_MSTR_SET_COMMAND_REQUEST] = 0;
+
+       /* set timeout */
+       data_in0_w = 5; /* 5 cycles of timeout */
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 1;
+       wait (ack_w[MM_MSTR_SET_COMMAND_TIMEOUT] == 1);
+       req_w[MM_MSTR_SET_COMMAND_TIMEOUT] = 0;
+
+       req_w[MM_MSTR_PUSH_COMMAND] = 1;
+       wait (ack_w[MM_MSTR_PUSH_COMMAND] == 1);
+       req_w[MM_MSTR_PUSH_COMMAND] = 0;
+       
+   #10000 $stop;
   end
 
 endmodule

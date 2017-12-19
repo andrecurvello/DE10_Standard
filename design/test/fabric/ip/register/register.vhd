@@ -4,39 +4,10 @@
 -- 
 -- Create Date: 08/03/17
 -- Design Name: DE10 Standard
--- Module Name: Flip_Flops_Latches
+-- Module Name: Register map where mining results can be found
 -- Project Name: DE10 Standard
 -- Target Devices: -
 -- Tool versions: -
--- Description: Simple D flip-flop implementation. A D flip flop consist in a 
---              register that is synchroneously updated. See truth table below :
---                                    _
---                 Data | Clock | Q | Q
---                 --------------------
---                   0  | +edge | 0 | 1
---                   1  | +edge | 1 | 0
---                   x  |   0   | Q | oQ
---                   x  |   1   | Q | oQ
---
---                         ----------- 
---                  D     |           |Q
---                  ------|           |-----
---                        |           |_
---                  Clk   |           |Q
---                  ------|           |-----
---                        |           |
---                         ----------- 
---                              | reset
---        _
--- Note : Q is not implemented here, only Q.
---
--- \\\\\\\\
--- ---------
--- |~O~ ~O~|
---o|   |   |o
--- | [---] |
--- |   U   |
--- #########
 --
 --------------------------------------------------------------------------------
 
@@ -50,32 +21,48 @@ use ieee.numeric_std.all;
 --------------------------------------------------------------------------------
 --                          Entities declarations                             --
 --------------------------------------------------------------------------------
-
--- D flip-flop, a register. Attention, this is not to be mistaken for a D latch
--- wich is roughly the same thing, only it is asynchroneous.
-entity Register_256 is
+entity Register_Map is
 port (
-    -- Avalon slave read/write interface
-    slDataOut    : out std_logic_vector(255 downto 0) := X"DEADBEEFDEADBEEFA55AB44BA55AB44BDEADBEEFDEADBEEFA55AB44BA55AB44B";
-    slReadEnable : in std_logic; -- Read command
-
-    -- Avalon streaming interface
-    slDataIn      : in std_logic_vector(255 downto 0) := X"0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
-    slReadyOutput : out std_logic := '1'; -- Ready to store new result
-    slWriteEnable : in std_logic; -- Write command
-
     -- Clock sink
     slClockInput  : in std_logic;
     
     -- Reset sink  
-    slResetInput  : in std_logic
+    slResetInput  : in std_logic;
+    
+    -- Avalon slave read/write interface
+    slvReaddata   : out std_logic_vector(255 downto 0) := X"DEADBEEFDEADBEEFA55AB44BA55AB44BDEADBEEFDEADBEEFA55AB44BA55AB44B";
+    slvAddress    : in std_logic_vector(3 downto 0) := X"0";
+    slRead        : in std_logic; -- Read command
+    slWaitrequest : out std_logic; -- Let us see if we will use that
+
+    -- Avalon streaming interface
+    slvData : in std_logic_vector(255 downto 0) := X"0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+    slvChan : in std_logic_vector(3 downto 0) := X"0";
+    slReady : out std_logic := '1'; -- Ready to store new result
+    slValid : in std_logic -- Write command
+
 );
-end entity Register_256;
+end entity Register_Map;
+
 --------------------------------------------------------------------------------
 --                      Architecture implementations                          --
 --------------------------------------------------------------------------------
-architecture Reg of Register_256 is
+architecture Reg of Register_Map is
+	-- Local typedefs
+	type TABLE is array (7 downto 0) of std_logic_vector(127 downto 0);
+	
+	-- an array "array of array" type
+	signal TABLE8X128 : TABLE := (others=>X"DEADBEEFDEADBEEFDEADBEEFDEADBEEF");
+	
+	-- Internal variables
+	signal slWaitrequestTmp : std_logic := '0';
+    signal Addr : integer := 0;
+	
 begin
+    -- Combinatorial logic
+    slWaitrequestTmp <= slWaitrequest;
+    Addr <= to_integer(unsigned(slvAddress));
+    
     -- Sequential logic
     process (slClockInput) is
     begin
@@ -84,23 +71,33 @@ begin
 	        -- Reset input
 	        if slResetInput = '1' then
 	            -- Reset ouput value
-	            slDataOut <= (others => '0');
-	            slReadyOutput <= '1'; -- Ready to store new result
+	            slvReaddata <= (others => '0');
+	            slReady <= '1'; -- Ready to store new result
 	            
 	        end if;
 	        
-            -- Update output value
-            if ('1' = slReadEnable) then
-                slReadyOutput <= '0';
-            else
-                slReadyOutput <= '1';
-
-	            if (slWriteEnable = '1')then
-	               slDataOut <= slDataIn;
-	            end if;
-                
+            if ('1' = slWaitrequestTmp) then -- Read part
+                slWaitrequest <= '0'; -- Release master read line
             end if;
-            
+
+            -- Update output value
+            if ('1' = slRead) then -- Read part
+                slReady <= '0';
+                slWaitrequest <= '1'; -- For one cycle
+                
+                -- Check address sanity
+                if ( X"8" > slvAddress ) then
+                    slvReaddata <= TABLE8X128(Addr);
+                end if;
+            else
+                slReady <= '1';
+
+	            if (slValid = '1')then -- Writing
+	               if ( X"8" > slvChan ) then
+                       TABLE8X128(Addr) <= slvData(127 downto 0);
+	               end if;
+	            end if;
+            end if;
         end if;
     end process;
 end Reg;

@@ -16,7 +16,7 @@ use ieee.numeric_std.all;
 
 entity BMC is
 generic(
-    ADDRESS : natural := 0
+    ADDRESS : natural := 1
 );
 port (
     -- Avalon streming interface
@@ -24,11 +24,12 @@ port (
     slValidInput        : in  std_logic; -- Input from the manager is now valid 
     slvBlockInput_512   : in  std_logic_vector(511 downto 0) := X"00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380"; --"abc" string see fips documentation
 	slvChanInput        : in  std_logic_vector(3 downto 0);
+    slvChanOutput       : out std_logic_vector(3 downto 0);
 	slReadyInput        : in  std_logic;
 	slValidOutput       : out std_logic := '0'; -- To the 256 output register 
     slvDigestOutput_256 : out std_logic_vector(255 downto 0) := X"EBBEFAAF45546776EBBEFAAF45546776EBBEFAAF45546776EBBEFAAF45546776";
 	
-	   -- Clock sink
+	-- Clock sink
     slClkInput : in  std_logic;
 
     -- Reset sink  
@@ -127,6 +128,7 @@ architecture Behavioral of BMC is
   signal q_hash : word_array_8 := h_default;
 
   signal CalcCounter : natural := 0;
+  signal Addr : std_logic_vector(3 downto 0) := "0000";
   
   -- Pivot "state variable" of the manager  state machine
   -- 00 -> IDLING
@@ -222,6 +224,8 @@ begin
 	        when "00" =>
      	       if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
 	             seSlaveState <= "01";
+	             slReadyOutput <= '0';
+	             Addr <= slvChanInput;
 	           end if;
 	        -- STATE : CALCULATION ONGOING
 	        when "01" =>
@@ -242,9 +246,9 @@ begin
               
               if (CalcCounter = 64) then
                   CalcCounter <= 0;
-                  slReadyOutput <= '0';
                   slValidOutput <= '1';
                   seSlaveState <= "10"; --Transition to publishing state
+                  slvChanOutput <= Addr;
               else
                   -- prevent sending
                   slValidOutput <= '0';
@@ -254,8 +258,8 @@ begin
             -- STATE : CALCULATION ONGOING
             when "10" =>
                 -- Give a chance for the reader of the result to read.
-                seSlaveState <= "00"; --Transition to IDLE
-                
+                 seSlaveState <= "00"; --Transition to IDLE
+                 slReadyOutput <= '1';
 	        -- STATE : reserved	        
 	        when others =>
                 seSlaveState <= "00"; --Transition to IDLE
