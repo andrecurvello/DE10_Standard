@@ -61,7 +61,7 @@ architecture Reg of Register_Map is
 begin
     -- Combinatorial logic
     slWaitrequestTmp <= slWaitrequest;
-    Addr <= to_integer(unsigned(slvAddress));
+    Addr <= to_integer(unsigned(slvChan));
     
     -- Sequential logic
     process (slClockInput) is
