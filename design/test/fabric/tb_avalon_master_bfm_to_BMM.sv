@@ -80,6 +80,20 @@ integer              data_out0_r;
 integer              data_out1_r;
 reg [1023:0]         data_out2_r;
 
+int loopCnt = 0;
+
+typedef enum int {
+   BMC_CORE_0     = 4'd0,
+   BMC_CORE_1     = 4'd1,
+   BMC_CORE_2     = 4'd2,
+   BMC_CORE_3     = 4'd3,
+   BMC_CORE_4     = 4'd4,
+   BMC_CORE_5     = 4'd5,
+   BMC_CORE_6     = 4'd6,
+   BMC_CORE_7     = 4'd7,
+   BMC_CORE_TOTAL = 4'd8
+} bmc_core_e;
+
 /* -----------------------------------------------------------------------------
 **                           Module instances                                 **
 ** -------------------------------------------------------------------------- */
@@ -106,7 +120,156 @@ BMM
    );
 
 BMC 
+   #(.ADDRESS             (0)
+   )
    BMC_0(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (1)
+   )
+   BMC_1(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (2)
+   )
+   BMC_2(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (3)
+   )
+   BMC_3(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (4)
+   )
+   BMC_4(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (5)
+   )
+   BMC_5(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (6)
+   )
+   BMC_6(
+      .slClkInput          (clk),
+      .slResetInput        (rstn),
+      
+      /* In */
+      .slReadyOutput       (ast_ready),
+      .slValidInput        (ast_valid),
+      .slvChanInput        (ast_channel),
+      .slvBlockInput_512   (ast_data),
+      
+      /* Out  */
+      .slReadyInput        (avs_st_ready),
+      .slValidOutput       (avs_st_valid),
+      .slvChanOutput       (avs_st_chan),
+      .slvDigestOutput_256 (avs_st_data)
+    
+   );
+
+BMC 
+   #(.ADDRESS             (7)
+   )
+   BMC_7(
       .slClkInput          (clk),
       .slResetInput        (rstn),
       
@@ -266,14 +429,18 @@ initial begin
 end
 initial begin
    set_verbosity(VERBOSITY_DEBUG); // set console verbosity level
+   
    /* Disable clock so far */
    #10 rstn  =  1'b1;
    #20 rstn  =  1'b0;
-
-   /* Write to RAM */
    
+/* -----------------------------------------------------------------------------
+**                                  WRITE                                     **
+** -------------------------------------------------------------------------- */
+   for ( loopCnt = 0 ; loopCnt<BMC_CORE_TOTAL; loopCnt++ )
+   begin
 /************************************CHUNK 0***********************************/
-   #20 data_in2_w = 8'h1; /* Set the command address */
+   #20 data_in2_w = loopCnt; /* Set the command address */
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
@@ -308,7 +475,7 @@ initial begin
        req_w[MM_MSTR_PUSH_COMMAND] = 0;
 
 /************************************CHUNK 1***********************************/
-   #20 data_in2_w = 8'h1; /* Set the command address */
+   #20 data_in2_w = loopCnt; /* Set the command address */
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
@@ -343,7 +510,7 @@ initial begin
        req_w[MM_MSTR_PUSH_COMMAND] = 0;
 
 /************************************CHUNK 2***********************************/
-   #20 data_in2_w = 8'h1; /* Set the command address */
+   #20 data_in2_w = loopCnt; /* Set the command address */
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
@@ -378,7 +545,7 @@ initial begin
        req_w[MM_MSTR_PUSH_COMMAND] = 0;
 
 /************************************CHUNK 3***********************************/
-   #20 data_in2_w = 8'h1; /* Set the command address */
+   #20 data_in2_w = loopCnt; /* Set the command address */
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
        req_w[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
@@ -411,7 +578,38 @@ initial begin
        req_w[MM_MSTR_PUSH_COMMAND] = 1;
        wait (ack_w[MM_MSTR_PUSH_COMMAND] == 1);
        req_w[MM_MSTR_PUSH_COMMAND] = 0;
-       
+   end
+
+/* -----------------------------------------------------------------------------
+**                                READ                                        **
+** -------------------------------------------------------------------------- */
+    #700 data_in2_r = 8'h0; /* Set the command address */
+    
+    for( loopCnt = 0; loopCnt<BMC_CORE_TOTAL; loopCnt++ )
+    begin
+       #20 data_in2_r = loopCnt; /* Set the command address */
+           req_r[MM_MSTR_SET_COMMAND_ADDRESS] = 1;
+           wait (ack_r[MM_MSTR_SET_COMMAND_ADDRESS] == 1);
+           req_r[MM_MSTR_SET_COMMAND_ADDRESS] = 0;
+    
+           /* set request */
+           data_in0_r = 0; /* REQ_READ = 0 */
+           req_r[MM_MSTR_SET_COMMAND_REQUEST] = 1;
+           wait (ack_r[MM_MSTR_SET_COMMAND_REQUEST] == 1);
+           req_r[MM_MSTR_SET_COMMAND_REQUEST] = 0;
+    
+           /* set timeout */
+           data_in0_r = 5; /* 5 cycles of timeout */
+           req_r[MM_MSTR_SET_COMMAND_TIMEOUT] = 1;
+           wait (ack_r[MM_MSTR_SET_COMMAND_TIMEOUT] == 1);
+           req_r[MM_MSTR_SET_COMMAND_TIMEOUT] = 0;
+    
+           req_r[MM_MSTR_PUSH_COMMAND] = 1;
+           wait (ack_r[MM_MSTR_PUSH_COMMAND] == 1);
+           req_r[MM_MSTR_PUSH_COMMAND] = 0;
+    end
+    
+
    #10000 $stop;
   end
 

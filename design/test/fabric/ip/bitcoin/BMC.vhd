@@ -16,7 +16,7 @@ use ieee.numeric_std.all;
 
 entity BMC is
 generic(
-    ADDRESS : natural := 1
+    ADDRESS : natural := 0
 );
 port (
     -- Avalon streming interface
@@ -250,8 +250,9 @@ begin
                   seSlaveState <= "10"; --Transition to publishing state
                   slvChanOutput <= Addr;
               else
-                  -- prevent sending
+                  -- Need to improve that for pipelining
                   slValidOutput <= '0';
+                  slReadyOutput <= '1';
                             
               end if;
 	

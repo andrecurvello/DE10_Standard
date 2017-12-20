@@ -49,10 +49,10 @@ end entity Register_Map;
 --------------------------------------------------------------------------------
 architecture Reg of Register_Map is
 	-- Local typedefs
-	type TABLE is array (7 downto 0) of std_logic_vector(127 downto 0);
+	type TABLE is array (7 downto 0) of std_logic_vector(255 downto 0);
 	
 	-- an array "array of array" type
-	signal TABLE8X128 : TABLE := (others=>X"DEADBEEFDEADBEEFDEADBEEFDEADBEEF");
+	signal TABLE8X256 : TABLE := (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
 	
 	-- Internal variables
 	signal slWaitrequestTmp : std_logic := '0';
@@ -87,14 +87,14 @@ begin
                 
                 -- Check address sanity
                 if ( X"8" > slvAddress ) then
-                    slvReaddata <= TABLE8X128(Addr);
+                    slvReaddata <= TABLE8X256(Addr);
                 end if;
             else
                 slReady <= '1';
 
 	            if (slValid = '1')then -- Writing
 	               if ( X"8" > slvChan ) then
-                       TABLE8X128(Addr) <= slvData(127 downto 0);
+                       TABLE8X256(Addr) <= slvData;
 	               end if;
 	            end if;
             end if;

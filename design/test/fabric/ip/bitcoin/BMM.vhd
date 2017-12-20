@@ -17,6 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity BMM is
+generic(
+    MAX_QUEUE_DEPTH : natural := 8
+);
 port (
     -- Clock sink
     slClkInput : in  std_logic;
@@ -41,19 +44,36 @@ port (
 end entity BMM;
 
 architecture Behavioral of BMM is
+
+    -- Macros
+    constant NUM_PACKETS : natural := 4;
+    
+    -- Local typedefs
+    type QUEUE is array (MAX_QUEUE_DEPTH downto 0) of std_logic_vector(511 downto 0);
+    type COUNTERS is array (MAX_QUEUE_DEPTH downto 0) of integer;
     
     -- Pivot "state variable" of the manager  state machine
     -- 0 -> PREPARING
     -- 1 -> DISPATCHING
     signal seMgrState : std_logic := '0'; -- Start in "IDLING"
 
-    signal Addr : std_logic_vector(3 downto 0) := "0000";
-    signal nByteenableCount : integer := 0; -- for end of transfer detection
+    signal Idx : natural;
+    signal AddrD : integer := 0;
+    signal AddrL : std_logic_vector(3 downto 0) := "0000";
+    signal AddrCurr : integer := 0; -- Current address transfer
+    signal BurstCntQueue : COUNTERS; -- for end of transfer detection
+    signal PacketQueue : QUEUE; -- for end of transfer detection
   
 -- *****************************************************************************
 --                         CLOCK Cycle processing                             **
 -- ************************************************************************** */
 	begin
+	  -- Combinatorial logic
+	  AddrL <= slvAddrIn when( X"8" > slvAddrIn ) else "0000";
+      AddrD <= to_integer(unsigned(AddrL));
+      slWaitrequest <= ((seMgrState) or (not slReadyInput));
+      
+      -- Sequential logic
 	  process(slClkInput)
 	  begin
 	    -- Reset input control
@@ -61,45 +81,48 @@ architecture Behavioral of BMM is
 	        if (slResetInput = '1') then
 		        -- control variables
 		        seMgrState <= '0';
-		        nByteenableCount <= 0;
-		        Addr <= "0000";
+		        
+		        for Idx in 0 to MAX_QUEUE_DEPTH loop
+		          BurstCntQueue(Idx) <= 0;
+                  PacketQueue(Idx) <= (others => '0');
+		        end loop;
 		        
 		        -- outputs
 		        slValidOutput <= '0';
-		        slWaitrequest <= '0';
 		        slvStreamDataOut <= (others => '0') ;
 	        else
-	            -- Slave Rx state machined
 	            case seMgrState is
 	                -- STATE : PREPARING
 	                when '0' =>
+                      for Idx in 0 to MAX_QUEUE_DEPTH loop
+                          if ( NUM_PACKETS <= BurstCntQueue(Idx) ) then
+                              -- Time to operate transition to "dispatching" state
+                              seMgrState <= '1';
+                              BurstCntQueue(Idx) <= 0;
+                              AddrCurr <= Idx;
+                              
+                              -- Should exit loop at that point
+                          end if;
+                      end loop;
+                      
 	                  -- Mapping from hash to digest
 	                  if slWriteIn = '1' then
-	                  
-	                      -- Get address
-	                      Addr <= slvAddrIn;
-	                      
 	                      -- Byte enable operate on 128 bits chunks.
-	                      if ( 4 > nByteenableCount ) then
+	                      if ( NUM_PACKETS > BurstCntQueue(AddrD) ) then
                             if (slvByteEnableIn = X"FFFF") then
-                                slvStreamDataOut(((nByteenableCount*128)+127) downto (nByteenableCount*128)) <= slvWriteDataIn(127 downto 0);
-                                nByteenableCount <= (nByteenableCount + 1);
+                                PacketQueue(AddrD)(((BurstCntQueue(AddrD)*128)+127) downto (BurstCntQueue(AddrD)*128)) <= slvWriteDataIn(127 downto 0);
+                                BurstCntQueue(AddrD) <= (BurstCntQueue(AddrD) + 1);
                             end if;
 		                  end if;
 	                  end if;
-
-                      if ( 4 <= nByteenableCount ) then
-                          -- Time to operate transition to "dispatching" state
-                          seMgrState <= '1';
-                          nByteenableCount <= 0;
-                      end if;
 	                  
 	                -- STATE : DISPATCHING
 	                when '1' =>
 	                    -- If condition fail stay in the "dispatching" state
 	                    if (slReadyInput = '1')then
 		                    -- Set channel
-		                    slvChanOuput <= Addr;
+		                    slvChanOuput <= std_logic_vector(to_unsigned(AddrCurr, slvChanOuput'length));
+		                    slvStreamDataOut <= PacketQueue(AddrCurr);
 		                    
 		                    -- Ouput is now ready, notice the mining core                
 		                    slValidOutput <= '1';
@@ -111,7 +134,6 @@ architecture Behavioral of BMM is
 	                        -- End outputing                
 	                        slValidOutput <= '0';
 	                        slvChanOuput <= "0000";
-                            Addr <= "0000";
 	                        slvStreamDataOut <= (others=>'0');
 	                        
 	                    end if;
