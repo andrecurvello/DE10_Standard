@@ -19,16 +19,17 @@ generic(
     ADDRESS : natural := 0
 );
 port (
-    -- Avalon streming interface
+    -- Avalon streaming interface
     slReadyOutput       : out std_logic := '1'; -- Ready to take on next block 
     slValidInput        : in  std_logic; -- Input from the manager is now valid 
     slvBlockInput_512   : in  std_logic_vector(511 downto 0) := X"00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380"; --"abc" string see fips documentation
 	slvChanInput        : in  std_logic_vector(3 downto 0);
+    slvChanOutput       : out std_logic_vector(3 downto 0);
 	slReadyInput        : in  std_logic;
 	slValidOutput       : out std_logic := '0'; -- To the 256 output register 
     slvDigestOutput_256 : out std_logic_vector(255 downto 0) := X"EBBEFAAF45546776EBBEFAAF45546776EBBEFAAF45546776EBBEFAAF45546776";
 	
-	   -- Clock sink
+	-- Clock sink
     slClkInput : in  std_logic;
 
     -- Reset sink  
@@ -46,6 +47,7 @@ architecture Behavioral of BMC is
   type word_array_64 is array(0 to 63) of word;
   type word_array_16 is array(0 to 15) of word;
   type word_array_8 is array(0 to 7) of word;
+  type word_array_2 is array(0 to 1) of word;
 
   -- Module specific function definition
   function e0(x: unsigned(31 downto 0)) return unsigned is
@@ -98,6 +100,7 @@ architecture Behavioral of BMC is
   
   -- W results
   signal msg_w : msg := unsigned(slvBlockInput_512);
+  
   signal w : word_array_64;
 
   -- T results
@@ -113,20 +116,27 @@ architecture Behavioral of BMC is
   signal f : word_array_64;
   signal g : word_array_64;
   signal h : word_array_64;
-  signal q_a : word_array_64;
-  signal q_b : word_array_64;
-  signal q_c : word_array_64;
-  signal q_d : word_array_64;
-  signal q_e : word_array_64;
-  signal q_f : word_array_64;
-  signal q_g : word_array_64;
-  signal q_h : word_array_64;
+
+  -- Sequential pipeline design
+  signal w_calc : word_array_16;
+
+  signal t1_calc : word_array_2;
+  signal t2_calc : word_array_2;
+
+  signal a_calc : word_array_2;
+  signal b_calc : word_array_2;
+  signal c_calc : word_array_2;
+  signal d_calc : word_array_2;
+  signal e_calc : word_array_2;
+  signal f_calc : word_array_2;
+  signal g_calc : word_array_2;
+  signal h_calc : word_array_2;
 
   -- Hash
   signal hash : word_array_8 := h_default;
-  signal q_hash : word_array_8 := h_default;
 
   signal CalcCounter : natural := 0;
+  signal Addr : std_logic_vector(3 downto 0) := "0000";
   
   -- Pivot "state variable" of the manager  state machine
   -- 00 -> IDLING
@@ -139,7 +149,7 @@ begin
   
   -- Mapping from hash to digest
   output_mapping: for i in 0 to 7 generate
-    slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(q_hash(i));
+    slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(hash(i));
   end generate output_mapping;
 
 -- *****************************************************************************
@@ -181,15 +191,15 @@ begin
     end generate Init_pipeline_stage;
     
     Pipeline_stage: if i /= 0 generate
-        t1(i) <= q_h(i-1) + e1(q_e(i-1)) + ch(q_e(i-1), q_f(i-1), q_g(i-1)) + k(i) + w(i);
-        t2(i) <= e0(q_a(i-1)) + maj(q_a(i-1), q_b(i-1), q_c(i-1));
-        h(i) <= q_g(i-1);
-        g(i) <= q_f(i-1);
-        f(i) <= q_e(i-1);
-        e(i) <= q_d(i-1) + t1(i);
-        d(i) <= q_c(i-1);
-        c(i) <= q_b(i-1);
-        b(i) <= q_a(i-1);
+        t1(i) <= h(i-1) + e1(e(i-1)) + ch(e(i-1), f(i-1), g(i-1)) + k(i) + w(i);
+        t2(i) <= e0(a(i-1)) + maj(a(i-1), b(i-1), c(i-1));
+        h(i) <= g(i-1);
+        g(i) <= f(i-1);
+        f(i) <= e(i-1);
+        e(i) <= d(i-1) + t1(i);
+        d(i) <= c(i-1);
+        c(i) <= b(i-1);
+        b(i) <= a(i-1);
         a(i) <= t1(i) + t2(i);
         
         -- Wj needs calculation in the second stage of the pipeline
@@ -199,16 +209,6 @@ begin
         end generate Expanded_mBlck_substage;
     end generate Pipeline_stage;
   end generate hash_pipeline;
-
-  -- Hash fill
-  hash(0) <= q_a(63) + h_default(0);
-  hash(1) <= q_b(63) + h_default(1);    
-  hash(2) <= q_c(63) + h_default(2);
-  hash(3) <= q_d(63) + h_default(3);
-  hash(4) <= q_e(63) + h_default(4);
-  hash(5) <= q_f(63) + h_default(5);
-  hash(6) <= q_g(63) + h_default(6);
-  hash(7) <= q_h(63) + h_default(7);
   
 -- *****************************************************************************
 --                         CLOCK Cycle processing                             **
@@ -222,40 +222,62 @@ begin
 	        when "00" =>
      	       if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
 	             seSlaveState <= "01";
+	             slReadyOutput <= '0';
+                 slValidOutput <= '0';
+	             Addr <= slvChanInput;
 	           end if;
 	        -- STATE : CALCULATION ONGOING
 	        when "01" =>
-              -- Update hash
-              q_hash <= hash;
+	        
+    	      -- Pipeline counter
+	          CalcCounter <= CalcCounter + 1;
+	        
+              if (0 = CalcCounter) then
+			
+			      a_calc(0) <= t1(0) + t2(0);
+			      b_calc(0) <= h_default(0);
+			      c_calc(0) <= h_default(1);
+			      d_calc(0) <= h_default(2);
+			      e_calc(0) <= h_default(3) + t1(0);
+			      f_calc(0) <= h_default(4);
+			      g_calc(0) <= h_default(5);
+			      h_calc(0) <= h_default(6);
+
+              elsif (0 /= CalcCounter) and (64 > CalcCounter) then
+
+                  h_calc(CalcCounter mod 2) <= g_calc((CalcCounter-1) mod 2);
+                  g_calc(CalcCounter mod 2) <= f_calc((CalcCounter-1) mod 2);
+                  f_calc(CalcCounter mod 2) <= e_calc((CalcCounter-1) mod 2);
+                  e_calc(CalcCounter mod 2) <= d_calc((CalcCounter-1) mod 2) + t1(CalcCounter);
+                  d_calc(CalcCounter mod 2) <= c_calc((CalcCounter-1) mod 2);
+                  c_calc(CalcCounter mod 2) <= b_calc((CalcCounter-1) mod 2);
+                  b_calc(CalcCounter mod 2) <= a_calc((CalcCounter-1) mod 2);
+                  a_calc(CalcCounter mod 2) <= t1(CalcCounter) + t2(CalcCounter);
+
+              elsif (64 = CalcCounter) then
+                  -- Hash fill
+                  hash(0) <= a_calc(1) + h_default(0);
+                  hash(1) <= b_calc(1) + h_default(1);    
+                  hash(2) <= c_calc(1) + h_default(2);
+                  hash(3) <= d_calc(1) + h_default(3);
+                  hash(4) <= e_calc(1) + h_default(4);
+                  hash(5) <= f_calc(1) + h_default(5);
+                  hash(6) <= g_calc(1) + h_default(6);
+                  hash(7) <= h_calc(1) + h_default(7);
               
-              -- Update registers
-              q_a <= a;
-              q_b <= b;
-              q_c <= c;
-              q_d <= d;
-              q_e <= e;
-              q_f <= f;
-              q_g <= g;
-              q_h <= h;
-              
-              CalcCounter <= CalcCounter + 1;
-              
-              if (CalcCounter = 64) then
                   CalcCounter <= 0;
-                  slReadyOutput <= '0';
                   slValidOutput <= '1';
                   seSlaveState <= "10"; --Transition to publishing state
-              else
-                  -- prevent sending
-                  slValidOutput <= '0';
+                  slvChanOutput <= Addr;
                             
               end if;
 	
             -- STATE : CALCULATION ONGOING
             when "10" =>
                 -- Give a chance for the reader of the result to read.
-                seSlaveState <= "00"; --Transition to IDLE
-                
+                 seSlaveState <= "00"; --Transition to IDLE
+                 slReadyOutput <= '1';
+                 slValidOutput <= '1';
 	        -- STATE : reserved	        
 	        when others =>
                 seSlaveState <= "00"; --Transition to IDLE
@@ -266,7 +288,7 @@ begin
 	      slValidOutput <= '0';
 	      slReadyOutput <= '1'; -- Always be ready
 	      CalcCounter <= 0;
-	    end if ;       
+	    end if ;
         
     end if;
   end process;
