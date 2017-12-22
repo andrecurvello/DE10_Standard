@@ -47,6 +47,7 @@ architecture Behavioral of BMC is
   type word_array_64 is array(0 to 63) of word;
   type word_array_16 is array(0 to 15) of word;
   type word_array_8 is array(0 to 7) of word;
+  type word_array_3 is array(0 to 2) of word;
   type word_array_2 is array(0 to 1) of word;
 
   -- Module specific function definition
@@ -101,24 +102,12 @@ architecture Behavioral of BMC is
   -- W results
   signal msg_w : msg := unsigned(slvBlockInput_512);
   
+  -- Combinatorial pipeline part
   signal w : word_array_64;
 
-  -- T results
-  signal t1 : word_array_64;
-  signal t2 : word_array_64;
-
-  -- Registers
-  signal a : word_array_64;
-  signal b : word_array_64;
-  signal c : word_array_64;
-  signal d : word_array_64;
-  signal e : word_array_64;
-  signal f : word_array_64;
-  signal g : word_array_64;
-  signal h : word_array_64;
-
-  -- Sequential pipeline design
-  signal w_calc : word_array_16;
+  -- Sequential pipeline part
+  signal t1_init : unsigned(31 downto 0);
+  signal t2_init : unsigned(31 downto 0);
 
   signal t1_calc : word_array_2;
   signal t2_calc : word_array_2;
@@ -145,12 +134,13 @@ architecture Behavioral of BMC is
   signal seSlaveState : std_logic_vector(1 downto 0) := "00"; -- Start in "IDLING"
   
 begin
-  -- Avalon bus addressing
-  
   -- Mapping from hash to digest
   output_mapping: for i in 0 to 7 generate
     slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(hash(i));
   end generate output_mapping;
+
+  t1_init <= h_default(7) + e1(h_default(4)) + ch(h_default(4), h_default(5), h_default(6)) + k(0) + msg_w(31 downto 0);
+  t2_init <= e0(h_default(0)) + maj(h_default(0), h_default(1), h_default(2));
 
 -- *****************************************************************************
 --                      SHA256 PIPELINE Declaration                           **
@@ -175,32 +165,9 @@ begin
       w(14) <= msg_w(479 downto 448);
       w(15) <= msg_w(511 downto 480);
 
-      -- Init
-      t1(0) <= h_default(7) + e1(h_default(4)) + ch(h_default(4), h_default(5), h_default(6)) + k(0) + w(0);
-      t2(0) <= e0(h_default(0)) + maj(h_default(0), h_default(1), h_default(2));
-
-      a(0) <= t1(0) + t2(0);
-      b(0) <= h_default(0);
-      c(0) <= h_default(1);
-      d(0) <= h_default(2);
-      e(0) <= h_default(3) + t1(0);
-      f(0) <= h_default(4);
-      g(0) <= h_default(5);
-      h(0) <= h_default(6);
-
     end generate Init_pipeline_stage;
     
     Pipeline_stage: if i /= 0 generate
-        t1(i) <= h(i-1) + e1(e(i-1)) + ch(e(i-1), f(i-1), g(i-1)) + k(i) + w(i);
-        t2(i) <= e0(a(i-1)) + maj(a(i-1), b(i-1), c(i-1));
-        h(i) <= g(i-1);
-        g(i) <= f(i-1);
-        f(i) <= e(i-1);
-        e(i) <= d(i-1) + t1(i);
-        d(i) <= c(i-1);
-        c(i) <= b(i-1);
-        b(i) <= a(i-1);
-        a(i) <= t1(i) + t2(i);
         
         -- Wj needs calculation in the second stage of the pipeline
         Expanded_mBlck_substage: if 15 < i generate
@@ -234,25 +201,43 @@ begin
 	        
               if (0 = CalcCounter) then
 			
-			      a_calc(0) <= t1(0) + t2(0);
+			      a_calc(0) <= t1_init + t2_init;
 			      b_calc(0) <= h_default(0);
 			      c_calc(0) <= h_default(1);
 			      d_calc(0) <= h_default(2);
-			      e_calc(0) <= h_default(3) + t1(0);
+			      e_calc(0) <= h_default(3) + t1_init;
 			      f_calc(0) <= h_default(4);
 			      g_calc(0) <= h_default(5);
 			      h_calc(0) <= h_default(6);
 
+                  -- Need to preset t1/t2
+                  t1_calc(0) <= t1_init;
+                  t2_calc(0) <= t2_init;
+
+                  t1_calc(1) <= h_default(6) + e1((h_default(3) + t1_init)) + ch((h_default(3) + t1_init), h_default(4), h_default(5)) + k(1) + w(1);
+                  t2_calc(1) <= e0((t1_init + t2_init)) + maj((t1_init + t2_init), h_default(0), h_default(1));
+
               elsif (0 /= CalcCounter) and (64 > CalcCounter) then
+
+                  -- Need to be in 1 cycle advance with t1/t2 calculation
+                  if ( 63 > CalcCounter) then 
+	                  if (1 = (CalcCounter mod 2)) then
+	                      t1_calc(0) <= g_calc(0) + e1(d_calc(0)+t1_calc(1)) + ch((d_calc(0)+t1_calc(1)), e_calc(0), f_calc(0)) + k(CalcCounter+1) + w(CalcCounter+1);
+	                      t2_calc(0) <= e0((t1_calc(1) + t2_calc(1))) + maj((t1_calc(1) + t2_calc(1)), a_calc(0), b_calc(0));
+	                  else
+	                      t1_calc(1) <= g_calc(1) + e1(d_calc(1)+t1_calc(0)) + ch((d_calc(1)+t1_calc(0)), e_calc(1), f_calc(1)) + k(CalcCounter+1) + w(CalcCounter+1);
+	                      t2_calc(1) <= e0((t1_calc(0) + t2_calc(0))) + maj((t1_calc(0) + t2_calc(0)), a_calc(1), b_calc(1));
+	                  end if;
+                  end if;
 
                   h_calc(CalcCounter mod 2) <= g_calc((CalcCounter-1) mod 2);
                   g_calc(CalcCounter mod 2) <= f_calc((CalcCounter-1) mod 2);
                   f_calc(CalcCounter mod 2) <= e_calc((CalcCounter-1) mod 2);
-                  e_calc(CalcCounter mod 2) <= d_calc((CalcCounter-1) mod 2) + t1(CalcCounter);
+                  e_calc(CalcCounter mod 2) <= d_calc((CalcCounter-1) mod 2) + t1_calc(CalcCounter mod 2);
                   d_calc(CalcCounter mod 2) <= c_calc((CalcCounter-1) mod 2);
                   c_calc(CalcCounter mod 2) <= b_calc((CalcCounter-1) mod 2);
                   b_calc(CalcCounter mod 2) <= a_calc((CalcCounter-1) mod 2);
-                  a_calc(CalcCounter mod 2) <= t1(CalcCounter) + t2(CalcCounter);
+                  a_calc(CalcCounter mod 2) <= t1_calc(CalcCounter mod 2) + t2_calc(CalcCounter mod 2);
 
               elsif (64 = CalcCounter) then
                   -- Hash fill

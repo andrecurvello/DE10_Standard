@@ -1,7 +1,7 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 
-#add wave -noupdate -divider {bmc_test bfm}
+add wave -noupdate -divider {bmc_test bfm}
 add wave -noupdate -radix hexadecimal /bmc_0/slClkInput
 add wave -noupdate -radix hexadecimal /bmc_0/slResetInput
 add wave -noupdate -radix hexadecimal /bmc_0/slvDigestOutput_256
@@ -15,44 +15,11 @@ add wave -noupdate -radix hexadecimal /bmc_0/CalcCounter
 add wave -noupdate -radix hexadecimal /bmc_0/hash
 add wave -noupdate -radix hexadecimal /bmc_0/seSlaveState
 
-add wave -noupdate -radix hexadecimal {/bmc_0/a[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/b[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/c[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/d[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/e[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/f[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/g[16]}
-add wave -noupdate -radix hexadecimal {/bmc_0/h[16]}
+add wave -noupdate -radix hexadecimal {/bmc_0/t1_calc[0]}
+add wave -noupdate -radix hexadecimal {/bmc_0/t1_calc[1]}
 
-add wave -noupdate -radix hexadecimal {/bmc_0/a[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/b[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/c[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/d[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/e[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/f[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/g[32]}
-add wave -noupdate -radix hexadecimal {/bmc_0/h[32]}
-
-add wave -noupdate -radix hexadecimal {/bmc_0/a[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/b[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/c[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/d[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/e[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/f[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/g[63]}
-add wave -noupdate -radix hexadecimal {/bmc_0/h[63]}
-
-add wave -noupdate -radix hexadecimal {/bmc_0/a_calc[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/a_calc[1]}
-
-add wave -noupdate -radix hexadecimal {/bmc_0/b_calc[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/b_calc[1]}
-
-add wave -noupdate -radix hexadecimal {/bmc_0/c_calc[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/c_calc[1]}
-
-add wave -noupdate -radix hexadecimal {/bmc_0/d_calc[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/d_calc[1]}
+add wave -noupdate -radix hexadecimal {/bmc_0/t2_calc[0]}
+add wave -noupdate -radix hexadecimal {/bmc_0/t2_calc[1]}
 
 force -freeze sim:/bmc_test/bmc_0/slClkInput 1 0, 0 {10 ps} -r 20
 force -drive sim:/bmc_test/bmc_0/slvChanInput 0000 0
