@@ -101,11 +101,10 @@ architecture Behavioral of BMC is
   
   -- W results
   signal msg_w : msg := unsigned(slvBlockInput_512);
-  
-  -- Combinatorial pipeline part
-  signal w : word_array_64;
 
   -- Sequential pipeline part
+  signal w_calc : word_array_16;
+  
   signal t1_init : unsigned(31 downto 0);
   signal t2_init : unsigned(31 downto 0);
 
@@ -141,41 +140,6 @@ begin
 
   t1_init <= h_default(7) + e1(h_default(4)) + ch(h_default(4), h_default(5), h_default(6)) + k(0) + msg_w(31 downto 0);
   t2_init <= e0(h_default(0)) + maj(h_default(0), h_default(1), h_default(2));
-
--- *****************************************************************************
---                      SHA256 PIPELINE Declaration                           **
--- ************************************************************************** */
-  hash_pipeline: for i in 0 to 63 generate
-    Init_pipeline_stage: if i = 0 generate
-      -- Unpack message block
-      w(0) <= msg_w(31 downto 0);
-      w(1) <= msg_w(63 downto 32);
-      w(2) <= msg_w(95 downto 64);
-      w(3) <= msg_w(127 downto 96);
-      w(4) <= msg_w(159 downto 128);
-      w(5) <= msg_w(191 downto 160);
-      w(6) <= msg_w(223 downto 192);
-      w(7) <= msg_w(255 downto 224);
-      w(8) <= msg_w(287 downto 256);
-      w(9) <= msg_w(319 downto 288);
-      w(10) <= msg_w(351 downto 320);
-      w(11) <= msg_w(383 downto 352);
-      w(12) <= msg_w(415 downto 384);
-      w(13) <= msg_w(447 downto 416);
-      w(14) <= msg_w(479 downto 448);
-      w(15) <= msg_w(511 downto 480);
-
-    end generate Init_pipeline_stage;
-    
-    Pipeline_stage: if i /= 0 generate
-        
-        -- Wj needs calculation in the second stage of the pipeline
-        Expanded_mBlck_substage: if 15 < i generate
-          -- W component update
-          w(i) <= s1(w(i-2)) + w(i-7) + s0(w(i-15)) + w(i-16);
-        end generate Expanded_mBlck_substage;
-    end generate Pipeline_stage;
-  end generate hash_pipeline;
   
 -- *****************************************************************************
 --                         CLOCK Cycle processing                             **
@@ -200,6 +164,23 @@ begin
 	          CalcCounter <= CalcCounter + 1;
 	        
               if (0 = CalcCounter) then
+			      -- Unpack message block
+			      w_calc(0) <= msg_w(31 downto 0);
+			      w_calc(1) <= msg_w(63 downto 32);
+			      w_calc(2) <= msg_w(95 downto 64);
+			      w_calc(3) <= msg_w(127 downto 96);
+			      w_calc(4) <= msg_w(159 downto 128);
+			      w_calc(5) <= msg_w(191 downto 160);
+			      w_calc(6) <= msg_w(223 downto 192);
+			      w_calc(7) <= msg_w(255 downto 224);
+			      w_calc(8) <= msg_w(287 downto 256);
+			      w_calc(9) <= msg_w(319 downto 288);
+			      w_calc(10) <= msg_w(351 downto 320);
+			      w_calc(11) <= msg_w(383 downto 352);
+			      w_calc(12) <= msg_w(415 downto 384);
+			      w_calc(13) <= msg_w(447 downto 416);
+			      w_calc(14) <= msg_w(479 downto 448);
+			      w_calc(15) <= msg_w(511 downto 480);
 			
 			      a_calc(0) <= t1_init + t2_init;
 			      b_calc(0) <= h_default(0);
@@ -214,18 +195,23 @@ begin
                   t1_calc(0) <= t1_init;
                   t2_calc(0) <= t2_init;
 
-                  t1_calc(1) <= h_default(6) + e1((h_default(3) + t1_init)) + ch((h_default(3) + t1_init), h_default(4), h_default(5)) + k(1) + w(1);
+                  t1_calc(1) <= h_default(6) + e1((h_default(3) + t1_init)) + ch((h_default(3) + t1_init), h_default(4), h_default(5)) + k(1) + msg_w(63 downto 32);
                   t2_calc(1) <= e0((t1_init + t2_init)) + maj((t1_init + t2_init), h_default(0), h_default(1));
 
               elsif (0 /= CalcCounter) and (64 > CalcCounter) then
 
+                  -- W calculation
+                  if ( 14 <= CalcCounter) then
+                      w_calc((CalcCounter+2) mod 16) <= s1(w_calc(CalcCounter mod 16)) + w_calc((CalcCounter-5) mod 16) + s0(w_calc((CalcCounter-13) mod 16)) + w_calc((CalcCounter-14) mod 16);
+                  end if;
+                  
                   -- Need to be in 1 cycle advance with t1/t2 calculation
                   if ( 63 > CalcCounter) then 
 	                  if (1 = (CalcCounter mod 2)) then
-	                      t1_calc(0) <= g_calc(0) + e1(d_calc(0)+t1_calc(1)) + ch((d_calc(0)+t1_calc(1)), e_calc(0), f_calc(0)) + k(CalcCounter+1) + w(CalcCounter+1);
+	                      t1_calc(0) <= g_calc(0) + e1(d_calc(0)+t1_calc(1)) + ch((d_calc(0)+t1_calc(1)), e_calc(0), f_calc(0)) + k(CalcCounter+1) + w_calc((CalcCounter+1) mod 16);
 	                      t2_calc(0) <= e0((t1_calc(1) + t2_calc(1))) + maj((t1_calc(1) + t2_calc(1)), a_calc(0), b_calc(0));
 	                  else
-	                      t1_calc(1) <= g_calc(1) + e1(d_calc(1)+t1_calc(0)) + ch((d_calc(1)+t1_calc(0)), e_calc(1), f_calc(1)) + k(CalcCounter+1) + w(CalcCounter+1);
+	                      t1_calc(1) <= g_calc(1) + e1(d_calc(1)+t1_calc(0)) + ch((d_calc(1)+t1_calc(0)), e_calc(1), f_calc(1)) + k(CalcCounter+1) + w_calc((CalcCounter+1) mod 16);
 	                      t2_calc(1) <= e0((t1_calc(0) + t2_calc(0))) + maj((t1_calc(0) + t2_calc(0)), a_calc(1), b_calc(1));
 	                  end if;
                   end if;
@@ -242,7 +228,7 @@ begin
               elsif (64 = CalcCounter) then
                   -- Hash fill
                   hash(0) <= a_calc(1) + h_default(0);
-                  hash(1) <= b_calc(1) + h_default(1);    
+                  hash(1) <= b_calc(1) + h_default(1);
                   hash(2) <= c_calc(1) + h_default(2);
                   hash(3) <= d_calc(1) + h_default(3);
                   hash(4) <= e_calc(1) + h_default(4);

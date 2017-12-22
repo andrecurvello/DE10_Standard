@@ -15,12 +15,6 @@ add wave -noupdate -radix hexadecimal /bmc_0/CalcCounter
 add wave -noupdate -radix hexadecimal /bmc_0/hash
 add wave -noupdate -radix hexadecimal /bmc_0/seSlaveState
 
-add wave -noupdate -radix hexadecimal {/bmc_0/t1_calc[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/t1_calc[1]}
-
-add wave -noupdate -radix hexadecimal {/bmc_0/t2_calc[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/t2_calc[1]}
-
 force -freeze sim:/bmc_test/bmc_0/slClkInput 1 0, 0 {10 ps} -r 20
 force -drive sim:/bmc_test/bmc_0/slvChanInput 0000 0
 force -drive sim:/bmc_test/bmc_0/slValidInput 1 0
