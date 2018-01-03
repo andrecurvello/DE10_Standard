@@ -160,12 +160,13 @@ begin
 	        when "00" =>
      	       if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
 	             seSlaveState <= "01";
-	             slReadyOutput <= '0';
-                 slValidOutput <= '0';
 	             Addr <= slvChanInput;
+	             slReadyOutput <= '0';
 	           end if;
 	        -- STATE : CALCULATION ONGOING
 	        when "01" =>
+
+              slReadyOutput <= '1';
 
               -- Pipeline counter test
               CalcCounterTest <= CalcCounterTest + 1;
@@ -257,10 +258,10 @@ begin
 	
             -- STATE : CALCULATION ONGOING
             when "10" =>
-                -- Give a chance for the reader of the result to read.
+                 -- Give a chance for the reader of the result to read.
                  seSlaveState <= "00"; --Transition to IDLE
                  slReadyOutput <= '1';
-                 slValidOutput <= '1';
+                 slValidOutput <= '0';
 	        -- STATE : reserved	        
 	        when others =>
                 seSlaveState <= "00"; --Transition to IDLE

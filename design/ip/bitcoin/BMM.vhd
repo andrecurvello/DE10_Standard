@@ -71,7 +71,8 @@ architecture Behavioral of BMM is
 	  -- Combinatorial logic
 	  AddrL <= slvAddrIn when( X"8" > slvAddrIn ) else "0000";
       AddrD <= to_integer(unsigned(AddrL));
-      slWaitrequest <= ((seMgrState) or (not slReadyInput));
+      slWaitrequest <= seMgrState;
+      --slWaitrequest <= ((seMgrState) or (not slReadyInput));
       
       -- Sequential logic
 	  process(slClkInput)
