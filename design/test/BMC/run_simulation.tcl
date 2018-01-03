@@ -16,12 +16,12 @@ com
 # load and run simulation
 elab_debug
 do wave.do
-run 2ns
+run 8ns
 
 # alias to re-compile changes made to test program, load and run simulation
 alias rerun {
    elab_debug
    do wave.do
-   run 2ns
+   run 8ns
 }
 

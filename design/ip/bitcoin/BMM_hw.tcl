@@ -19,13 +19,13 @@ package require -exact qsys 16.1
 # module BMM
 # 
 set_module_property DESCRIPTION "Bitcoin Mining Manager"
-set_module_property NAME BMM
+set_module_property NAME Manager
 set_module_property VERSION 1.0
 set_module_property INTERNAL false
 set_module_property OPAQUE_ADDRESS_MAP true
 set_module_property GROUP bitcoin
 set_module_property AUTHOR "Badiss Djafar"
-set_module_property DISPLAY_NAME BMM
+set_module_property DISPLAY_NAME Manager
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property REPORT_TO_TALKBACK false
@@ -51,6 +51,15 @@ add_fileset_file BMM.vhd VHDL PATH BMM.vhd
 # 
 # parameters
 # 
+add_parameter MAX_QUEUE_DEPTH NATURAL 8 ""
+set_parameter_property MAX_QUEUE_DEPTH DEFAULT_VALUE 8
+set_parameter_property MAX_QUEUE_DEPTH DISPLAY_NAME MAX_QUEUE_DEPTH
+set_parameter_property MAX_QUEUE_DEPTH WIDTH ""
+set_parameter_property MAX_QUEUE_DEPTH TYPE NATURAL
+set_parameter_property MAX_QUEUE_DEPTH UNITS None
+set_parameter_property MAX_QUEUE_DEPTH ALLOWED_RANGES 0:2147483647
+set_parameter_property MAX_QUEUE_DEPTH DESCRIPTION ""
+set_parameter_property MAX_QUEUE_DEPTH HDL_PARAMETER true
 
 
 # 
@@ -86,9 +95,9 @@ set_interface_property avalon_slave SVD_ADDRESS_GROUP ""
 
 add_interface_port avalon_slave slWaitrequest waitrequest Output 1
 add_interface_port avalon_slave slWriteIn write Input 1
-add_interface_port avalon_slave slvByteEnableIn byteenable Input 64
+add_interface_port avalon_slave slvByteEnableIn byteenable Input 16
 add_interface_port avalon_slave slvAddrIn address Input 4
-add_interface_port avalon_slave slvWritedataIn writedata Input 512
+add_interface_port avalon_slave slvWritedataIn writedata Input 128
 set_interface_assignment avalon_slave embeddedsw.configuration.isFlash 0
 set_interface_assignment avalon_slave embeddedsw.configuration.isMemoryDevice 0
 set_interface_assignment avalon_slave embeddedsw.configuration.isNonVolatileStorage 0

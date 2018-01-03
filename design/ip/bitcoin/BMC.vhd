@@ -44,11 +44,14 @@ architecture Behavioral of BMC is
   alias slv is std_logic_vector;
   subtype word is unsigned(31 downto 0);
   subtype msg is unsigned(511 downto 0);
+  -- Scale
   type word_array_64 is array(0 to 63) of word;
   type word_array_16 is array(0 to 15) of word;
   type word_array_8 is array(0 to 7) of word;
-  type word_array_3 is array(0 to 2) of word;
   type word_array_2 is array(0 to 1) of word;
+
+  -- Pipelining
+  type word_array_natural_64 is array(0 to 63) of natural;
 
   -- Module specific function definition
   function e0(x: unsigned(31 downto 0)) return unsigned is
@@ -124,7 +127,9 @@ architecture Behavioral of BMC is
   signal hash : word_array_8 := h_default;
 
   signal CalcCounter : natural := 0;
+  signal CalcCounterTest : natural := 0;
   signal Addr : std_logic_vector(3 downto 0) := "0000";
+  signal CalcCounterArray : word_array_natural_64;
   
   -- Pivot "state variable" of the manager  state machine
   -- 00 -> IDLING
@@ -137,6 +142,8 @@ begin
   output_mapping: for i in 0 to 7 generate
     slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(hash(i));
   end generate output_mapping;
+
+  CalcCounterArray(CalcCounterTest/64) <= (CalcCounterTest rem 64);
 
   t1_init <= h_default(7) + e1(h_default(4)) + ch(h_default(4), h_default(5), h_default(6)) + k(0) + msg_w(31 downto 0);
   t2_init <= e0(h_default(0)) + maj(h_default(0), h_default(1), h_default(2));
@@ -159,6 +166,9 @@ begin
 	           end if;
 	        -- STATE : CALCULATION ONGOING
 	        when "01" =>
+
+              -- Pipeline counter test
+              CalcCounterTest <= CalcCounterTest + 1;
 	        
     	      -- Pipeline counter
 	          CalcCounter <= CalcCounter + 1;
@@ -201,10 +211,12 @@ begin
               elsif (0 /= CalcCounter) and (64 > CalcCounter) then
 
                   -- W calculation
+                  -- Need to be in 2 cycle advance because of t1/t2 calculation
                   if ( 14 <= CalcCounter) then
                       w_calc((CalcCounter+2) mod 16) <= s1(w_calc(CalcCounter mod 16)) + w_calc((CalcCounter-5) mod 16) + s0(w_calc((CalcCounter-13) mod 16)) + w_calc((CalcCounter-14) mod 16);
                   end if;
                   
+                  -- T1/T2 calculation
                   -- Need to be in 1 cycle advance with t1/t2 calculation
                   if ( 63 > CalcCounter) then 
 	                  if (1 = (CalcCounter mod 2)) then

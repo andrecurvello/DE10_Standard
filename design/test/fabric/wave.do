@@ -12,7 +12,6 @@ add wave -noupdate -group {BMM} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/
 add wave -noupdate -group {BMM} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/dut/slValidOutput
 add wave -noupdate -group {BMM} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/dut/slvChanOuput
 add wave -noupdate -group {BMM} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/dut/slvStreamDataOut
-add wave -noupdate -group {BMM} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/dut/nByteenableCount
 add wave -noupdate -group {BMM} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/dut/seMgrState
 add wave -noupdate -group {BMM} -radix hexadecimal {/tb_avalon_master_bfm_to_BMM/dut/PacketQueue[0]}
 add wave -noupdate -group {BMM} -radix hexadecimal {/tb_avalon_master_bfm_to_BMM/dut/PacketQueue[1]}
@@ -43,7 +42,7 @@ add wave -noupdate -group {BMC}  -group {0} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {0} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_0/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {0} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_0/CalcCounter
 add wave -noupdate -group {BMC}  -group {0} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_0/seSlaveState
-add wave -noupdate -group {BMC}  -group {0} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_0/q_hash
+add wave -noupdate -group {BMC}  -group {0} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_0/hash
 #1
 add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/slClkInput
 add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/slResetInput
@@ -57,7 +56,7 @@ add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/CalcCounter
 add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/seSlaveState
-add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/q_hash
+add wave -noupdate -group {BMC}  -group {1} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_1/hash
 #2
 add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/slClkInput
 add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/slResetInput
@@ -71,7 +70,7 @@ add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/CalcCounter
 add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/seSlaveState
-add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/q_hash
+add wave -noupdate -group {BMC}  -group {2} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_2/hash
 #3
 add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/slClkInput
 add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/slResetInput
@@ -85,7 +84,7 @@ add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/CalcCounter
 add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/seSlaveState
-add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/q_hash
+add wave -noupdate -group {BMC}  -group {3} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_3/hash
 #4
 add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/slClkInput
 add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/slResetInput
@@ -99,7 +98,7 @@ add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/CalcCounter
 add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/seSlaveState
-add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/q_hash
+add wave -noupdate -group {BMC}  -group {4} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_4/hash
 #5
 add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/slClkInput
 add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/slResetInput
@@ -113,7 +112,7 @@ add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/CalcCounter
 add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/seSlaveState
-add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/q_hash
+add wave -noupdate -group {BMC}  -group {5} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_5/hash
 #6
 add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/slClkInput
 add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/slResetInput
@@ -127,7 +126,7 @@ add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/CalcCounter
 add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/seSlaveState
-add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/q_hash
+add wave -noupdate -group {BMC}  -group {6} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_6/hash
 #7
 add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/slClkInput
 add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/slResetInput
@@ -141,7 +140,7 @@ add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master
 add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/slvDigestOutput_256
 add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/CalcCounter
 add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/seSlaveState
-add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/q_hash
+add wave -noupdate -group {BMC}  -group {7} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/BMC_7/hash
 
 add wave -noupdate -group {MAP} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/map/slClockInput
 add wave -noupdate -group {MAP} -radix hexadecimal /tb_avalon_master_bfm_to_BMM/map/slResetInput

@@ -16,16 +16,16 @@ package require -exact qsys 16.1
 
 
 # 
-# module BMC
+# module Core
 # 
 set_module_property DESCRIPTION "Bitcoin Mining Core"
-set_module_property NAME BMC
+set_module_property NAME Core
 set_module_property VERSION 1.0
 set_module_property INTERNAL false
 set_module_property OPAQUE_ADDRESS_MAP true
 set_module_property GROUP bitcoin
 set_module_property AUTHOR "Badiss DJAFAR"
-set_module_property DISPLAY_NAME BMC
+set_module_property DISPLAY_NAME Core
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property REPORT_TO_TALKBACK false
