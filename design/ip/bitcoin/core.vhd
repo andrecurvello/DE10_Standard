@@ -22,7 +22,7 @@ port (
     -- Avalon streaming interface
     slReadyOutput       : out std_logic := '1'; -- Ready to take on next block 
     slValidInput        : in  std_logic; -- Input from the manager is now valid 
-    slvBlockInput_512   : in  std_logic_vector(511 downto 0) := X"00000018000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000061626380"; --"abc" string see fips documentation
+    slvBlockInput_512   : in  std_logic_vector(511 downto 0) := X"00000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060800000"; --"abc" string see fips documentation
 	slvChanInput        : in  std_logic_vector(3 downto 0);
     slvChanOutput       : out std_logic_vector(3 downto 0);
 	slReadyInput        : in  std_logic;
@@ -138,6 +138,10 @@ architecture Behavioral of BMC is
   signal seSlaveState : std_logic_vector(1 downto 0) := "00"; -- Start in "IDLING"
   
 begin
+
+  -- Mapping from input to module
+  msg_w <= unsigned(slvBlockInput_512);
+  
   -- Mapping from hash to digest
   output_mapping: for i in 0 to 7 generate
     slvDigestOutput_256((i+1)*32-1 downto i*32) <= slv(hash(i));

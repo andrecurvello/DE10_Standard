@@ -14,15 +14,16 @@ add wave -noupdate -radix hexadecimal /bmc_0/slReadyOutput
 add wave -noupdate -radix hexadecimal /bmc_0/CalcCounter
 add wave -noupdate -radix hexadecimal /bmc_0/hash
 add wave -noupdate -radix hexadecimal /bmc_0/seSlaveState
+add wave -noupdate -radix hexadecimal /bmc_0/msg_w
 
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[0]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[1]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[2]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[3]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[4]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[5]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[6]}
-add wave -noupdate -radix hexadecimal {/bmc_0/CalcCounterArray[7]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[0]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[1]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[2]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[3]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[4]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[5]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[6]}
+add wave -noupdate -radix hexadecimal {/bmc_0/w_calc[7]}
 
 force -freeze sim:/core_test/bmc_0/slClkInput 1 0, 0 {10 ps} -r 20
 force -drive sim:/core_test/bmc_0/slvChanInput 0000 0

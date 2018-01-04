@@ -94,6 +94,41 @@ typedef enum int {
    BMC_CORE_TOTAL = 4'd8
 } bmc_core_e;
 
+/* [ A , B , C , D] -> [ D , C , B , A ] where A,B,C,D are 32 bits word */
+/* array of test vector */
+reg [127:0] aTestVectors[0:31] = { 128'h00000000000000000000000060800000, /* V0 */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000008000000000000000000000000,
+                                   128'h00000000000000000000000011af8000, /* V1 : 5ca7133fa735326081558ac312c620eeca9970d1e70a4b95533d956f072d1f98 */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000010000000000000000000000000,
+                                   128'h0000000080000000c4f4ccb65738c929, /* V2 : 963bb88f27f512777aab6c8b1a02c70ec0ad651d428f870036e1917120fb48bf */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000040000000000000000000000000,
+                                   128'h00000000000000000000000061626380, /* V3 */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000018000000000000000000000000,
+                                   128'h00000000000000008000000074ba2521, /* V4 : b16aa56be3880d18cd41e68384cf1ec8c17680c45a02b1575dc1518923ae8b0e */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000020000000000000000000000000,
+                                   128'h6edd762b62220b04dc98bd6f0a27847c, /* V5 : 80c25ec1600587e7f28b18b1b18e3cdc89928e39cab3bc25e4d4a4c139bcedc4*/
+                                   128'h00000000000000000000000080000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000080000000000000000000000000,
+                                   128'h00000000000000000000000061626380, /* V6 */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000018000000000000000000000000,
+                                   128'h00000000000000000000000061626380, /* V7 */
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000000000000000000000000000000,
+                                   128'h00000018000000000000000000000000 };
+                 
 /* -----------------------------------------------------------------------------
 **                           Module instances                                 **
 ** -------------------------------------------------------------------------- */
@@ -452,7 +487,7 @@ initial begin
        req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
        
        /* Set data */
-       data_in2_w = 128'h00000000000000000000000061626380; /* Set byte enable */
+       data_in2_w = aTestVectors[4*loopCnt]; /* Set byte enable */
        data_in1_w = 0;
        req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
@@ -487,7 +522,7 @@ initial begin
        req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
        
        /* Set data */
-       data_in2_w = 128'h00000000000000000000000000000000; /* Set byte enable */
+       data_in2_w = aTestVectors[(4*loopCnt)+1]; /* Set byte enable */
        data_in1_w = 0;
        req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
@@ -522,7 +557,7 @@ initial begin
        req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
        
        /* Set data */
-       data_in2_w = 128'h00000000000000000000000000000000; /* Set byte enable */
+       data_in2_w = aTestVectors[(4*loopCnt)+2]; /* Set byte enable */
        data_in1_w = 0;
        req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
@@ -557,7 +592,7 @@ initial begin
        req_w[MM_MSTR_SET_COMMAND_BYTE_ENABLE] = 0;
        
        /* Set data */
-       data_in2_w = 128'h00000018000000000000000000000000; /* Set byte enable */
+       data_in2_w = aTestVectors[(4*loopCnt)+3]; /* Set byte enable */
        data_in1_w = 0;
        req_w[MM_MSTR_SET_COMMAND_DATA] = 1;
        wait (ack_w[MM_MSTR_SET_COMMAND_DATA] == 1);
