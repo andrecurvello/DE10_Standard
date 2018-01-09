@@ -6,6 +6,7 @@
 #                                                                              #
 ################################################################################
 DIRS = COM
+DESIGN = design
 
 ################################################################################
 #                              EXPORTS TO SUBMK                                #
@@ -36,16 +37,28 @@ all : $(TARGETS)
 	$(foreach DIR,$(DIRS),cd $(DIR) && make all && cd .. &&) true
 	@echo -e  "\033[1;32m[Finished $@]\033[0m"
 
-miner : 	
+miner :
 	@echo -e "\033[1;32m[Compiling $@]\033[0m"
 	$(MAKE) -C COM MINER
 	@echo -e  "\033[1;32m[Finished $@]\033[0m"
 
+test :
+	@echo -e "\033[1;36m[    TBD    ]\033[0m"
+
+generate_fabric :
+	@echo -e "\033[1;36m[    TBD    ]\033[0m"
+
+clean_fabric :
+	@echo -e "\033[1;36m[    TBD    ]\033[0m"
+
 usage list help:
 	@echo -e "\033[1;36m[Listing available target for build : \033[0m"
-	@echo -e "\033[1;36m[	all     - builds all available targets\033[0m"
-	@echo -e "\033[1;36m[	miner   - builds the miner app\033[0m"
-	@echo -e "\033[1;36m[	clean   - cleans the build directories\033[0m"
+	@echo -e "\033[1;36m[	all             - builds all available targets\033[0m"
+	@echo -e "\033[1;36m[	miner           - builds the miner app\033[0m"
+	@echo -e "\033[1;36m[	test            - builds the production test\033[0m"
+	@echo -e "\033[1;36m[	generate_fabric - generates FPGA fabric design\033[0m"
+	@echo -e "\033[1;36m[	clean_fabric    - cleans FPGA fabric design\033[0m"
+	@echo -e "\033[1;36m[	clean           - cleans the build directories\033[0m"
 
 .PHONY: clean
 clean:

@@ -9,14 +9,6 @@
    categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
-   element Core_0
-   {
-      datum _sortIndex
-      {
-         value = "10";
-         type = "int";
-      }
-   }
    element ILC
    {
       datum _sortIndex
@@ -31,22 +23,6 @@
       {
          value = "196608";
          type = "String";
-      }
-   }
-   element Manager_0
-   {
-      datum _sortIndex
-      {
-         value = "9";
-         type = "int";
-      }
-   }
-   element Register_Map_0
-   {
-      datum _sortIndex
-      {
-         value = "11";
-         type = "int";
       }
    }
    element SEG7_0
@@ -86,12 +62,100 @@
          type = "int";
       }
    }
+   element core_interface_0
+   {
+      datum _sortIndex
+      {
+         value = "10";
+         type = "int";
+      }
+   }
    element f2sdram_only_master
    {
       datum _sortIndex
       {
          value = "5";
          type = "int";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element fabric_design
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
       }
    }
    element fabric_design
@@ -326,6 +390,22 @@
          type = "int";
       }
    }
+   element manager_0
+   {
+      datum _sortIndex
+      {
+         value = "9";
+         type = "int";
+      }
+   }
+   element register_map_0
+   {
+      datum _sortIndex
+      {
+         value = "11";
+         type = "int";
+      }
+   }
    element soc_system
    {
       datum _originalDeviceFamily
@@ -415,9 +495,6 @@
    internal="SEG7_0.conduit_end"
    type="conduit"
    dir="end" />
- <module name="Core_0" kind="Core" version="1.0" enabled="1">
-  <parameter name="ADDRESS" value="0" />
- </module>
  <module
    name="ILC"
    kind="interrupt_latency_counter"
@@ -427,10 +504,6 @@
   <parameter name="INTR_TYPE" value="0" />
   <parameter name="IRQ_PORT_CNT" value="3" />
  </module>
- <module name="Manager_0" kind="Manager" version="1.0" enabled="1">
-  <parameter name="MAX_QUEUE_DEPTH" value="8" />
- </module>
- <module name="Register_Map_0" kind="Register_Map" version="1.0" enabled="1" />
  <module name="SEG7_0" kind="SEG7" version="1.0" enabled="1">
   <parameter name="ADDR_WIDTH" value="3" />
   <parameter name="DEFAULT_ACTIVE" value="1" />
@@ -455,6 +528,13 @@
   <parameter name="clockFrequencyKnown" value="true" />
   <parameter name="inputClockFrequency" value="0" />
   <parameter name="resetSynchronousEdges" value="NONE" />
+ </module>
+ <module
+   name="core_interface_0"
+   kind="core_interface"
+   version="1.0"
+   enabled="1">
+  <parameter name="NUM_CORES" value="8" />
  </module>
  <module
    name="f2sdram_only_master"
@@ -1028,6 +1108,10 @@
   <parameter name="PLI_PORT" value="50000" />
   <parameter name="USE_PLI" value="0" />
  </module>
+ <module name="manager_0" kind="manager" version="1.0" enabled="1">
+  <parameter name="MAX_QUEUE_DEPTH" value="8" />
+ </module>
+ <module name="register_map_0" kind="register_map" version="1.0" enabled="1" />
  <module
    name="sysid_qsys"
    kind="altera_avalon_sysid_qsys"
@@ -1039,7 +1123,7 @@
    kind="avalon"
    version="17.0"
    start="hps_0.h2f_axi_master"
-   end="Manager_0.avalon_slave">
+   end="manager_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
@@ -1048,7 +1132,7 @@
    kind="avalon"
    version="17.0"
    start="hps_0.h2f_axi_master"
-   end="Register_Map_0.avalon_slave">
+   end="register_map_0.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0200" />
   <parameter name="defaultConnection" value="false" />
@@ -1128,13 +1212,13 @@
  <connection
    kind="avalon_streaming"
    version="17.0"
-   start="Manager_0.avalon_streaming_source"
-   end="Core_0.avalon_streaming_sink" />
+   start="manager_0.avalon_streaming_source"
+   end="core_interface_0.avalon_streaming_sink" />
  <connection
    kind="avalon_streaming"
    version="17.0"
-   start="Core_0.avalon_streaming_source"
-   end="Register_Map_0.avalon_streaming_sink" />
+   start="core_interface_0.avalon_streaming_source"
+   end="register_map_0.avalon_streaming_sink" />
  <connection
    kind="clock"
    version="17.0"
@@ -1158,13 +1242,17 @@
    kind="clock"
    version="17.0"
    start="clk_0.clk"
-   end="Manager_0.clock_sink" />
- <connection kind="clock" version="17.0" start="clk_0.clk" end="Core_0.clock_sink" />
+   end="manager_0.clock_sink" />
  <connection
    kind="clock"
    version="17.0"
    start="clk_0.clk"
-   end="Register_Map_0.clock_sink" />
+   end="core_interface_0.clock_sink" />
+ <connection
+   kind="clock"
+   version="17.0"
+   start="clk_0.clk"
+   end="register_map_0.clock_sink" />
  <connection
    kind="clock"
    version="17.0"
@@ -1230,17 +1318,17 @@
    kind="reset"
    version="17.0"
    start="clk_0.clk_reset"
-   end="Manager_0.reset_sink" />
+   end="manager_0.reset_sink" />
  <connection
    kind="reset"
    version="17.0"
    start="clk_0.clk_reset"
-   end="Core_0.reset_sink" />
+   end="core_interface_0.reset_sink" />
  <connection
    kind="reset"
    version="17.0"
    start="clk_0.clk_reset"
-   end="Register_Map_0.reset_sink" />
+   end="register_map_0.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

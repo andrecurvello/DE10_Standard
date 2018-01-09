@@ -2,7 +2,7 @@
 -- Engineer: bdjafar (donation 1NMufZS3yajzfJwbCMrxVu4LaCWCvQowqE)
 -- 
 -- Create Date: 04/10/17
--- Design Name: BitcoinMiner
+-- Design Name: manager
 -- Module Name: sha256 module
 -- Project Name: BitcoinMiner
 -- Target Devices: -
@@ -16,7 +16,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity BMM is
+entity manager is
 generic(
     MAX_QUEUE_DEPTH : natural := 8
 );
@@ -27,23 +27,23 @@ port (
     -- Reset sink  
     slResetInput : in  std_logic;
 
-    -- Avalon slave read/write interface
+    -- Avalon slave write interface
 	slWaitrequest   : out std_logic := '0';
     slWriteIn       : in std_logic;
     slvAddrIn       : in std_logic_vector(3 downto 0);
 	slvByteEnableIn : in std_logic_vector(15 downto 0);
 	slvWriteDataIn  : in std_logic_vector(127 downto 0);
 
-    -- Avalon streaming interface
+    -- Avalon st source
     slReadyInput     : in std_logic;
     slValidOutput    : out std_logic;
     slvChanOuput     : out std_logic_vector(3 downto 0);
     slvStreamDataOut : out std_logic_vector(511 downto 0)
 
 );
-end entity BMM;
+end entity manager;
 
-architecture Behavioral of BMM is
+architecture Behavioral of manager is
 
     -- Macros
     constant NUM_PACKETS : natural := 4;
@@ -72,7 +72,6 @@ architecture Behavioral of BMM is
 	  AddrL <= slvAddrIn when( X"8" > slvAddrIn ) else "0000";
       AddrD <= to_integer(unsigned(AddrL));
       slWaitrequest <= seMgrState;
-      --slWaitrequest <= ((seMgrState) or (not slReadyInput));
       
       -- Sequential logic
 	  process(slClkInput)
@@ -120,7 +119,7 @@ architecture Behavioral of BMM is
 	                -- STATE : DISPATCHING
 	                when '1' =>
 	                    -- If condition fail stay in the "dispatching" state
-	                    if (slReadyInput = '1')then
+	                    if (slReadyInput = '0')then
 		                    -- Set channel
 		                    slvChanOuput <= std_logic_vector(to_unsigned(AddrCurr, slvChanOuput'length));
 		                    slvStreamDataOut <= PacketQueue(AddrCurr);

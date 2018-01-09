@@ -96,7 +96,7 @@ typedef enum int {
 
 /* [ A , B , C , D] -> [ D , C , B , A ] where A,B,C,D are 32 bits word */
 /* array of test vector */
-reg [127:0] aTestVectors[0:31] = { 128'h00000000000000000000000060800000, /* V0 */
+reg [127:0] aTestVectors[0:31] = { 128'h00000000000000000000000060800000, /* V0 : 8d33f520a3c4cef80d2453aef81b612bfe1cb44c8b2025630ad38662763f13d3 */
                                    128'h00000000000000000000000000000000,
                                    128'h00000000000000000000000000000000,
                                    128'h00000008000000000000000000000000,
@@ -133,7 +133,7 @@ reg [127:0] aTestVectors[0:31] = { 128'h00000000000000000000000060800000, /* V0 
 **                           Module instances                                 **
 ** -------------------------------------------------------------------------- */
 /* Calculation part */
-BMM 
+manager 
    dut(
       /* Clock and reset */
       .slClkInput       (clk),  
@@ -154,171 +154,24 @@ BMM
       
    );
 
-BMC 
-   #(.ADDRESS             (0)
+core_interface
+   #(.NUM_CORES             (8)
    )
-   BMC_0(
+   core_if_0(
       .slClkInput          (clk),
       .slResetInput        (rstn),
       
       /* In */
       .slReadyOutput       (ast_ready),
       .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
+      .slvChanIn           (ast_channel),
+      .slvStreamDataIn     (ast_data),
       
       /* Out  */
       .slReadyInput        (avs_st_ready),
       .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (1)
-   )
-   BMC_1(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (2)
-   )
-   BMC_2(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (3)
-   )
-   BMC_3(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (4)
-   )
-   BMC_4(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (5)
-   )
-   BMC_5(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (6)
-   )
-   BMC_6(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
-    
-   );
-
-BMC 
-   #(.ADDRESS             (7)
-   )
-   BMC_7(
-      .slClkInput          (clk),
-      .slResetInput        (rstn),
-      
-      /* In */
-      .slReadyOutput       (ast_ready),
-      .slValidInput        (ast_valid),
-      .slvChanInput        (ast_channel),
-      .slvBlockInput_512   (ast_data),
-      
-      /* Out  */
-      .slReadyInput        (avs_st_ready),
-      .slValidOutput       (avs_st_valid),
-      .slvChanOutput       (avs_st_chan),
-      .slvDigestOutput_256 (avs_st_data)
+      .slvChanOut          (avs_st_chan),
+      .slvStreamDataOut    (avs_st_data)
     
    );
 

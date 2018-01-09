@@ -11,6 +11,7 @@ vlog ./ip/verification_lib/avalon_mm_pkg.sv
 
 # Memory defn
 vcom -2008 $IP_DIR/bitcoin/manager.vhd
+vcom -2008 $IP_DIR/bitcoin/core_interface.vhd
 vcom -2008 $IP_DIR/bitcoin/core.vhd
 vcom -2008 $IP_DIR/bitcoin/register_map.vhd
 

@@ -2,28 +2,30 @@
 -- Engineer: bdjafar (donation 1NMufZS3yajzfJwbCMrxVu4LaCWCvQowqE)
 -- 
 -- Create Date: 24/02/15
--- Design Name: BitcoinMiner
+-- Design Name: core
 -- Module Name: sha256 module
 -- Project Name: BitcoinMiner
 -- Target Devices: -
 -- Tool versions: -
--- Description: SHA256 hash pipeline
+-- Description: SHA256 hash non-pipeline
 --
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity BMC is
+entity core is
 generic(
     ADDRESS : natural := 0
 );
 port (
-    -- Avalon streaming interface
-    slReadyOutput       : out std_logic := '1'; -- Ready to take on next block 
+    -- Avalon st sink 
+    slReadyOutput       : out std_logic := '0'; -- Ready to take on next block 
     slValidInput        : in  std_logic; -- Input from the manager is now valid 
     slvBlockInput_512   : in  std_logic_vector(511 downto 0) := X"00000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060800000"; --"abc" string see fips documentation
 	slvChanInput        : in  std_logic_vector(3 downto 0);
+	
+    -- Avalon st source 
     slvChanOutput       : out std_logic_vector(3 downto 0);
 	slReadyInput        : in  std_logic;
 	slValidOutput       : out std_logic := '0'; -- To the 256 output register 
@@ -36,9 +38,9 @@ port (
     slResetInput : in  std_logic
 	
 );
-end entity BMC;
+end entity core;
 
-architecture Behavioral of BMC is
+architecture Behavioral of core is
 
   -- Type definition and aliases
   alias slv is std_logic_vector;
@@ -165,12 +167,13 @@ begin
      	       if (slValidInput = '1') and ( ADDRESS = unsigned(slvChanInput) )then
 	             seSlaveState <= "01";
 	             Addr <= slvChanInput;
-	             slReadyOutput <= '0';
+                 slReadyOutput <= '1';
 	           end if;
 	        -- STATE : CALCULATION ONGOING
 	        when "01" =>
 
-              slReadyOutput <= '1';
+              -- Update handshake signal
+              slReadyOutput <= '0';
 
               -- Pipeline counter test
               CalcCounterTest <= CalcCounterTest + 1;
@@ -179,6 +182,7 @@ begin
 	          CalcCounter <= CalcCounter + 1;
 	        
               if (0 = CalcCounter) then
+                  
 			      -- Unpack message block
 			      w_calc(0) <= msg_w(31 downto 0);
 			      w_calc(1) <= msg_w(63 downto 32);
@@ -264,7 +268,7 @@ begin
             when "10" =>
                  -- Give a chance for the reader of the result to read.
                  seSlaveState <= "00"; --Transition to IDLE
-                 slReadyOutput <= '1';
+                 slReadyOutput <= '0';
                  slValidOutput <= '0';
 	        -- STATE : reserved	        
 	        when others =>
@@ -274,7 +278,7 @@ begin
 	    if (slResetInput ='1' ) then
             -- Reset output signals
 	      slValidOutput <= '0';
-	      slReadyOutput <= '1'; -- Always be ready
+	      slReadyOutput <= '0'; -- Always be ready
 	      CalcCounter <= 0;
 	    end if ;
         
