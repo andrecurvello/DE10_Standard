@@ -5,7 +5,7 @@
 -- Design Name: core_interface
 -- Module Name: core_interface
 -- Project Name: BitcoinMiner
--- Target Devices: -
+-- Target Devices: Cyclone 5
 -- Tool versions: -
 -- Description: Avalon st container. We are forced to do that job manually because avalon
 --              does not handle that very well. Avalon kinda sucks :/ ...
@@ -58,31 +58,31 @@ architecture Behavioral of core_interface is
 -- *****************************************************************************
 --                                COMPONENTS                                  **
 -- ************************************************************************** */
-	component core is
-	generic(
-	    ADDRESS : natural
-	);
-	port (
-	    -- Avalon st sink 
-	    slReadyOutput       : out std_logic; 
-	    slValidInput        : in  std_logic; -- Input from the manager is now valid 
-	    slvBlockInput_512   : in  std_logic_vector(511 downto 0);
-	    slvChanInput        : in  std_logic_vector(3 downto 0);
-	    
-	    -- Avalon st source 
-	    slvChanOutput       : out std_logic_vector(3 downto 0);
-	    slReadyInput        : in  std_logic;
-	    slValidOutput       : out std_logic; 
-	    slvDigestOutput_256 : out std_logic_vector(255 downto 0);
-	    
-	    -- Clock sink
-	    slClkInput : in  std_logic;
-	
-	    -- Reset sink  
-	    slResetInput : in  std_logic
-	    
-	);
-	end component core;
+    component core is
+    generic(
+        ADDRESS : natural
+    );
+    port (
+        -- Avalon st sink 
+        slReadyOutput       : out std_logic; 
+        slValidInput        : in  std_logic; -- Input from the manager is now valid 
+        slvBlockInput_512   : in  std_logic_vector(511 downto 0);
+        slvChanInput        : in  std_logic_vector(3 downto 0);
+        
+        -- Avalon st source 
+        slvChanOutput       : out std_logic_vector(3 downto 0);
+        slReadyInput        : in  std_logic;
+        slValidOutput       : out std_logic; 
+        slvDigestOutput_256 : out std_logic_vector(255 downto 0);
+        
+        -- Clock sink
+        slClkInput : in  std_logic;
+    
+        -- Reset sink  
+        slResetInput : in  std_logic
+        
+    );
+    end component core;
   
 -- *****************************************************************************
 --                                   Map                                      **
@@ -291,40 +291,40 @@ begin
     );
     
     -- Sequential logic
-    process (slClkInput, slResetInput) is
+    process (slClkInput) is
     begin
         if rising_edge(slClkInput) then
-	        -- Input part
-	        if (slValidInput = '1') then
-	          for Idx in 0 to (NUM_CORES-1) loop
-	            if ( '1' = aslvReadyOut(Idx) ) then
-	              slReadyOutput <= '1';
-	            end if;
-	          end loop;
-	        else
-	           slReadyOutput <= '0';
-	        end if;
-	
-	        -- Output part
-	        for Idx in 0 to (NUM_CORES-1) loop
-	          if ( '1' = aslvValidOut(Idx) ) then
-	            slvStreamDataOut <= Digest(Idx);
-	            slvChanOut <= Addr(Idx);
-	            slValidOutput <= '1';
-	          end if;
-	        end loop;
+            -- Input part
+            if (slValidInput = '1') then
+              for Idx in 0 to (NUM_CORES-1) loop
+                if ( '1' = aslvReadyOut(Idx) ) then
+                  slReadyOutput <= '1';
+                end if;
+              end loop;
+            else
+               slReadyOutput <= '0';
+            end if;
+    
+            -- Output part
+            for Idx in 0 to (NUM_CORES-1) loop
+              if ( '1' = aslvValidOut(Idx) ) then
+                slvStreamDataOut <= Digest(Idx);
+                slvChanOut <= Addr(Idx);
+                slValidOutput <= '1';
+              end if;
+            end loop;
 
-	        if ( '1' = slReadyInput) then
-	            slvStreamDataOut <= (others => '0');
-	            slvChanOut <= (others => '0');
+            if ( '1' = slReadyInput) then
+                slvStreamDataOut <= (others => '0');
+                slvChanOut <= (others => '0');
                 slValidOutput <= '0';
-	        end if;
+            end if;
+            
+            -- Reset output hanshake signals
+            if ('1' = slResetInput) then
+              slReadyOutput <= '0'; -- Always be ready
+              slValidOutput <= '0'; -- No output
+            end if ;
         end if;
-	    
-        -- Reset output hanshake signals
-        if rising_edge(slResetInput) then
-          slReadyOutput <= '0'; -- Always be ready
-          slValidOutput <= '0'; -- No output
-        end if ;
     end process;
 end architecture Behavioral;

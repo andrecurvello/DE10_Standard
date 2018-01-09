@@ -3,9 +3,9 @@
 -- 
 -- Create Date: 24/02/15
 -- Design Name: core
--- Module Name: sha256 module
+-- Module Name: core
 -- Project Name: BitcoinMiner
--- Target Devices: -
+-- Target Devices: Cyclone 5
 -- Tool versions: -
 -- Description: SHA256 hash non-pipeline
 --
@@ -273,14 +273,15 @@ begin
 	        -- STATE : reserved	        
 	        when others =>
                 seSlaveState <= "00"; --Transition to IDLE
-        end case;        
-
-	    if (slResetInput ='1' ) then
-            -- Reset output signals
+        end case;
+        
+        if ('1' = slResetInput) then
+	        -- Reset output signals
 	      slValidOutput <= '0';
 	      slReadyOutput <= '0'; -- Always be ready
 	      CalcCounter <= 0;
 	    end if ;
+        
         
     end if;
   end process;

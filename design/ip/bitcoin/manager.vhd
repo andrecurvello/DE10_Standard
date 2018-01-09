@@ -3,9 +3,9 @@
 -- 
 -- Create Date: 04/10/17
 -- Design Name: manager
--- Module Name: sha256 module
+-- Module Name: manager
 -- Project Name: BitcoinMiner
--- Target Devices: -
+-- Target Devices: Cyclone 5
 -- Tool versions: -
 -- Description: Avalon slave interface. No chipselect used in that particular case 
 --              Read  : user_read
@@ -78,68 +78,68 @@ architecture Behavioral of manager is
 	  begin
 	    -- Reset input control
 	    if rising_edge(slClkInput) then -- Clock control
-	        if (slResetInput = '1') then
-		        -- control variables
-		        seMgrState <= '0';
-		        
-		        for Idx in 0 to MAX_QUEUE_DEPTH loop
-		          BurstCntQueue(Idx) <= 0;
-                  PacketQueue(Idx) <= (others => '0');
-		        end loop;
-		        
-		        -- outputs
-		        slValidOutput <= '0';
-		        slvStreamDataOut <= (others => '0') ;
-	        else
-	            case seMgrState is
-	                -- STATE : PREPARING
-	                when '0' =>
-                      for Idx in 0 to MAX_QUEUE_DEPTH loop
-                          if ( NUM_PACKETS <= BurstCntQueue(Idx) ) then
-                              -- Time to operate transition to "dispatching" state
-                              seMgrState <= '1';
-                              BurstCntQueue(Idx) <= 0;
-                              AddrCurr <= Idx;
-                              
-                              -- Should exit loop at that point
-                          end if;
-                      end loop;
-                      
-	                  -- Mapping from hash to digest
-	                  if slWriteIn = '1' then
-	                      -- Byte enable operate on 128 bits chunks.
-	                      if ( NUM_PACKETS > BurstCntQueue(AddrD) ) then
-                            if (slvByteEnableIn = X"FFFF") then
-                                PacketQueue(AddrD)(((BurstCntQueue(AddrD)*128)+127) downto (BurstCntQueue(AddrD)*128)) <= slvWriteDataIn(127 downto 0);
-                                BurstCntQueue(AddrD) <= (BurstCntQueue(AddrD) + 1);
-                            end if;
-		                  end if;
+            case seMgrState is
+                -- STATE : PREPARING
+                when '0' =>
+                  for Idx in 0 to MAX_QUEUE_DEPTH loop
+                      if ( NUM_PACKETS <= BurstCntQueue(Idx) ) then
+                          -- Time to operate transition to "dispatching" state
+                          seMgrState <= '1';
+                          BurstCntQueue(Idx) <= 0;
+                          AddrCurr <= Idx;
+                          
+                          -- Should exit loop at that point
+                      end if;
+                  end loop;
+                  
+                  -- Mapping from hash to digest
+                  if slWriteIn = '1' then
+                      -- Byte enable operate on 128 bits chunks.
+                      if ( NUM_PACKETS > BurstCntQueue(AddrD) ) then
+                        if (slvByteEnableIn = X"FFFF") then
+                            PacketQueue(AddrD)(((BurstCntQueue(AddrD)*128)+127) downto (BurstCntQueue(AddrD)*128)) <= slvWriteDataIn(127 downto 0);
+                            BurstCntQueue(AddrD) <= (BurstCntQueue(AddrD) + 1);
+                        end if;
 	                  end if;
-	                  
-	                -- STATE : DISPATCHING
-	                when '1' =>
-	                    -- If condition fail stay in the "dispatching" state
-	                    if (slReadyInput = '0')then
-		                    -- Set channel
-		                    slvChanOuput <= std_logic_vector(to_unsigned(AddrCurr, slvChanOuput'length));
-		                    slvStreamDataOut <= PacketQueue(AddrCurr);
-		                    
-		                    -- Ouput is now ready, notice the mining core                
-		                    slValidOutput <= '1';
-		                    
-		                else
-		                    -- Transmission finished. Go back to idling
-	                        seMgrState <= '0';
-	
-	                        -- End outputing                
-	                        slValidOutput <= '0';
-	                        slvChanOuput <= "0000";
-	                        slvStreamDataOut <= (others=>'0');
-	                        
-	                    end if;
-	                when others =>
-	                    null;
-	            end case;
+                  end if;
+                  
+                -- STATE : DISPATCHING
+                when '1' =>
+                    -- If condition fail stay in the "dispatching" state
+                    if (slReadyInput = '0')then
+	                    -- Set channel
+	                    slvChanOuput <= std_logic_vector(to_unsigned(AddrCurr, slvChanOuput'length));
+	                    slvStreamDataOut <= PacketQueue(AddrCurr);
+	                    
+	                    -- Ouput is now ready, notice the mining core                
+	                    slValidOutput <= '1';
+	                    
+	                else
+	                    -- Transmission finished. Go back to idling
+                        seMgrState <= '0';
+
+                        -- End outputing                
+                        slValidOutput <= '0';
+                        slvChanOuput <= "0000";
+                        slvStreamDataOut <= (others=>'0');
+                        
+                    end if;
+                when others =>
+                    null;
+            end case;
+            
+            if ('1' = slResetInput) then
+	            -- control variables
+	            seMgrState <= '0';
+	            
+	            for Idx in 0 to MAX_QUEUE_DEPTH loop
+	              BurstCntQueue(Idx) <= 0;
+	              PacketQueue(Idx) <= (others => '0');
+	            end loop;
+	            
+	            -- outputs
+	            slValidOutput <= '0';
+	            slvStreamDataOut <= (others => '0') ;
 	        end if;
 	    end if;
 	end process;

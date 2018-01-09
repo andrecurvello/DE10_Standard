@@ -6,7 +6,7 @@
 -- Design Name: register map
 -- Module Name: Register map where mining results can be found
 -- Project Name: DE10 Standard
--- Target Devices: -
+-- Target Devices: Cyclone 5
 -- Tool versions: -
 --
 --------------------------------------------------------------------------------
@@ -48,13 +48,13 @@ end entity register_map;
 --                      Architecture implementations                          --
 --------------------------------------------------------------------------------
 architecture Reg of register_map is
-	-- Local typedefs
-	type TABLE is array (7 downto 0) of std_logic_vector(255 downto 0);
-	
-	-- an array "array of array" type
-	signal TABLE8X256 : TABLE := (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
-	
-	-- Internal variables
+    -- Local typedefs
+    type TABLE is array (7 downto 0) of std_logic_vector(255 downto 0);
+    
+    -- an array "array of array" type
+    signal TABLE8X256 : TABLE := (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
+    
+    -- Internal variables
     signal AddrW : integer := 0;
     signal AddrR : integer := 0;
 
@@ -67,12 +67,12 @@ architecture Reg of register_map is
     -- 0 -> IDLE
     -- 1 -> Busy mode
     signal seRgmStateR : std_logic := '0'; -- Start in "IDLING"
-	
+    
 begin
     -- Combinatorial logic
     AddrW <= to_integer(unsigned(slvChan));
     AddrR <= to_integer(unsigned(slvAddress));
-    slWaitrequest <= '1' when (slRead and (not seRgmStateR)) else '0'; -- Cannot write and read at the same time
+    slWaitrequest <= '1' when (('1' = slRead) and ('0' = seRgmStateR)) else '0'; -- Cannot write and read at the same time
     
     -- Sequential logic
     process (slClockInput) is
@@ -80,21 +80,21 @@ begin
         -- Clock input
         if rising_edge(slClockInput) then
             case seRgmStateW is
-	            -- STATE : IDLE
-	            when '0' =>
-		            -- Input part
-		            if (slValid = '1')then -- Writing
-		            
-    		           seRgmStateW <= '1'; -- Update state machine pivot variable.
-    		            
-		               -- Signal write success
-		               slReady <= '1';
-		            
-		               -- Write in register/result map  
-		               if ( X"8" > slvChan ) then
-		                   TABLE8X256(AddrW) <= slvData;
-		               end if;
-		            end if;
+                -- STATE : IDLE
+                when '0' =>
+                    -- Input part
+                    if (slValid = '1')then -- Writing
+                    
+                       seRgmStateW <= '1'; -- Update state machine pivot variable.
+                        
+                       -- Signal write success
+                       slReady <= '1';
+                    
+                       -- Write in register/result map  
+                       if ( X"8" > slvChan ) then
+                           TABLE8X256(AddrW) <= slvData;
+                       end if;
+                    end if;
                 -- STATE : Writing
                 when '1' =>
                     -- Input part   
@@ -126,14 +126,14 @@ begin
                 when others =>
                     null;
             end case;
-        end if;
-        
-        if rising_edge(slResetInput) then
-            seRgmStateW <= '0'; -- Update state machine pivot variable.
-            seRgmStateR <= '0'; -- Update state machine pivot variable.
-            slvReaddata <= (others=>'0');
-            slReady <= '0';
-            TABLE8X256 <= (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
+            
+            if ('1' = slResetInput) then
+	            seRgmStateW <= '0'; -- Update state machine pivot variable.
+	            seRgmStateR <= '0'; -- Update state machine pivot variable.
+	            slvReaddata <= (others=>'0');
+	            slReady <= '0';
+	            TABLE8X256 <= (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
+	        end if;
         end if;
         
     end process;
