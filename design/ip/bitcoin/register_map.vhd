@@ -55,45 +55,86 @@ architecture Reg of register_map is
 	signal TABLE8X256 : TABLE := (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
 	
 	-- Internal variables
-    signal Addr : integer := 0;
+    signal AddrW : integer := 0;
+    signal AddrR : integer := 0;
+
+    -- Pivot "state variable" of the register map state machine (write)
+    -- 0 -> IDLE
+    -- 1 -> Busy mode
+    signal seRgmStateW : std_logic := '0'; -- Start in "IDLING"
+
+    -- Pivot "state variable" of the register map state machine (read)
+    -- 0 -> IDLE
+    -- 1 -> Busy mode
+    signal seRgmStateR : std_logic := '0'; -- Start in "IDLING"
 	
 begin
     -- Combinatorial logic
-    Addr <= to_integer(unsigned(slvChan));
+    AddrW <= to_integer(unsigned(slvChan));
+    AddrR <= to_integer(unsigned(slvAddress));
+    slWaitrequest <= '1' when (slRead and (not seRgmStateR)) else '0'; -- Cannot write and read at the same time
     
     -- Sequential logic
     process (slClockInput) is
     begin
         -- Clock input
         if rising_edge(slClockInput) then
-	        -- Reset input
-	        if slResetInput = '1' then
-	            -- Reset ouput value
-	            slvReaddata <= (others => '0');
-	            slReady <= '0'; -- Ready to store new result
-                slWaitrequest <= '0'; -- Release master read line
-	            
-	        end if;
+            case seRgmStateW is
+	            -- STATE : IDLE
+	            when '0' =>
+		            -- Input part
+		            if (slValid = '1')then -- Writing
+		            
+    		           seRgmStateW <= '1'; -- Update state machine pivot variable.
+    		            
+		               -- Signal write success
+		               slReady <= '1';
+		            
+		               -- Write in register/result map  
+		               if ( X"8" > slvChan ) then
+		                   TABLE8X256(AddrW) <= slvData;
+		               end if;
+		            end if;
+                -- STATE : Writing
+                when '1' =>
+                    -- Input part   
+                    slReady <= '0';
+                    seRgmStateW <= '0'; -- Update state machine pivot variable.
+                    
+                when others =>
+                    null;
+            end case;
 
-            -- Update output value
-            if ('1' = slRead) then -- Read part
-                slReady <= '1';
-                slWaitrequest <= '1'; -- For one cycle
-                
-                -- Check address sanity
-                if ( X"8" > slvAddress ) then
-                    slvReaddata <= TABLE8X256(Addr);
-                end if;
-            else
-                slReady <= '0';
-                slWaitrequest <= '0'; -- Release master read line
-
-	            if (slValid = '1')then -- Writing
-	               if ( X"8" > slvChan ) then
-                       TABLE8X256(Addr) <= slvData;
-	               end if;
-	            end if;
-            end if;
+            case seRgmStateR is
+                -- STATE : IDLE
+                when '0' =>
+                    -- Output part
+                    if ('1' = slRead) then -- Read part
+                        seRgmStateR <= '1'; -- Update state machine pivot variable.
+                    
+                        -- Check address sanity
+                        if ( X"8" > slvAddress ) then
+                            slvReaddata <= TABLE8X256(AddrR);
+                        end if;
+                    end if;
+                    
+                -- STATE : Writing
+                when '1' =>
+                    -- Output part, Leave reading state
+                    seRgmStateR <= '0'; -- Update state machine pivot variable.
+                    slvReaddata <= (others=>'0');
+                when others =>
+                    null;
+            end case;
         end if;
+        
+        if rising_edge(slResetInput) then
+            seRgmStateW <= '0'; -- Update state machine pivot variable.
+            seRgmStateR <= '0'; -- Update state machine pivot variable.
+            slvReaddata <= (others=>'0');
+            slReady <= '0';
+            TABLE8X256 <= (others=>X"01234567A44AB55BA44AB55BDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF");
+        end if;
+        
     end process;
 end Reg;

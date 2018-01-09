@@ -313,7 +313,7 @@ begin
 	            slValidOutput <= '1';
 	          end if;
 	        end loop;
-	        
+
 	        if ( '1' = slReadyInput) then
 	            slvStreamDataOut <= (others => '0');
 	            slvChanOut <= (others => '0');

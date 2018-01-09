@@ -29,4 +29,4 @@ vsim -novopt tb_avalon_master_bfm_to_BMM
 do wave.do
 
 # Let's rock !
-run 1500ns
+run 2000ns
