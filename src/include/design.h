@@ -19,6 +19,6 @@
 #ifndef DESIGN_H
 #define DESIGN_H
 
-#define NUM_BMC_CORES (1) /* Number of mining cores */
+#define NUM_BMC_CORES (8) /* Number of mining cores */
 
 #endif

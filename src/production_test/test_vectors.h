@@ -12,6 +12,8 @@
 **                If that is the case, the test is considered successful.
 **
 ** ************************************************************************** */
+#ifndef TEST_VECTORS_H
+#define TEST_VECTORS_H
 
 /* *****************************************************************************
 **  REVISION HISTORY
@@ -78,3 +80,5 @@ void TEST_VECTORS_Init(void); /* Init internal data structures */
 
 /* Compare, check result coherency and so on ... */
 void TEST_VECTORS_Bckgnd(void); /* All the above forthe time being */
+
+#endif

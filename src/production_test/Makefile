@@ -9,7 +9,8 @@ LDPATH += -L$(TERA-LOC)
 FPGA-LOC = $(PRJ_ROOT)\src\drv\FPGA
 LDPATH += -L$(FPGA-LOC)
 
-OBJ-LST = FPGA_Drv terasic_lib main test_vectors
+#OBJ-LST = FPGA_Drv terasic_lib main test_vectors
+OBJ-LST = main test_vectors
 
 build: $(TARGET)
 $(TARGET): $(addsuffix .o,$(OBJ-LST)) 

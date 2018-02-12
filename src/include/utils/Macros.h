@@ -8,6 +8,8 @@
 ** Description  : This is the legacy header file that encapsulate useful macros
 **
 ** ************************************************************************** */
+#ifndef MACROS_H
+#define MACROS_H
 
 /* *****************************************************************************
 **  REVISION HISTORY
@@ -16,7 +18,6 @@
 ** 28.05.17     bd      [no issue number] File creation
 **
 ** ************************************************************************** */
-
 #define BYTE_MAX (0xFF)
 #define DWORD_MAX (0xFFFF)
 #define QWORD_MAX (0xFFFFFFFF)
@@ -44,4 +45,6 @@
 #define mSetBit_BYTE()
 #define mSetBit_DWORD()
 #define mSetBit_QWORD()
+#endif
+
 #endif

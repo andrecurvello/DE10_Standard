@@ -9,6 +9,8 @@
 **                definitions
 **
 ** ************************************************************************** */
+#ifndef TYPES_H
+#define TYPES_H
 
 /* *****************************************************************************
 **  REVISION HISTORY
@@ -32,3 +34,4 @@ typedef signed long long sqword;  /* 8 bytes signed */
 /* float IEEE754 double precision on 64 bits */
 
 typedef char boolean; /* define boolean in C */
+#endif

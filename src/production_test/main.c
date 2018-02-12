@@ -31,10 +31,12 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
+#if 0
 #include "terasic_os_includes.h" /* terasic lib */
 
 /* FPGA Intfc */
 #include "FPGA_Drv.h" /* FPGA driver */
+#endif
 
 /* Test Intfc */
 #include "test_vectors.h" /* test vector handling */
@@ -70,7 +72,7 @@ static void handle_int(int iSignal)
 		bEnd=TRUE;
 	}
 
-	exit(1);
+	return;
 }
 
 /* *****************************************************************************
@@ -81,20 +83,23 @@ int main(void)
     /* Register signal handler */
     signal(SIGINT,handle_int);
 
+#if 0
     /* Initialize FPGA */
     FPGA_Drv_Setup();
     FPGA_Drv_Init();
+#endif
 
-#if 0
     /* Initialize test module */
     TEST_VECTORS_Setup();
-#endif
+    TEST_VECTORS_Init();
 
     /* Launch background task */
     TASK_Bkgnd();
 
+#if 0
     /* Shutdown FPGA communication channels */
     FPGA_Drv_Shutdown();
+#endif
 
 	return 0;
 }
