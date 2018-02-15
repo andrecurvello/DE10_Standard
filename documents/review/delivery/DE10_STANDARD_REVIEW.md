@@ -40,7 +40,7 @@ How many hashes can be computed in a given time frame (typically MHashes per sec
 That is why BMCs (bitcoin mining cores) are very good at it because of their big number crunching capabilities.
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/Functional_design_new.jpg" alt="Bitcoin"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/Functional_design_new.jpg" alt="Bitcoin"/>
 </p>
 
 That will come later this year. See https://github.com/BadissDjafar/DE10_Standard for future developments.
@@ -73,7 +73,7 @@ that was an easy one.
 ### LED demonstation :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/LED.jpg" alt="LED demo" height="400" width="600"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/LED.jpg" alt="LED demo" height="400" width="600"/>
 </p>
 
 Having done that, let us explore more extensively the exciting features of the DE10 Standard kit.
@@ -87,7 +87,7 @@ shows how the control the LCD screen.
 ### SPI LCD connections :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/LCD_CONNECTIONS.png" alt="LCD connections"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/LCD_CONNECTIONS.png" alt="LCD connections"/>
 </p>
 
 The software design of the LCD Demo requires a bit more skills than the LED demo (see https://github.com/BadissDjafar/DE10_DEMO/tree/master/DEMO_LCD).
@@ -105,7 +105,7 @@ that's it !
 ### LCD screen demonstration :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/LCD0.jpg" alt="LCD screen demo" height="400" width="600"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/LCD0.jpg" alt="LCD screen demo" height="400" width="600"/>
 </p>
 
 Thank to the demo projects implemented by Terasic present in the documentation, yet again, I did not start from scratch.
@@ -130,7 +130,7 @@ Essentially, the communication between HPS and the FPGA fabric can be broken dow
 ### HPS/FPGA communication channels :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/AXI_BRIDGE.png" alt="AXI Bridge" />
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/AXI_BRIDGE.png" alt="AXI Bridge" />
 </p>
 
 But before we come to that, let's use a concrete case so we can establish our knowledge on a well defined example. As you already know,
@@ -161,7 +161,7 @@ As often in embedded systems, things are viewed in term of addresses since that 
 ### Communication channels and address spaces :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/ADDRESS_SPACES.png" alt="Address spaces" />
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/ADDRESS_SPACES.png" alt="Address spaces" />
 </p>
 
 _Inter-module communication within the Cyclon V SoC is no picnic_ - A dedicated module from ARM called "System Interconnect" has been implemented
@@ -183,7 +183,7 @@ In the case of the DE10 Standard and the 7 segment displays "0xDEADBEEF" demo, h
 ### 7 segment displays netlist :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/7SEG_NETLIST.png" alt="7 segment display" />
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/7SEG_NETLIST.png" alt="7 segment display" />
 </p>
 
 From the software point of view, since we use the "lightweight HPS-to-FPGA" interface, there are no big differences with the HPS only demos actually. What you'd do is open the shared memory file "/dev/mem", map the physical addresses
@@ -193,21 +193,21 @@ that is what is important to remember from software perspective. See the code fo
 ### 7 segment display demo :
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/DEAD_1.jpg" alt="-dEAd-" height="400" width="600"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/DEAD_1.jpg" alt="-dEAd-" height="400" width="600"/>
 </p>
 <p align="center">
   0xDEAD
 </p>
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/BEEF.jpg" alt="-bEEF-" height="400" width="600"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/BEEF.jpg" alt="-bEEF-" height="400" width="600"/>
 </p>
 <p align="center">
   0xBEEF
 </p>
 
 <p align="center">
-  <img src="https://github.com/BadissDjafar/DE10_REVIEW/blob/master/SCREENSHOTS/END.jpg" alt="-End-" height="400" width="600"/>
+  <img src="https://github.com/BadissDjafar/DE10_Standard/blob/master/documents/review/SCREENSHOTS/END.jpg" alt="-End-" height="400" width="600"/>
 </p>
 <p align="center">
   -END-
