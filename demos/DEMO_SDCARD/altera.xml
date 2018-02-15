@@ -1,0 +1,5 @@
+<manifest><default revision="master" sync-j="4"/>
+<remote fetch="https://github.com" name="github_altera"/>
+<remove-project name="kraj/meta-altera"/><project remote="github_altera" name="altera-opensource/meta-altera" path="sources/meta-altera" revision="angstrom-v2015.12-yocto2.0"/>
+<project remote="github_altera" name="altera-opensource/meta-altera-refdes" path="sources/meta-altera-refdes" revision="master"/>
+</manifest>
