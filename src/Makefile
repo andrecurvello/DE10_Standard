@@ -1,74 +1,48 @@
 ################################################################################
 #                           DE10_STANDARD build file                           #
-#                                                                              #
-# ---------------------------------------------------------------------------  #
-#                                                                              #
-#                                                                              #
 ################################################################################
-DIRS = COM
-DESIGN = design
+COMMON_DIRS := drv/FPGA drv/LCD
+DRV_DIRS := common/terasic common/utils
+COM_DIRS := COM
+INCLUDE_DIRS := include/utils include/terasic include/json
+PROD_TEST_DIRS := drv production_test
+MINER_DIRS := drv COM common
 
-################################################################################
-#                              EXPORTS TO SUBMK                                #
-################################################################################
-export PRJ_ROOT = C:\Users\BDJ2Bp\workspace\BASE_DE10_STANDARD
-export ALT_DEVICE_FAMILY = soc_cv_av
-export SOCEDS_DEST_ROOT = C:\intelFPGA_pro\17.0\embedded
-export SOCEDS_ROOT = $(SOCEDS_DEST_ROOT)
-export HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
-export CROSS_COMPILE = arm-linux-gnueabihf-
-export IPATH = $(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY) $(HWLIBS_ROOT)/include/ $(PRJ_ROOT)/src/include/utils $(PRJ_ROOT)/src/include/terasic $(PRJ_ROOT)/src/include/json $(PRJ_ROOT)/src/COM $(PRJ_ROOT)/src/include
-export DFLAGS = $(ALT_DEVICE_FAMILY)
-export CFLAGS = -static -g -Wall $(addprefix -D,$(DFLAGS)) $(addprefix -I,$(IPATH)) 
+export IPATH += -I$(PRJ_ROOT)/src/include $(addprefix -I$(PRJ_ROOT)/src/,$(INCLUDE_DIRS)) $(addprefix -I$(PRJ_ROOT)/src/,$(COMMON_DIRS)) $(addprefix -I$(PRJ_ROOT)/src/,$(DRV_DIRS)) $(addprefix -I$(PRJ_ROOT)/src/,$(COM_DIRS))
+export LPATH += -L$(PRJ_ROOT)/src/lib $(addprefix -L$(PRJ_ROOT)/src/,$(COMMON_DIRS)) $(addprefix -L$(PRJ_ROOT)/src/,$(DRV_DIRS)) $(addprefix -L$(PRJ_ROOT)/src/,$(COM_DIRS))
 
-################################################################################
-#                           ARCH AND CROSS-COMPILATION                         #
-################################################################################
-export CC = $(CROSS_COMPILE)gcc
-export ARCH= arm
+ifeq ($(MAKECMDGOALS),all)
+  export BUILD_DIR := $(PRJ_ROOT)/src/COM
+endif
 
-################################################################################
-#                           TARGET DEFINITIONS                                 #
-################################################################################
-default : usage
+ifeq ($(MAKECMDGOALS),production_test)
+  export BUILD_DIR := $(PRJ_ROOT)/src/production_test
+endif
 
-all : $(TARGETS)
-	@echo -e "\033[1;32m[Compiling $@]\033[0m"
-	$(foreach DIR,$(DIRS),cd $(DIR) && make all && cd .. &&) true
-	@echo -e  "\033[1;32m[Finished $@]\033[0m"
+ifeq ($(MAKECMDGOALS),production_test_sim)
+  export BUILD_DIR := $(PRJ_ROOT)/src/production_test
+endif
 
-miner :
-	@echo -e "\033[1;32m[Compiling $@]\033[0m"
-	$(MAKE) -C COM MINER
-	@echo -e  "\033[1;32m[Finished $@]\033[0m"
+all: build_miner
+build_miner : build_common build_drivers
+	$(MAKE) -C COM all
 
-test :
-	@echo -e "\033[1;36m[    TBD    ]\033[0m"
+build_common :
+	$(MAKE) -C common all
 
-generate_fabric :
-	@echo -e "\033[1;36m[    TBD    ]\033[0m"
+build_common_sim :
+	$(MAKE) -C common sim
 
-clean_fabric :
-	@echo -e "\033[1;36m[    TBD    ]\033[0m"
+build_drivers :
+	$(MAKE) -C drv all
 
-usage list help:
-	@echo -e "\033[1;36m[Listing available target for build : \033[0m"
-	@echo -e "\033[1;36m[	all             - builds all available targets\033[0m"
-	@echo -e "\033[1;36m[	miner           - builds the miner app\033[0m"
-	@echo -e "\033[1;36m[	test            - builds the production test\033[0m"
-	@echo -e "\033[1;36m[	generate_fabric - generates FPGA fabric design\033[0m"
-	@echo -e "\033[1;36m[	clean_fabric    - cleans FPGA fabric design\033[0m"
-	@echo -e "\033[1;36m[	clean           - cleans the build directories\033[0m"
+# tests targets defn
+production_test : build_drivers build_common
+	$(MAKE) -C production_test test
 
-.PHONY: clean
+production_test_sim : build_common_sim
+	$(MAKE) -C production_test test_sim
+
 clean:
-	$(foreach DIR,$(DIRS),cd $(DIR) && make clean && cd .. &&) true
-	
-#Black        0;30     Dark Gray     1;30
-#Red          0;31     Light Red     1;31
-#Green        0;32     Light Green   1;32
-#Brown/Orange 0;33     Yellow        1;33
-#Blue         0;34     Light Blue    1;34
-#Purple       0;35     Light Purple  1;35
-#Cyan         0;36     Light Cyan    1;36
-#Light Gray   0;37     White         1;37
+	$(foreach DIR,$(MINER_DIRS),cd $(DIR) && make clean && cd .. &&) true
+	$(foreach DIR,$(PROD_TEST_DIRS),cd $(DIR) && make clean && cd .. &&) true

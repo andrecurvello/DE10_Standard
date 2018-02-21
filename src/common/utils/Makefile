@@ -6,5 +6,5 @@ include ../common.mk
 
 common_sim : $(addsuffix .sim.o,$(OBJS))
 %.sim.o : %.c
-	$(HOSTCC)gcc $(CFLAGS) $(IPATH) $(LPATH) -c $< -o $@
+	$(CC) $(CFLAGS) $(IPATH) $(LPATH) -c $< -o $@
 	cp $@ $(BUILD_DIR)

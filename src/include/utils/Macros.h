@@ -41,10 +41,7 @@
 #define mBITS_LeftShiftDouble(DblVal,Offs) ((double)(DblVal<<Offs))
 #define mBITS_RightShiftDouble(DblVal,Offs) ((double)(DblVal>>Offs))
 
-#if 0
-#define mSetBit_BYTE()
-#define mSetBit_DWORD()
-#define mSetBit_QWORD()
-#endif
+#define mSetBit(word,index) (word|=(0x1<<index))
+#define mClearBit(word,index) (word&=~(0x1<<index))
 
 #endif
