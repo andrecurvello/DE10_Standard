@@ -20,21 +20,15 @@
 /* *****************************************************************************
 **                          SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include <stdio.h>    /* classic stdin/out/err defns */
-#include <unistd.h>   /* types def */
-#include <fcntl.h>    /* function definitions */
-#include <sys/mman.h> /* virt to phys mapping routines */
-#include <signal.h>   /* signal handling */
 #include "Macros.h"   /* Divers macros definitions */
 #include "Types.h"    /* Legacy types definitions */
+
+#include <signal.h>   /* signal handling */
 
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "hwlib.h"          /* General ALTERA HW definitions */
-#include "socal/socal.h"    /* ALTERA Socal defns */
-#include "socal/hps.h"      /* Hardware processing system (controller)  defns */
-#include "socal/alt_gpio.h" /* ALTERA GPIO defns */
+#include "terasic_os_includes.h" /* terasic lib */
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
