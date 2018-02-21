@@ -1,30 +1,23 @@
 ################################################################################
-#                             MINER Makefile                                   #
+#                             Test Makefile                                    #
 ################################################################################
-TARGET = TEST
-
-TERA-LOC = $(PRJ_ROOT)\src\common\terasic
-LDPATH += -L$(TERA-LOC)
-
-FPGA-LOC = $(PRJ_ROOT)\src\drv\FPGA
-LDPATH += -L$(FPGA-LOC)
-
 #OBJ-LST = FPGA_Drv terasic_lib main test_vectors
-OBJ-LST = main test_vectors
+OBJ-LST := main test_vectors hex terasic_lib FPGA_Drv
+OBJ-LST-SIM := main test_vectors hex
 
-build: $(TARGET)
-$(TARGET): $(addsuffix .o,$(OBJ-LST)) 
-	$(CC) $(LDPATH) $^ -o $@ -lpthread
+all: test test_sim
 
-terasic_lib.o : 
-	$(CC) $(CFLAGS) -c $(TERA-LOC)\terasic_lib.c -o $@
+test : $(addsuffix .o,$(OBJ-LST))
+	$(CC) $(CFLAGS) $(LPATH) $(IPATH) $^ -o $@ -lpthread
 	
-FPGA_Drv.o: 
-	$(CC) $(CFLAGS) -c $(FPGA-LOC)\FPGA_Drv.c -o $@
+test_sim : $(addsuffix .sim.o,$(OBJ-LST-SIM))
+	$(CC) $(CFLAGS) $(LPATH) $(IPATH) $^ -o $@ -lpthread
 
 %.o : %.c
-	$(CC) $(CFLAGS) -I$(TERA-LOC) -I$(FPGA-LOC) -c $< -o  $@
+	$(CC) $(CFLAGS) $(LPATH) $(IPATH) -c $< -o  $@
 
-.PHONY: clean
+%.sim.o : %.c
+	$(CC) $(CFLAGS_SIM) $(LPATH) $(IPATH) -c $< -o $@
+
 clean:
-	rm -f $(TARGET) *.a *.o *~ 
+	rm -f *.a *.o *~ 

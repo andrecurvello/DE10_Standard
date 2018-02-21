@@ -70,8 +70,6 @@ typedef enum
 void TEST_VECTORS_Setup(void); /* Get the test config env */
 void TEST_VECTORS_Init(void); /* Init internal data structures */
 
-/* Prepare the message, padding ... */
-
 /* Need some kind of interface to the FPGA */
 
 /* Inject/stage work to FPGA */ /* ------> tricky */

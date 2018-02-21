@@ -1,47 +1,16 @@
 ################################################################################
 #                             MINER Makefile                                   #
 ################################################################################
-TARGET = MINER
+IPATH += -I$(PRJ_ROOT)/src/COM
+LPATH += -L$(PRJ_ROOT)/src/COM
+OBJ =  main COM_mgr STRATUM JSON_ser SCHEDULER hex terasic_lib FPGA_Drv LCD_Driver LCD_Graphic
 
-LCD-LOC = $(PRJ_ROOT)\src\drv\LCD
-LDPATH += -L$(LCD-LOC)
-
-TERA-LOC = $(PRJ_ROOT)\src\common\terasic
-LDPATH += -L$(TERA-LOC)
-
-FPGA-LOC = $(PRJ_ROOT)\src\drv\FPGA
-LDPATH += -L$(FPGA-LOC)
-
-JSON-LOC = $(PRJ_ROOT)\src\lib
-LDPATH += -L$(JSON-LOC)
-
-#7SEG-LOC = $(PRJ_ROOT)\src\drv\7SEG
-#LDPATH += -L$(7SEG-LOC)
-
-#BUTTON-LOC = $(PRJ_ROOT)\src\drv\BUTTON
-#LDPATH += -L$(BUTTON-LOC)
-
-OBJ-LST = FPGA_Drv LCD_Driver LCD_Graphic terasic_lib main COM_mgr STRATUM JSON_ser SCHEDULER
-
-build: $(TARGET)
-$(TARGET): $(addsuffix .o,$(OBJ-LST)) 
-	$(CC) $(LDPATH) $^ -o $@ -lpthread -ljson-c
-
-terasic_lib.o : 
-	$(CC) $(CFLAGS) -c $(TERA-LOC)\terasic_lib.c -o $@
+all : build_miner
+build_miner : $(addsuffix .o,$(OBJ))
+	$(CC) $(CFLAGS) $(LPATH) $(addsuffix .o,$(OBJ)) -o miner -lpthread -ljson-c
 	
-LCD_Driver.o : 
-	$(CC) $(CFLAGS) -c $(LCD-LOC)\LCD_Driver.c -o $@
-
-LCD_Graphic.o: 
-	$(CC) $(CFLAGS) -c $(LCD-LOC)\LCD_Graphic.c -o $@
-
-FPGA_Drv.o: 
-	$(CC) $(CFLAGS) -c $(FPGA-LOC)\FPGA_Drv.c -o $@
-
 %.o : %.c
-	$(CC) $(CFLAGS) -I$(LCD-LOC) -I$(TERA-LOC) -I$(FPGA-LOC) -c $< -o  $@
+	$(CC) $(CFLAGS) $(IPATH) $(LPATH) -c $< -o $@
 
-.PHONY: clean
 clean:
-	rm -f $(TARGET) *.a *.o *~ 
+	rm -f *.a *.o *~ 

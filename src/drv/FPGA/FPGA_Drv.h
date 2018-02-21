@@ -28,7 +28,6 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#include "SCHEDULER.h"
 
 /* *****************************************************************************
 **                          ENUM & MACRO DEFINITIONS
@@ -63,7 +62,7 @@ dword FPGA_Drv_Init(void);
 
 void FPGA_Drv_Bkgnd(void);
 
-dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork);
+dword FPGA_Drv_StageWork(void * const pstWork);
 eFPGA_State_t FPGA_Drv_GetStatus(void);
 
 void FPGA_Drv_Shutdown(void); /* Avoid segfault and wrong access to phy memory */

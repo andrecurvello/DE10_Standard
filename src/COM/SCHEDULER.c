@@ -149,7 +149,6 @@ void SCHEDULER_Init(void)     /* Reinit the work queue */
     	stLocalData.astWorkQueue[dwIndex].bIsFree=TRUE;
     }
 
-
     return;
 }
 
@@ -198,7 +197,6 @@ void SCHEDULER_Bkgnd(void)
 	            /* New work, trigger transition to calibration state */
 	            stLocalData.eState = eSCHEDULER_RECALIBRATION;
 			}
-
 
             /* If no new work is present, just hang in that state */
 
@@ -310,7 +308,6 @@ void SCHEDULER_PushWork(const stSCHEDULER_Work_t * const pstWork)
             /* Found free slot ? */
             if( TRUE == pstLocalWork->bIsFree )
             {
-
                 /* Increment number of elements */
                 stLocalData.byNumWork++;
 

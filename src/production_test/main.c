@@ -31,10 +31,8 @@
 /* *****************************************************************************
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
-#if 0
-#include "terasic_os_includes.h" /* terasic lib */
-
 /* FPGA Intfc */
+#ifdef SIM
 #include "FPGA_Drv.h" /* FPGA driver */
 #endif
 
@@ -83,8 +81,8 @@ int main(void)
     /* Register signal handler */
     signal(SIGINT,handle_int);
 
-#if 0
     /* Initialize FPGA */
+#ifdef SIM
     FPGA_Drv_Setup();
     FPGA_Drv_Init();
 #endif
@@ -96,8 +94,8 @@ int main(void)
     /* Launch background task */
     TASK_Bkgnd();
 
-#if 0
     /* Shutdown FPGA communication channels */
+#ifdef SIM
     FPGA_Drv_Shutdown();
 #endif
 
@@ -108,13 +106,14 @@ static void TASK_Bkgnd(void)
 {
     for(;bEnd==FALSE;)
     {
-#if 0
         /* Process scheduler */
-        /* TEST_VECTORS_Bkgnd(); */
+        TEST_VECTORS_Bckgnd();
 
+#ifdef SIM
         /* Process FPGA task */
         FPGA_Drv_Bkgnd();
 #endif
+
     };
 
     return;

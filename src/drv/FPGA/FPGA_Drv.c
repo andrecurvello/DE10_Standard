@@ -60,8 +60,9 @@ typedef struct
     word wFileDesc;
     void *pvVirtBase;
 
-    void *pvBMC0;
-    void *pvREG0;
+    void *pvManager;
+    void *pvCoreIntfc;
+    void *pvRegisterMap;
 
 } FPGA_Drv_Data_t;
 
@@ -82,13 +83,6 @@ typedef struct
 **                                 LOCALS
 ** ************************************************************************** */
 static FPGA_Drv_Data_t stLocalData;
-static byte abyTestSHA256[] =
-{
-    0xde,0xad,0xbe,0xef,0xde,0xad,0xbe,0xef,0xde,0xad,0xbe,0xef,0xde,0xad,0xbe,0xef,
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-};
 
 /* *****************************************************************************
 **                              LOCALS ROUTINES
@@ -161,14 +155,14 @@ dword FPGA_Drv_Init(void)
     dwRetVal = 0;
 
     /* Nothing to do here for the time being */
-    stLocalData.pvBMC0 = (stLocalData.pvVirtBase + ALT_FPGA_BMC0_INTFC);
-    stLocalData.pvREG0 = (stLocalData.pvVirtBase + ALT_FPGA_REG0_INTFC);
+    stLocalData.pvCoreIntfc = (stLocalData.pvVirtBase + ALT_FPGA_BMC0_INTFC);
+    stLocalData.pvRegisterMap = (stLocalData.pvVirtBase + ALT_FPGA_REG0_INTFC);
 
     return dwRetVal;
 }
 
 /* ************************************************************************** */
-dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
+dword FPGA_Drv_StageWork(void * const pstWork)
 /* *****************************************************************************
 ** Input  : Pointer to work structure to be staged for work.
 ** Output : -
@@ -180,36 +174,13 @@ dword FPGA_Drv_StageWork(stSCHEDULER_Work_t * const pstWork)
 ** ************************************************************************** */
 {
     dword dwRetVal;
-    dword dwIdx;
 
     /* Initialize locals */
     dwRetVal = 0;
 
     if( NULL != pstWork )
     {
-        /* Test BMC0 */
-    	printf("TEST 0\n");
-    	printf("Data Read 0 : 0x");
-    	for( dwIdx=0;dwIdx<16;dwIdx++ )
-    	{
-            printf("%.2x",*((byte*)stLocalData.pvBMC0 + dwIdx));
-    	}
-        printf("\n");
-        *((byte*)stLocalData.pvBMC0 + 0 )  = abyTestSHA256[0];
-    	printf("Data Write 0 : 0x");
-    	for( dwIdx=0;dwIdx<16;dwIdx++ )
-    	{
-            printf("%.2x",*((byte*)stLocalData.pvBMC0 + dwIdx));
-    	}
-        printf("\n");
-
-    	printf("TEST 1\n");
-        *((byte*)stLocalData.pvBMC0 + 16 ) = abyTestSHA256[16];
-    	printf("TEST 2\n");
-        *((byte*)stLocalData.pvBMC0 + 32 ) = abyTestSHA256[32];
-    	printf("TEST 3\n");
-        *((byte*)stLocalData.pvBMC0 + 48 ) = abyTestSHA256[48];
-    	printf("TEST 4\n");
+        /* TBD ... */
 
         dwRetVal = 1;
     }
@@ -232,9 +203,9 @@ void FPGA_Drv_Bkgnd(void)
     dword dwIdx;
 
     /* Read calculated checksums */
-    if( 0x0000000000000000000000000000000 != *((byte*)stLocalData.pvREG0 + 0 ) )
+    if( 0x0000000000000000000000000000000 != *((byte*)stLocalData.pvRegisterMap + 0 ) )
     {
-    	pbyData = ((byte*)stLocalData.pvREG0 + 0 );
+    	pbyData = ((byte*)stLocalData.pvRegisterMap + 0 );
     	printf("Data 0 : 0x");
     	for( dwIdx=0;dwIdx<16;dwIdx++ )
     	{
@@ -242,7 +213,7 @@ void FPGA_Drv_Bkgnd(void)
     	}
         printf("\n");
 
-    	pbyData = ((byte*)stLocalData.pvREG0 + 16 );
+    	pbyData = ((byte*)stLocalData.pvRegisterMap + 16 );
     	printf("Data 1 : 0x");
     	for( dwIdx=0;dwIdx<16;dwIdx++ )
     	{
@@ -304,8 +275,8 @@ static void ResetData(void)
 
     stLocalData.wFileDesc = -1;
     stLocalData.pvVirtBase = NULL;
-    stLocalData.pvBMC0 = NULL;
-    stLocalData.pvREG0 = NULL;
+    stLocalData.pvCoreIntfc = NULL;
+    stLocalData.pvRegisterMap = NULL;
 
     return;
 }

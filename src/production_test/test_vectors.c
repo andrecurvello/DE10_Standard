@@ -38,6 +38,7 @@
 **                          NON-SYSTEM INCLUDE FILES
 ** ************************************************************************** */
 #include "design.h"  /* Legacy types definitions */
+#include "hex.h"     /* hex string manipulations */
 #include "test_vectors.h" /*
                           ** i)  Parse and inject test vectors in the FPGA fabric
                           ** ii) Check results. Measure performances.
@@ -51,6 +52,8 @@
 #define VECTOR_BIT_FILE_TAG "NIST_TEST_VECTOR_BIT_DB\n" /* Name of the actual config file */
 #define MAX_STR_LEN (256) /* Maximum length of a string in that particular module */
 #define BLOCK_SIZE_BYTES (64) /* A 512bits SHA256 block size in bytes */
+#define BLOCK_SIZE_BITS (512) /* A 512bits SHA256 block size in bytes */
+#define PADDING_SIZE_BYTES (8) /* 64bits padding block */
 #define TEST_TABLE_LEN (512) /* A 56(byte vectors) + 448(bit vectors) test vectors have a length < 448 */
 #define MAX_TEST_VECTOR_LEN (448) /* Maximum test vector length */
 
@@ -63,16 +66,17 @@ typedef enum
 
 typedef struct
 {
+    eTEST_VECTORS_Type_st eType;
     word wLength;
     byte abyMsg[BLOCK_SIZE_BYTES];
     byte abyDigest[BLOCK_SIZE_BYTES];
-    eTEST_VECTORS_Type_st eType;
 
 }SHAVS_Test_Vector_st;
 
 typedef struct
 {
     SHAVS_Test_Vector_st stVector;
+    byte abyMsgHex[BLOCK_SIZE_BYTES];
     byte abyCalcDigest[BLOCK_SIZE_BYTES];
 
 }SHAVS_Test_Entry_st;
@@ -91,6 +95,7 @@ typedef struct
 typedef struct
 {
     TEST_Vectors_File_Hndl_st stHndl;
+    byte abyWorkingBlock[BLOCK_SIZE_BYTES];
 
 } TEST_Vectors_desc_st;
 
@@ -112,6 +117,9 @@ static void ResetData(void); /* Reset modules private data */
 static void PrepareVectors(void); /* Add padding, put the test vector in the FPGA
                                   ** interface compatible format
                                   */
+
+/* stdout output of a block */
+static void DisplayBlock(const byte * pbyBlock);
 
 static word GetLen(const byte* pbyData);  /* Return test entry message length */
 static void GetData(byte* pbyDataDest, const byte* pbyDataSrc); /* Points to the Msg in the test entry */
@@ -164,13 +172,13 @@ void TEST_VECTORS_Setup(void)
         }
 
         /* See if there are no eol interference */
-        pChar = strchr( pstLocalDesc.stHndl.abyVectByte_File_Name, '\n' );
+        pChar = (byte*)strchr( (char*)pstLocalDesc.stHndl.abyVectByte_File_Name, '\n' );
         if( NULL != pChar )
         {
             *pChar = 0;
         }
 
-        pChar = strchr( pstLocalDesc.stHndl.abyVectBit_File_Name, '\n' );
+        pChar = (byte*)strchr( (char*)pstLocalDesc.stHndl.abyVectBit_File_Name, '\n' );
         if( NULL != pChar )
         {
             *pChar = 0;
@@ -201,8 +209,6 @@ void TEST_VECTORS_Init(void)
     pstLocalDesc.stHndl.pstVectByte_File = fopen((const char*)pstLocalDesc.stHndl.abyVectByte_File_Name, "r");
     wIndex = 0;
 
-    printf("\n");
-
     if (NULL != pstLocalDesc.stHndl.pstVectBit_File)
     {
         while( 0 == feof(pstLocalDesc.stHndl.pstVectBit_File) )
@@ -230,10 +236,6 @@ void TEST_VECTORS_Init(void)
                         && (NULL != astTestTable[wIndex].stVector.abyDigest)
                       )
                     {
-                        printf("\n");
-                        printf("Length  : %d\n",astTestTable[wIndex].stVector.wLength);
-                        printf("Message : %s\n",astTestTable[wIndex].stVector.abyMsg);
-                        printf("Digest  : %s\n",astTestTable[wIndex].stVector.abyDigest);
                         /* Valid - Point to next entry in the table */
                         wIndex++;
                     }
@@ -277,10 +279,6 @@ void TEST_VECTORS_Init(void)
                         && (NULL != astTestTable[wIndex].stVector.abyDigest)
                       )
                     {
-                        printf("\n");
-                        printf("Length  : %d\n",astTestTable[wIndex].stVector.wLength);
-                        printf("Message : %s\n",astTestTable[wIndex].stVector.abyMsg);
-                        printf("Digest  : %s\n",astTestTable[wIndex].stVector.abyDigest);
                         /* Valid - Point to next entry in the table */
                         wIndex++;
                     }
@@ -297,16 +295,29 @@ void TEST_VECTORS_Init(void)
         fclose(pstLocalDesc.stHndl.pstVectByte_File);
     }
 
-    printf("Number of entries : %d \n",wIndex);
-
     /*
-    ** The test table is now fill up, next step consist in make sure the format
+    ** The test table is now full, next step consist in making sure the format
     ** is compatible with the FPGA interface.
     */
     PrepareVectors();
 
     /* Give hand to the background task ... */
 
+    return;
+}
+
+
+/* ************************************************************************** */
+void TEST_VECTORS_Bckgnd(void)
+/* *****************************************************************************
+** Input  : -
+** Output : -
+** Return : -
+**
+** Description  : Background task
+**
+** ************************************************************************** */
+{
     return;
 }
 
@@ -388,14 +399,14 @@ static void GetData(byte * pbyDataDest, const byte * pbyDataSrc)
             pChar += 2;
 
             /* Get rid of EOL pollution */
-            pCrLf = strchr( pChar, '\n' );
+            pCrLf = (byte*)strchr( (char*)pChar, '\n' );
             if( NULL != pCrLf )
             {
                 *pCrLf = 0;
             }
 
             /* Now pointing to Msg string. just exit */
-            strcpy(pbyDataDest,pChar);
+            strcpy((char*)pbyDataDest,(char*)pChar);
         }
     }
 
@@ -409,10 +420,84 @@ static void PrepareVectors(void)
 ** Output : -
 ** Return : -
 **
-** Description  : Given a message add the necessary padding.
+** Description  : Work on the the table entries and make them FPGA-compatible.
+**                That means that the message and padding have to be in right format.
+**                See NIST FIPS PUB 180-4 for more details.
 **
 ** ************************************************************************** */
 {
+    word wIdx;
+    byte* pbyEndOfBlock;
+    qword* pqwPaddingBlock;
+
+    /* Prepare working data */
+    memset(pstLocalDesc.abyWorkingBlock,0x00,BLOCK_SIZE_BYTES);
+
+    /* Loop through  */
+    for( wIdx = 0; wIdx < TEST_TABLE_LEN ; wIdx++ )
+    {
+        /* At the moment we just consider the byte vectors */
+        if( eTEST_VECTOR_TYPE_BYTE == astTestTable[wIdx].stVector.eType )
+        {
+            /* The work will be base on the work data */
+            memset(astTestTable[wIdx].abyMsgHex,0x00,BLOCK_SIZE_BYTES);
+
+            /* Base read format is the following  */
+            /* [ A , B , C , D] -> [ D , C   , B , A ] where A,B,C,D are 32 bits word + Need to add some padding */
+            printf( "[%s] Size : %d\n",__func__,astTestTable[wIdx].stVector.wLength);
+            printf( "[%s] Msg : %s\n",__func__,astTestTable[wIdx].stVector.abyMsg);
+
+            StringToHex(pstLocalDesc.abyWorkingBlock,astTestTable[wIdx].stVector.abyMsg,BLOCK_SIZE_BYTES);
+
+            /*  Padding information
+            Suppose that the length of the message, M, is l bits. Append the bit “1” to the end of the
+            message, followed by k zero bits, where k is the smallest, non-negative solution to the equation
+            l + 1 + k = 448mod512 . Then append the 64-bit block that is equal to the number l expressed
+            using a binary representation. For example, the (8-bit ASCII) message “abc” has length
+            8*3=24, so the message is padded with a one bit, then 448 - (24 + 1) = 423 zero bits, and then
+            the message length, to become the 512-bit padded message
+
+               a        b        c     |   423 0s     last 64bits block
+            01100001 01100010 01100011 1 0000…0000    00000000000…011000
+                                                              l=24
+
+            The length of the padded message should now be a multiple of 512 bits.
+            */
+
+            /* Point to byte after the last message byte */
+            pbyEndOfBlock=&pstLocalDesc.abyWorkingBlock[(astTestTable[wIdx].stVector.wLength/8)];
+            *pbyEndOfBlock=0x80;
+
+            /* Now add the padding */
+            pqwPaddingBlock = (qword*)&pstLocalDesc.abyWorkingBlock[(BLOCK_SIZE_BYTES-PADDING_SIZE_BYTES)];
+            *pqwPaddingBlock = astTestTable[wIdx].stVector.wLength;
+
+            DisplayBlock(&pstLocalDesc.abyWorkingBlock[0]);
+
+            /* Now, we have to reoder to be compatible with the IP endianess */
+
+            /* From now on, be careful, it all big endian based */
+            Swap32BitsBigEndian( (unsigned int*)astTestTable[wIdx].abyMsgHex,
+                                 (const unsigned int*)pstLocalDesc.abyWorkingBlock,
+                                 BLOCK_SIZE_BITS );
+
+            DisplayBlock(&astTestTable[wIdx].abyMsgHex[0]);
+        }
+    }
+
+    return;
+}
+
+static void DisplayBlock(const byte * pbyBlock)
+{
+    word wIdx;
+
+    for( wIdx=0; wIdx<BLOCK_SIZE_BYTES; wIdx++ )
+    {
+        printf("%02x ",pbyBlock[wIdx]);
+    }
+
+    printf("\n");
 
     return;
 }

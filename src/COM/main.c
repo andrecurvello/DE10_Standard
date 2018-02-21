@@ -35,6 +35,7 @@
 
 /* COM management */
 #include "COM_Mgr.h" /* COM manager defn */
+#include "SCHEDULER.h" /* Scheduler defn */
 
 /* FPGA and user interface */
 #include "FPGA_Drv.h" /* FPGA driver */
@@ -124,7 +125,6 @@ static void TASK_Bkgnd(void)
         FPGA_Drv_Bkgnd();
 
 #if 0
-
         /* Process user interface */
         UI_Mgr_Bkgnd();
 #endif
