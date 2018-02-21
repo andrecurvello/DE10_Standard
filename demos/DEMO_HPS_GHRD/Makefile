@@ -1,31 +1,7 @@
 ################################################################################
-#                           DE10_STANDARD build file                           #
-#                                                                              #
-# ---------------------------------------------------------------------------  #
-#                                                                              #
-#                                                                              #
-#                                                                              #
-#                                                                              #
-#                                                                              #
-#                                                                              #
+#                         DE10_DEMO HPS -> FPGA specifics                      #
 ################################################################################
 TARGET = DEMO_HPS_GHRD
-ALT_DEVICE_FAMILY ?= soc_cv_av
-SOCEDS_DEST_ROOT = C:\intelFPGA_pro\17.0\embedded
-SOCEDS_ROOT ?= $(SOCEDS_DEST_ROOT)
-HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
-CROSS_COMPILE = arm-linux-gnueabihf-
-CFLAGS = -g -Wall   -D$(ALT_DEVICE_FAMILY) -I$(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY)   -I$(HWLIBS_ROOT)/include/
-LDFLAGS =  -g -Wall 
-CC = $(CROSS_COMPILE)gcc
-ARCH= arm
+OBJS = main
 
-build: $(TARGET)
-$(TARGET): main.o 
-	$(CC) $(LDFLAGS)   $^ -o $@  
-%.o : %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-.PHONY: clean
-clean:
-	rm -f $(TARGET) *.a *.o *~ 
+include ../common.mk
