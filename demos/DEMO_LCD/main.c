@@ -121,8 +121,8 @@ int main(void)
 	        LCDGrph_DrawCircle(&LcdCanvas, LcdCanvas.Width-10, 10, 6, LCD_BLACK);
 	        LCDGrph_DrawCircle(&LcdCanvas, LcdCanvas.Width-10, LcdCanvas.Height-10, 6, LCD_BLACK);
 	        LCDGrph_DrawCircle(&LcdCanvas, 10, LcdCanvas.Height-10, 6, LCD_BLACK);
-	        LCDGrph_PrintString(&LcdCanvas, 30, 10, "DE10 kit", LCD_BLACK);
-	        LCDGrph_PrintString(&LcdCanvas, 40, 10+8, "review", LCD_BLACK);
+	        LCDGrph_PrintString(&LcdCanvas, 30, 10, "DU", LCD_BLACK);
+	        LCDGrph_PrintString(&LcdCanvas, 40, 10+8, "CUL !", LCD_BLACK);
 	        LCDGrph_PrintString(&LcdCanvas, 30, 10+28, ":) :) :)", LCD_BLACK);
 
             /* Wake up LCD screen */

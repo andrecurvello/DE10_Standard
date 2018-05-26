@@ -22,8 +22,8 @@
 #include <math.h>
 #include "hwlib.h"
 #include "socal/socal.h"
-#include "socal/hps.h"
 #include "socal/alt_gpio.h"
 #include "socal/alt_spim.h" 
+#include "socal/hps.h"
 
 #endif  //_TERASIC_OS_INCLUDE_H_
