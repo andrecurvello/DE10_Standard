@@ -1,0 +1,11 @@
+# i) ips
+ip/altsource_probe/hps_reset.qip
+ip/debounce/debounce.v
+ip/edge_detect/altera_edge_detector.v
+ip/TERASIC_SEG7/TERASIC_SEG7.v
+
+# ii) Invoke the system
+/soc_system/synthesis/soc_system.qip
+
+# iii) And then the design
+Top.v
