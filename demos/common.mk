@@ -7,7 +7,7 @@ $(TARGET): $(addsuffix .o,$(OBJS))
 	$(CC) $(LDFLAGS) $^ -o $@ 
 
 %.o : %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(IPATH) $(CFLAGS) -c $< -o $@
 
 PHONY: clean
 clean:

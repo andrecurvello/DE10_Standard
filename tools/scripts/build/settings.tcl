@@ -37,7 +37,7 @@ foreach line $data {
                 set_global_assignment -name VERILOG_FILE "$src/$trimmed"
             } elseif { $ext == ".sv" } {
                 set_global_assignment -name SYSTEMVERILOG_FILE "$src/$trimmed"
-            } elseif { $ext == ".vhdl" } {
+            } elseif { $ext == ".vhd" } {
                 set_global_assignment -name VHDL_FILE "$src/$trimmed"
             } elseif { $ext == ".qip" } {
                 set_global_assignment -name QIP_FILE "$src/$trimmed"
